@@ -50,14 +50,17 @@ export default function Departments() {
     }
     setCreating(true);
     try {
+      console.log('Creating department:', { department_name: departmentName.trim(), staff_id: staffId });
       const newDept = await api.createDepartment({ department_name: departmentName.trim(), staff_id: staffId });
+      console.log('Department created:', newDept);
       setDepartments(prev => [newDept, ...prev]);
       setDepartmentName('');
       setStaffId('');
-      setSuccess('Department created');
-      setTimeout(() => setSuccess(''), 2000);
+      setSuccess('Department created successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (e) {
-      setError(e.message);
+      console.error('Error creating department:', e);
+      setError(e.message || 'Failed to create department');
     } finally {
       setCreating(false);
     }
@@ -80,6 +83,7 @@ export default function Departments() {
   const saveEdit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     if (!editName.trim()) {
       setError('Department name is required');
       return;
@@ -89,16 +93,19 @@ export default function Departments() {
       return;
     }
     try {
+      console.log('Updating department:', editId, { department_name: editName.trim(), staff_id: editStaffId });
       const updated = await api.updateDepartment(editId, {
         department_name: editName.trim(),
         staff_id: editStaffId
       });
+      console.log('Department updated:', updated);
       setDepartments(prev => prev.map(d => d.id === editId ? updated : d));
       cancelEdit();
-      setSuccess('Department updated');
-      setTimeout(() => setSuccess(''), 2000);
+      setSuccess('Department updated successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (e) {
-      setError(e.message);
+      console.error('Error updating department:', e);
+      setError(e.message || 'Failed to update department');
     }
   };
 
@@ -133,11 +140,12 @@ export default function Departments() {
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <label style={{ fontWeight: 600, marginBottom: 4 }}>Head Staff</label>
+            <label style={{ fontWeight: 600, marginBottom: 4 }}>Head Staff <span style={{ color: '#ef4444' }}>*</span></label>
             <select
               value={staffId}
               onChange={(e) => setStaffId(e.target.value)}
               style={{ padding: '8px 12px', minWidth: '220px', border: '1px solid #ccc', borderRadius: 6 }}
+              required
             >
               <option value="">Select staff...</option>
               {staff.map(s => (
@@ -150,13 +158,38 @@ export default function Departments() {
           <button
             type="submit"
             disabled={creating}
-            style={{ background: '#4f46e5', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}
+            style={{ background: '#4f46e5', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: 6, cursor: creating ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: creating ? 0.6 : 1 }}
           >
             {creating ? 'Creating...' : 'Add Department'}
           </button>
-          {error && <div style={{ color: '#b91c1c', fontWeight: 600 }}>{error}</div>}
-          {success && <div style={{ color: '#047857', fontWeight: 600 }}>{success}</div>}
         </form>
+        
+        {error && (
+          <div style={{ 
+            background: '#fee2e2', 
+            border: '1px solid #fca5a5', 
+            color: '#b91c1c', 
+            padding: '12px 16px', 
+            borderRadius: 6, 
+            marginBottom: 16,
+            fontWeight: 600 
+          }}>
+            ❌ {error}
+          </div>
+        )}
+        {success && (
+          <div style={{ 
+            background: '#d1fae5', 
+            border: '1px solid #6ee7b7', 
+            color: '#047857', 
+            padding: '12px 16px', 
+            borderRadius: 6, 
+            marginBottom: 16,
+            fontWeight: 600 
+          }}>
+            ✅ {success}
+          </div>
+        )}
 
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>

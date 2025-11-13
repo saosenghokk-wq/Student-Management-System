@@ -29,8 +29,8 @@ const attendanceService = {
     return await attendanceRepository.getStudents();
   },
 
-  async getSubjectEnrollments() {
-    return await attendanceRepository.getSubjectEnrollments();
+  async getSubjectEnrollments(teacherId = null) {
+    return await attendanceRepository.getSubjectEnrollments(teacherId);
   },
 
   async getAttendanceByFilters(filters) {

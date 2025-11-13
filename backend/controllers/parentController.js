@@ -1,3 +1,41 @@
+// Get child's grades for a specific class
+exports.getChildClassGrades = async (req, res, next) => {
+  try {
+    const parentId = req.user?.parent_id;
+    const { studentId, subjectEnrollId } = req.params;
+    if (!parentId) {
+      return res.status(403).json({ error: 'Not authorized as parent' });
+    }
+    // Verify this student belongs to this parent
+    const [studentCheck] = await pool.query(
+      'SELECT id FROM student WHERE id = ? AND parent_id = ?',
+      [studentId, parentId]
+    );
+    if (studentCheck.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to view this student' });
+    }
+    // Get grade records for this student and class
+    const [rows] = await pool.query(`
+      SELECT 
+        g.id,
+        g.grade_type_id,
+        gt.grade_type,
+        g.score,
+        gt.max_score,
+        g.remark,
+        g.grade_at as entry_date,
+        t.eng_name as graded_by_name
+      FROM grade g
+      LEFT JOIN grade_type gt ON g.grade_type_id = gt.id
+      LEFT JOIN teacher t ON g.grade_by = t.id
+      WHERE g.student_id = ? AND g.subject_enroll_id = ?
+      ORDER BY g.grade_at DESC
+    `, [studentId, subjectEnrollId]);
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
 const { pool } = require('../config/db');
 const bcrypt = require('bcrypt');
 
@@ -141,6 +179,241 @@ exports.remove = async (req, res, next) => {
     
     await pool.query('DELETE FROM parent WHERE id = ?', [id]);
     res.json({ message: 'Parent deleted' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get children for logged-in parent
+exports.getMyChildren = async (req, res, next) => {
+  try {
+    const parentId = req.user?.parent_id;
+    
+    if (!parentId) {
+      return res.status(403).json({ error: 'Not authorized as parent' });
+    }
+
+    const [rows] = await pool.query(`
+      SELECT 
+        s.id,
+        s.student_code,
+        s.std_eng_name,
+        s.std_khmer_name,
+        s.gender,
+        s.dob,
+        s.phone,
+        u.image as Image,
+        b.batch_code,
+        p.name as program_name,
+        d.department_name
+      FROM student s
+      LEFT JOIN users u ON s.user_id = u.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON s.program_id = p.id
+      LEFT JOIN department d ON s.department_id = d.id
+      WHERE s.parent_id = ?
+      ORDER BY s.std_eng_name ASC
+    `, [parentId]);
+    
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get active classes for a specific child (student)
+exports.getChildClasses = async (req, res, next) => {
+  try {
+    const parentId = req.user?.parent_id;
+    const { studentId } = req.params;
+    
+    if (!parentId) {
+      return res.status(403).json({ error: 'Not authorized as parent' });
+    }
+
+    // Verify this student belongs to this parent
+    const [studentCheck] = await pool.query(
+      'SELECT id FROM student WHERE id = ? AND parent_id = ?',
+      [studentId, parentId]
+    );
+    
+    if (studentCheck.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to view this student' });
+    }
+
+    // Get all active subject enrollments for this student
+    const [rows] = await pool.query(`
+      SELECT 
+        se.id as enrollment_id,
+        se.subject_id,
+        se.batch_id,
+        se.semester,
+        se.teacher_id,
+        subj.subject_name,
+        subj.subject_code,
+        subj.credit,
+        t.eng_name as teacher_name,
+        t.phone as teacher_phone,
+        b.batch_code
+      FROM student s
+      INNER JOIN subject_enrollment se ON se.batch_id = s.batch_id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN teacher t ON se.teacher_id = t.id
+      LEFT JOIN batch b ON se.batch_id = b.Id
+      WHERE s.id = ? AND se.status = 1
+      ORDER BY subj.subject_name ASC
+    `, [studentId]);
+    
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get child's attendance classes with statistics (similar to student's myAttendanceClasses)
+exports.getChildAttendanceClasses = async (req, res, next) => {
+  try {
+    const parentId = req.user?.parent_id;
+    const { studentId } = req.params;
+    
+    if (!parentId) {
+      return res.status(403).json({ error: 'Not authorized as parent' });
+    }
+
+    // Verify this student belongs to this parent
+    const [studentCheck] = await pool.query(
+      'SELECT id FROM student WHERE id = ? AND parent_id = ?',
+      [studentId, parentId]
+    );
+    
+    if (studentCheck.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to view this student' });
+    }
+
+    // Get all classes with attendance statistics for this student
+    const [rows] = await pool.query(`
+      SELECT 
+        se.id as subject_enroll_id,
+        se.subject_id,
+        se.semester,
+        b.academic_year,
+        subj.subject_name,
+        subj.subject_code,
+        subj.credit,
+        t.eng_name as teacher_name,
+        b.batch_code,
+        COUNT(a.id) as total_days,
+        SUM(CASE WHEN a.status_type = 1 THEN 1 ELSE 0 END) as present_count,
+        SUM(CASE WHEN a.status_type = 2 THEN 1 ELSE 0 END) as absent_count,
+        SUM(CASE WHEN a.status_type = 3 THEN 1 ELSE 0 END) as late_count,
+        SUM(CASE WHEN a.status_type = 4 THEN 1 ELSE 0 END) as excused_count,
+        CASE 
+          WHEN COUNT(a.id) > 0 THEN 
+            ROUND((SUM(CASE WHEN a.status_type = 1 THEN 1 ELSE 0 END) / COUNT(a.id)) * 100, 2)
+          ELSE 0
+        END as attendance_rate
+      FROM student s
+      INNER JOIN subject_enrollment se ON se.batch_id = s.batch_id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN teacher t ON se.teacher_id = t.id
+      LEFT JOIN batch b ON se.batch_id = b.Id
+      LEFT JOIN attendance a ON a.subject_enroll_id = se.id AND a.student_id = s.id
+      WHERE s.id = ? AND se.status = 1
+      GROUP BY se.id, se.subject_id, se.semester, b.academic_year, 
+               subj.subject_name, subj.subject_code, subj.credit, 
+               t.eng_name, b.batch_code
+      ORDER BY subj.subject_name ASC
+    `, [studentId]);
+    
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get child's attendance records for a specific class
+exports.getChildClassAttendance = async (req, res, next) => {
+  try {
+    const parentId = req.user?.parent_id;
+    const { studentId, subjectEnrollId } = req.params;
+    
+    if (!parentId) {
+      return res.status(403).json({ error: 'Not authorized as parent' });
+    }
+
+    // Verify this student belongs to this parent
+    const [studentCheck] = await pool.query(
+      'SELECT id FROM student WHERE id = ? AND parent_id = ?',
+      [studentId, parentId]
+    );
+    if (studentCheck.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to view this student' });
+    }
+    // Get attendance records for this student and class
+    const [rows] = await pool.query(`
+      SELECT 
+        a.id,
+        a.status_type,
+        a.remake,
+        a.attendance_date,
+        a.marked_at,
+        ast.typs as status_name,
+        u.username as marked_by
+      FROM attendance a
+      LEFT JOIN attendance_status_type ast ON a.status_type = ast.id
+      LEFT JOIN users u ON a.modified_by = u.id
+      WHERE a.student_id = ? AND a.subject_enroll_id = ?
+      ORDER BY a.attendance_date DESC, a.marked_at DESC
+    `, [studentId, subjectEnrollId]);
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get child's grade classes (active classes for grades)
+exports.getChildGradeClasses = async (req, res, next) => {
+  try {
+    const parentId = req.user?.parent_id;
+    const { studentId } = req.params;
+    if (!parentId) {
+      return res.status(403).json({ error: 'Not authorized as parent' });
+    }
+    // Verify this student belongs to this parent
+    const [studentCheck] = await pool.query(
+      'SELECT id FROM student WHERE id = ? AND parent_id = ?',
+      [studentId, parentId]
+    );
+    if (studentCheck.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to view this student' });
+    }
+    // Get all active classes for grades for this student
+    const [rows] = await pool.query(`
+      SELECT 
+        se.id as subject_enroll_id,
+        se.subject_id,
+        se.batch_id,
+        se.semester,
+        b.academic_year,
+        subj.subject_name,
+        subj.subject_code,
+        subj.credit,
+        b.batch_code,
+        t.eng_name as teacher_name,
+        u.email as teacher_email,
+        (SELECT COUNT(*) FROM grade WHERE grade.subject_enroll_id = se.id AND grade.student_id = s.id) as total_grades,
+        (SELECT COUNT(*) FROM grade_type) as total_grade_types
+      FROM student s
+      INNER JOIN subject_enrollment se ON se.batch_id = s.batch_id
+      INNER JOIN subject subj ON se.subject_id = subj.id
+      INNER JOIN batch b ON se.batch_id = b.Id
+      LEFT JOIN teacher t ON se.teacher_id = t.id
+      LEFT JOIN users u ON t.user_id = u.id
+      WHERE s.id = ? 
+        AND se.status = 1
+      ORDER BY se.semester DESC, subj.subject_name
+    `, [studentId]);
+    res.json({ success: true, data: rows });
   } catch (err) {
     next(err);
   }

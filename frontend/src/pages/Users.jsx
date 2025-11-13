@@ -9,12 +9,13 @@ export default function Users() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [editUser, setEditUser] = useState(null);
-  const [form, setForm] = useState({ username: '', email: '', status: '1', role_id: '' });
+  const [form, setForm] = useState({ username: '', email: '', password: '', status: '1', role_id: '' });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ username: '', email: '', password: '', role_id: '1', status: '1' });
+  const [addForm, setAddForm] = useState({ username: '', email: '', password: '', role_id: '1', status: '1', department_id: '' });
   const [roles, setRoles] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [viewUser, setViewUser] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
@@ -27,13 +28,15 @@ export default function Users() {
       setLoading(true);
       setError('');
       try {
-        const [usersData, rolesData] = await Promise.all([
+        const [usersData, rolesData, departmentsData] = await Promise.all([
           api.getUsers(),
-          api.getRoles()
+          api.getRoles(),
+          api.getDepartments()
         ]);
         if (mounted) {
           setUsers(usersData);
           setRoles(rolesData || []);
+          setDepartments(departmentsData || []);
           if (rolesData && rolesData.length && !showAdd) {
             setAddForm(prev => ({ ...prev, role_id: String(rolesData[0].id) }));
           }
@@ -63,8 +66,10 @@ export default function Users() {
     setForm({
       username: user.username || '',
       email: user.email || '',
+      password: '',
       status: String(user.status ?? '1'),
-      role_id: String(user.role_id ?? (roles[0]?.id ?? ''))
+      role_id: String(user.role_id ?? (roles[0]?.id ?? '')),
+      department_id: user.department_id ? String(user.department_id) : ''
     });
     setSuccess('');
     setError('');
@@ -138,8 +143,13 @@ export default function Users() {
         username: form.username,
         email: form.email,
         status: form.status, // string '1' | '0'
-        role_id: form.role_id
+        role_id: form.role_id,
+        department_id: form.department_id ? parseInt(form.department_id, 10) : null
       };
+      // Only include password if it's not empty
+      if (form.password && form.password.trim()) {
+        payload.password = form.password;
+      }
       await api.updateUser(editUser.id, payload);
       // update local list
       setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, ...payload } : u));
@@ -165,7 +175,7 @@ export default function Users() {
               onChange={e => setQuery(e.target.value)}
               className="search-input"
             />
-            <button className="btn" onClick={() => { setAddForm({ username:'', email:'', password:'', role_id:'1', status:'1' }); setShowAdd(true); }}>+ Add User</button>
+            <button className="btn" onClick={() => { setAddForm({ username:'', email:'', password:'', role_id:'1', status:'1', department_id: '' }); setShowAdd(true); }}>+ Add User</button>
           </div>
         </div>
 
@@ -242,7 +252,8 @@ export default function Users() {
                     email: addForm.email,
                     password: addForm.password,
                     role_id: parseInt(addForm.role_id, 10),
-                    status: addForm.status
+                    status: addForm.status,
+                    department_id: addForm.department_id ? parseInt(addForm.department_id, 10) : null
                   };
                   const created = await api.createUser(payload);
                   setUsers(prev => [{...created, password: undefined}, ...prev]);
@@ -283,6 +294,15 @@ export default function Users() {
                         <option value="0">Inactive</option>
                       </select>
                     </div>
+                    <div className="form-field">
+                      <label>Department (Optional)</label>
+                      <select value={addForm.department_id} onChange={e => setAddForm({...addForm, department_id: e.target.value})}>
+                        <option value="">-- None --</option>
+                        {departments.map(d => (
+                          <option key={d.id} value={d.id}>{d.department_name}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -313,6 +333,15 @@ export default function Users() {
                       <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
                     </div>
                     <div className="form-field">
+                      <label>Password <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>(Leave blank to keep current)</span></label>
+                      <input 
+                        type="password" 
+                        value={form.password} 
+                        onChange={e => setForm({...form, password: e.target.value})} 
+                        placeholder="Enter new password or leave blank"
+                      />
+                    </div>
+                    <div className="form-field">
                       <label>Role</label>
                       <select value={form.role_id} onChange={e => setForm({ ...form, role_id: e.target.value })}>
                         {roles.map(r => (
@@ -325,6 +354,15 @@ export default function Users() {
                       <select value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
                         <option value="1">Active</option>
                         <option value="0">Inactive</option>
+                      </select>
+                    </div>
+                    <div className="form-field">
+                      <label>Department (Optional)</label>
+                      <select value={form.department_id} onChange={e => setForm({...form, department_id: e.target.value})}>
+                        <option value="">-- None --</option>
+                        {departments.map(d => (
+                          <option key={d.id} value={d.id}>{d.department_name}</option>
+                        ))}
                       </select>
                     </div>
                   </div>

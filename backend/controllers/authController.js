@@ -49,6 +49,28 @@ exports.login = async (req, res) => {
       }
     }
     
+    // If user is a teacher (role_id = 3), include teacher_id and department_id
+    if (user.role_id === 3) {
+      const [teacherResults] = await pool.query('SELECT id, department_id FROM teacher WHERE user_id = ?', [user.id]);
+      if (teacherResults.length > 0) {
+        payload.teacher_id = teacherResults[0].id;
+        payload.department_id = teacherResults[0].department_id;
+      }
+    }
+    
+    // If user is a parent (role_id = 5), include parent_id
+    if (user.role_id === 5) {
+      const [parentResults] = await pool.query('SELECT id FROM parent WHERE user_id = ?', [user.id]);
+      if (parentResults.length > 0) {
+        payload.parent_id = parentResults[0].id;
+      }
+    }
+    
+    // If user is a dean (role_id = 2), include department_id
+    if (user.role_id === 2 && user.department_id) {
+      payload.department_id = user.department_id;
+    }
+    
     // Set token expiration based on rememberMe
     // If rememberMe: 7 days, else: 15 minutes
     const expiresIn = rememberMe ? '7d' : '15m';

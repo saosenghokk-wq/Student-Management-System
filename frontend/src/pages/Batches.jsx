@@ -6,6 +6,10 @@ import '../styles/modal.css';
 
 export default function Batches() {
   const [batches, setBatches] = useState([]);
+  const [user, setUser] = useState(() => {
+    const u = localStorage.getItem('user') || sessionStorage.getItem('user');
+    return u ? JSON.parse(u) : null;
+  });
   const [programs, setPrograms] = useState([]);
   const [admissions, setAdmissions] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -18,6 +22,11 @@ export default function Batches() {
     academic_year: new Date().getFullYear(),
     admission_id: ''
   });
+
+  // Permission check: only admin (role_id 1) and dean (role_id 2) can view
+  let forbidden = !user || (user.role_id !== 1 && user.role_id !== 2);
+  // ...existing code...
+  // Place permission check and return here, just before main return
 
   useEffect(() => {
     loadData();
@@ -108,11 +117,16 @@ export default function Batches() {
   };
 
   const filteredBatches = batches.filter(b =>
-    b.batch_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.program_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.program_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.department_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.admission_year?.toLowerCase().includes(searchQuery.toLowerCase())
+    (
+      (!user || user.role !== 'dean' || b.department_id === user.department_id) &&
+      (
+        b.batch_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.program_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.program_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.department_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.admission_year?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    )
   );
 
   if (loading) return <DashboardLayout><div className="loader">Loading...</div></DashboardLayout>;
@@ -263,7 +277,7 @@ export default function Batches() {
                           value={form.academic_year}
                           onChange={handleChange}
                           required
-                          min="2000"
+                          min="1"
                           max="2100"
                           placeholder={new Date().getFullYear()}
                         />

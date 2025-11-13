@@ -22,13 +22,20 @@ exports.create = async (req, res, next) => {
       return res.status(400).json({ error: 'department_name is required' });
     }
     if (!staff_id) {
-      return res.status(400).json({ error: 'staff_id is required' });
+      return res.status(400).json({ error: 'Head staff is required' });
     }
     // Prevent duplicate department_name
     const [existing] = await pool.query('SELECT id FROM department WHERE LOWER(department_name) = LOWER(?) LIMIT 1', [department_name]);
     if (existing.length) {
       return res.status(409).json({ error: 'Department already exists' });
     }
+    
+    // Verify staff exists
+    const [staffExists] = await pool.query('SELECT Id FROM staff WHERE Id = ?', [staff_id]);
+    if (!staffExists.length) {
+      return res.status(400).json({ error: 'Selected staff member does not exist' });
+    }
+    
     const [result] = await pool.query('INSERT INTO department (department_name, staff_id) VALUES (?, ?)', [department_name.trim(), staff_id]);
     const [rows] = await pool.query(`
       SELECT d.id, d.department_name, d.staff_id,
@@ -51,7 +58,7 @@ exports.update = async (req, res, next) => {
       return res.status(400).json({ error: 'department_name is required' });
     }
     if (!staff_id) {
-      return res.status(400).json({ error: 'staff_id is required' });
+      return res.status(400).json({ error: 'Head staff is required' });
     }
     // Check exists
     const [exists] = await pool.query('SELECT id FROM department WHERE id = ?', [id]);
@@ -63,6 +70,13 @@ exports.update = async (req, res, next) => {
     if (duplicate.length) {
       return res.status(409).json({ error: 'Another department already uses this name' });
     }
+    
+    // Verify staff exists
+    const [staffExists] = await pool.query('SELECT Id FROM staff WHERE Id = ?', [staff_id]);
+    if (!staffExists.length) {
+      return res.status(400).json({ error: 'Selected staff member does not exist' });
+    }
+    
     await pool.query('UPDATE department SET department_name = ?, staff_id = ? WHERE id = ?', [department_name.trim(), staff_id, id]);
     const [rows] = await pool.query(`
       SELECT d.id, d.department_name, d.staff_id,

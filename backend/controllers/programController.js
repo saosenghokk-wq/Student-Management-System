@@ -3,7 +3,10 @@ const { pool } = require('../config/db');
 // List all programs with department and degree names
 exports.list = async (req, res, next) => {
   try {
-    const [rows] = await pool.query(`
+    // If user is a dean (role_id = 2), filter by their department_id
+    const departmentId = req.user?.role_id === 2 ? req.user.department_id : null;
+    
+    let query = `
       SELECT p.id,
              p.name,
              p.description,
@@ -17,9 +20,18 @@ exports.list = async (req, res, next) => {
              p.update_at
       FROM programs p
       LEFT JOIN department d ON p.department_id = d.id
-  LEFT JOIN degree_level dl ON p.degree_id = dl.id
-  ORDER BY p.id ASC
-    `);
+      LEFT JOIN degree_level dl ON p.degree_id = dl.id
+    `;
+    
+    const params = [];
+    if (departmentId) {
+      query += ' WHERE p.department_id = ?';
+      params.push(departmentId);
+    }
+    
+    query += ' ORDER BY p.id ASC';
+    
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
     next(err);

@@ -291,6 +291,40 @@ const gradeRepository = {
     `;
     const [rows] = await pool.execute(query, [studentId, subjectEnrollId]);
     return rows;
+  },
+
+  // Get subject enrollments for grades (filtered by teacher if applicable)
+  async getSubjectEnrollments(teacherId = null) {
+    let query = `
+      SELECT 
+        se.id,
+        se.subject_id,
+        se.batch_id,
+        se.semester,
+        se.teacher_id,
+        se.status,
+        subj.subject_name,
+        subj.subject_code,
+        b.batch_code,
+        t.eng_name as teacher_name
+      FROM subject_enrollment se
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN batch b ON se.batch_id = b.Id
+      LEFT JOIN teacher t ON se.teacher_id = t.id
+      WHERE se.status = 1
+    `;
+    const params = [];
+    
+    // Filter by teacher if teacherId is provided
+    if (teacherId) {
+      query += ' AND se.teacher_id = ?';
+      params.push(teacherId);
+    }
+    
+    query += ' ORDER BY b.batch_code, subj.subject_name';
+    
+    const [rows] = await pool.execute(query, params);
+    return rows;
   }
 };
 

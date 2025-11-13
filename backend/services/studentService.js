@@ -4,8 +4,8 @@ const { pool } = require('../config/db');
 const bcrypt = require('bcrypt');
 
 class StudentService {
-  async listStudents() {
-    return studentRepository.findAll();
+  async listStudents(departmentId = null) {
+    return studentRepository.findAll(departmentId);
   }
 
   async getStudent(id) {

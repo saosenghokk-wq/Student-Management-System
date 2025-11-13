@@ -5,7 +5,9 @@ const { pool } = require('../config/db');
 // Get all teachers
 exports.getTeachers = async (req, res, next) => {
   try {
-    const teachers = await teacherService.getAllTeachers();
+    // If user is a dean (role_id = 2), filter by their department_id
+    const departmentId = req.user?.role_id === 2 ? req.user.department_id : null;
+    const teachers = await teacherService.getAllTeachers(departmentId);
     res.json(teachers);
   } catch (err) {
     next(err);

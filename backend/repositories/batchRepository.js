@@ -2,8 +2,8 @@ const { pool } = require('../config/db');
 
 class BatchRepository {
   // Get all batches with related data
-  async findAll() {
-    const [rows] = await pool.query(`
+  async findAll(departmentId = null) {
+    let query = `
       SELECT 
         b.Id,
         b.batch_code,
@@ -15,6 +15,7 @@ class BatchRepository {
         b.updated_at,
         p.name as program_name,
         p.code as program_code,
+        p.department_id,
         d.department_name,
         a.admission_year,
         a.start_date as admission_start_date,
@@ -23,8 +24,17 @@ class BatchRepository {
       LEFT JOIN programs p ON b.program_id = p.id
       LEFT JOIN department d ON p.department_id = d.id
       LEFT JOIN admission a ON b.admission_id = a.id
-      ORDER BY b.created_at DESC
-    `);
+    `;
+    
+    const params = [];
+    if (departmentId) {
+      query += ' WHERE p.department_id = ?';
+      params.push(departmentId);
+    }
+    
+    query += ' ORDER BY b.created_at DESC';
+    
+    const [rows] = await pool.query(query, params);
     return rows;
   }
 

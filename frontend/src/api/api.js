@@ -117,6 +117,12 @@ export const api = {
   deleteSubject: (id) => request(`/api/subjects/${id}`, { method: 'DELETE' }),
   // Parents
   getParents: () => request('/api/parents'),
+  getMyChildren: () => request('/api/parents/my-children'),
+  getChildClasses: (studentId) => request(`/api/parents/child/${studentId}/classes`),
+  getChildAttendanceClasses: (studentId) => request(`/api/parents/child/${studentId}/attendance-classes`),
+  getChildClassAttendance: (studentId, subjectEnrollId) => request(`/api/parents/child/${studentId}/class/${subjectEnrollId}/attendance`),
+    getChildGradeClasses: (studentId) => request(`/api/parents/child/${studentId}/grade-classes`),
+    getChildClassGrades: (studentId, subjectEnrollId) => request(`/api/parents/child/${studentId}/class/${subjectEnrollId}/grades`),
   createParent: (payload) => request('/api/parents', { method: 'POST', body: payload }),
   updateParent: (id, payload) => request(`/api/parents/${id}`, { method: 'PUT', body: payload }),
   deleteParent: (id) => request(`/api/parents/${id}`, { method: 'DELETE' }),

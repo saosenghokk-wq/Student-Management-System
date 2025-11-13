@@ -109,10 +109,17 @@ export default function DashboardLayout({ children }) {
     ];
 
     const teacherItems = [
-      { path: '/students', label: 'Students', icon: '👥', section: 'academic' },
-      { path: '/attendance', label: 'Attendance', icon: '📋', section: 'academic' },
-      { path: '/grades', label: 'Grades', icon: '📊', section: 'academic' },
-      { path: '/schedule', label: 'Schedule', icon: '📅', section: 'academic' },
+      { path: '/attendance', label: 'Attendance', icon: '📋', section: 'teaching' },
+      { path: '/grades', label: 'Grades', icon: '📊', section: 'teaching' },
+    ];
+
+    const deanItems = [
+  { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'management' },
+  { path: '/students', label: 'Students', icon: '👥', section: 'management' },
+  { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
+  { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
+  { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
+  { path: '/subject-enrollment', label: 'Subject Enrollment', icon: '📝', section: 'academic' },
     ];
 
     const registrarItems = [
@@ -135,16 +142,22 @@ export default function DashboardLayout({ children }) {
       { path: '/my-fees', label: 'My Fees', icon: '💰', section: 'personal' },
     ];
 
+    const parentItems = [
+      { path: '/parent-attendance', label: 'Attendance', icon: '📋', section: 'children' },
+      { path: '/parent-grades', label: 'Grades', icon: '📊', section: 'children' },
+    ];
+
     const accountantItems = [
       { path: '/fees', label: 'Fees', icon: '💰', section: 'operations' },
     ];
 
     if (user.role_id === 1) return adminItems; // Only admin gets dashboard
-    if (user.role_id === 2) return teacherItems;
-    if (user.role_id === 3) return registrarItems;
+    if (user.role_id === 2) return deanItems; // Dean
+    if (user.role_id === 3) return teacherItems; // Teacher
     if (user.role_id === 4) return studentItems;
+    if (user.role_id === 5) return parentItems; // Parent
     if (user.role_id === 7) return accountantItems;
-    return [];
+    return registrarItems; // Default for other roles
   };
 
   const menuItems = getMenuItems();
@@ -153,9 +166,10 @@ export default function DashboardLayout({ children }) {
   const getRoleName = (roleId) => {
     const roles = { 
       1: 'Administrator', 
-      2: 'Teacher', 
-      3: 'Registrar', 
+      2: 'Dean', 
+      3: 'Teacher',
       4: 'Student',
+      5: 'Parent',
       7: 'Accountant'
     };
     return roles[roleId] || 'User';
@@ -168,7 +182,10 @@ export default function DashboardLayout({ children }) {
         <Link 
           to={
             user.role_id === 1 ? "/dashboard" : 
-            user.role_id === 4 ? "/my-schedule" : 
+            user.role_id === 2 ? "/teachers" :
+            user.role_id === 3 ? "/attendance" :
+            user.role_id === 4 ? "/my-schedule" :
+            user.role_id === 5 ? "/parent-attendance" :
             user.role_id === 7 ? "/fees" : 
             "/students"
           } 

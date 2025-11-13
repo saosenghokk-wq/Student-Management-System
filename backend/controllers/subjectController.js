@@ -3,7 +3,10 @@ const { pool } = require('../config/db');
 // List subjects with program and department linkage and program code
 exports.list = async (req, res, next) => {
   try {
-    const [rows] = await pool.query(`
+    // If user is a dean (role_id = 2), filter by their department_id
+    const departmentId = req.user?.role_id === 2 ? req.user.department_id : null;
+    
+    let query = `
       SELECT s.id,
              s.subject_code,
              s.subject_name,
@@ -16,8 +19,17 @@ exports.list = async (req, res, next) => {
       FROM subject s
       LEFT JOIN programs p ON s.program_id = p.id
       LEFT JOIN department d ON p.department_id = d.id
-      ORDER BY s.id ASC
-    `);
+    `;
+    
+    const params = [];
+    if (departmentId) {
+      query += ' WHERE p.department_id = ?';
+      params.push(departmentId);
+    }
+    
+    query += ' ORDER BY s.id ASC';
+    
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
     next(err);

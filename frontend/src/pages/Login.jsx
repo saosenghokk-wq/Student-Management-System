@@ -9,13 +9,41 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [systemSettings, setSystemSettings] = useState({
+    system_title: 'Student Management System',
+    system_logo: '/Picture1.jpg'
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
     // Load saved username if remember me was checked
     const savedUser = localStorage.getItem('remember_username');
     if (savedUser) setForm((f) => ({ ...f, username: savedUser }));
+
+    // Load system settings
+    loadSystemSettings();
   }, []);
+
+  const loadSystemSettings = async () => {
+    try {
+      const response = await api.getSettings();
+      if (response.data) {
+        setSystemSettings(response.data);
+        // Update document title and favicon
+        document.title = response.data.system_title || 'Student Management System';
+        
+        // Update favicon
+        const favicon = document.querySelector("link[rel*='icon']") || document.createElement('link');
+        favicon.type = 'image/x-icon';
+        favicon.rel = 'shortcut icon';
+        favicon.href = response.data.system_logo || '/Picture1.jpg';
+        document.getElementsByTagName('head')[0].appendChild(favicon);
+      }
+    } catch (error) {
+      console.error('Failed to load system settings:', error);
+      // Use defaults if loading fails
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -58,9 +86,9 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <img src="/Picture1.jpg" alt="logo" className="brand-logo" />
+          <img src={systemSettings.system_logo} alt="logo" className="brand-logo" />
           <h1>Welcome back</h1>
-          <p>Please sign in to continue</p>
+          <p>Please sign in to {systemSettings.system_title}</p>
         </div>
 
         {error && (

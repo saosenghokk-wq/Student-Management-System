@@ -38,15 +38,15 @@ exports.getDashboardStats = asyncHandler(async (req, res) => {
   );
   const totalUsers = totalUsersResult[0].count;
 
-  // Get total teachers from teachers table
+  // Get total teachers from teacher table
   let totalTeachers = 0;
   try {
     const [totalTeachersResult] = await pool.query(
-      'SELECT COUNT(*) as count FROM teachers'
+      'SELECT COUNT(*) as count FROM teacher'
     );
     totalTeachers = totalTeachersResult[0].count;
   } catch (error) {
-    // If teachers table doesn't exist, count from users where role_id = 2
+    // If teacher table doesn't exist, count from users where role_id = 2
     try {
       const [teachersFromUsers] = await pool.query(
         'SELECT COUNT(*) as count FROM users WHERE role_id = 2'
@@ -126,14 +126,12 @@ exports.getRecentStudents = asyncHandler(async (req, res) => {
   const [students] = await pool.query(
     `SELECT 
       s.id, 
-      s.student_code as code, 
-      s.std_eng_name as name,
-      d.department_name as department,
-      ss.status_name as status,
-      DATE_FORMAT(s.created_at, '%Y-%m-%d') as date
+      s.student_code, 
+      s.std_eng_name,
+      d.department_name,
+      s.created_at
     FROM student s
     LEFT JOIN department d ON s.department_id = d.id
-    LEFT JOIN student_status ss ON s.std_status_id = ss.id
     ORDER BY s.created_at DESC
     LIMIT ?`,
     [limit]

@@ -3,7 +3,9 @@ const subjectEnrollmentService = require('../services/subjectEnrollmentService')
 // Get all subject enrollments
 exports.getSubjectEnrollments = async (req, res, next) => {
   try {
-    const enrollments = await subjectEnrollmentService.getAllSubjectEnrollments();
+    // If user is a dean (role_id = 2), filter by their department_id
+    const departmentId = req.user?.role_id === 2 ? req.user.department_id : null;
+    const enrollments = await subjectEnrollmentService.getAllSubjectEnrollments(departmentId);
     res.json(enrollments);
   } catch (err) {
     next(err);

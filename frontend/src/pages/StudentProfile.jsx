@@ -21,6 +21,7 @@ function StudentProfile() {
   // Get current user role
   const currentUser = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || '{}');
   const isStudent = currentUser.role_id === 4;
+  const isAdmin = currentUser.role_id === 1;
   
   const [academicForm, setAcademicForm] = useState({
     department_id: '',
@@ -31,6 +32,7 @@ function StudentProfile() {
     schoolarship_id: ''
   });
   const [personalForm, setPersonalForm] = useState({
+    student_code: '',
     std_eng_name: '',
     std_khmer_name: '',
     gender: '',
@@ -87,6 +89,7 @@ function StudentProfile() {
         schoolarship_id: data.schoolarship_id || ''
       });
       setPersonalForm({
+        student_code: data.student_code || '',
         std_eng_name: data.std_eng_name || '',
         std_khmer_name: data.std_khmer_name || '',
         gender: data.gender || '0',
@@ -826,6 +829,7 @@ function StudentProfile() {
               gap: 24,
               marginTop: 20
             }}>
+              <InfoItem label="Student Code" value={student.student_code || 'N/A'} />
               <InfoItem label="English Name" value={student.std_eng_name || 'N/A'} />
               <InfoItem label="Khmer Name" value={student.std_khmer_name || 'N/A'} />
               <InfoItem label="Gender" value={student.gender === '1' ? 'Female' : 'Male'} />
@@ -1215,6 +1219,30 @@ function StudentProfile() {
               <form onSubmit={handlePersonalSubmit} id="personalForm">
                 <div className="form-section">
                   <div className="form-grid-vertical">
+                    <div className="form-field">
+                      <label className="form-label">Student Code <span className="required">*</span></label>
+                      <input 
+                        type="text"
+                        name="student_code" 
+                        value={personalForm.student_code} 
+                        onChange={(e) => setPersonalForm({...personalForm, student_code: e.target.value})}
+                        required 
+                        className="form-input"
+                        placeholder="Enter student code"
+                        readOnly={!isAdmin}
+                        style={{ 
+                          background: isAdmin ? '#fff' : '#f3f4f6',
+                          cursor: isAdmin ? 'text' : 'not-allowed'
+                        }}
+                        title={isAdmin ? '' : 'Only admin can edit student code'}
+                      />
+                      {!isAdmin && (
+                        <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                          ℹ️ Only admin can edit student code
+                        </small>
+                      )}
+                    </div>
+                    
                     <div className="form-field">
                       <label className="form-label">English Name <span className="required">*</span></label>
                       <input 

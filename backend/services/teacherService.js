@@ -1,8 +1,8 @@
 const teacherRepository = require('../repositories/teacherRepository');
 
 class TeacherService {
-  async getAllTeachers() {
-    return await teacherRepository.findAll();
+  async getAllTeachers(departmentId = null) {
+    return await teacherRepository.findAll(departmentId);
   }
 
   async getTeacherById(id) {

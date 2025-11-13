@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
-import '../styles/dashboard.css';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -122,82 +121,152 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="dashboard-container">
-        {/* Header */}
-        <div className="dashboard-header">
-          <div className="header-left">
-            <h1 className="dashboard-title">� Dashboard Overview</h1>
+      <div style={{ 
+        padding: '24px', 
+        maxWidth: '1400px', 
+        margin: '0 auto',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        minHeight: '100vh'
+      }}>
+        {/* Enhanced Header */}
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '16px',
+          padding: '32px',
+          marginBottom: '32px',
+          color: '#fff',
+          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 style={{ 
+                fontSize: '2.5rem', 
+                fontWeight: '800', 
+                marginBottom: '8px',
+                background: 'linear-gradient(45deg, #fff 0%, #f0f8ff 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent'
+              }}>
+                Dashboard Overview
+              </h1>
+              <p style={{ 
+                fontSize: '1.1rem', 
+                opacity: '0.9',
+                fontWeight: '400'
+              }}>
+                Welcome back! Here's what's happening in your institution today.
+              </p>
+            </div>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '16px',
+              backdropFilter: 'blur(10px)',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </div>
+              <div style={{ fontSize: '0.9rem', opacity: '0.8' }}>
+                {new Date().toLocaleDateString('en-US', { year: 'numeric' })}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="dashboard-grid">
-          {/* Left Column - Main Content */}
-          <div className="dashboard-main">
-            {/* Stat Cards Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '20px',
-              marginBottom: '30px'
-            }}>
-              {statCards.map((card, index) => (
-                <div
-                  key={index}
-                  onClick={() => navigate(card.path)}
-                  style={{
+        {/* Stats Cards Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '24px',
+          marginBottom: '40px'
+        }}>
+          {statCards.map((card, index) => (
+            <div
+              key={index}
+              onClick={() => navigate(card.path)}
+              style={{
+                background: '#fff',
+                borderRadius: '20px',
+                padding: '0',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                transition: 'all 0.4s ease',
+                minHeight: '160px',
+                border: '1px solid #f1f5f9'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-8px)';
+                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+              }}
+            >
+              {/* Card Content */}
+              <div style={{ padding: '24px' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: '16px'
+                }}>
+                  <div>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      letterSpacing: '1px',
+                      color: '#64748b',
+                      textTransform: 'uppercase',
+                      marginBottom: '8px'
+                    }}>
+                      {card.label}
+                    </div>
+                    <div style={{
+                      fontSize: '3rem',
+                      fontWeight: '800',
+                      color: '#1e293b',
+                      lineHeight: '1'
+                    }}>
+                      {card.value.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{
                     background: card.gradient,
-                    borderRadius: '20px',
-                    padding: '30px',
-                    color: 'white',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                    transition: 'all 0.3s ease',
-                    minHeight: '140px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-5px)';
-                    e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.25)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
-                  }}
-                >
-                  <div style={{
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    letterSpacing: '1px',
-                    opacity: '0.9',
-                    marginBottom: '10px'
-                  }}>
-                    {card.label}
-                  </div>
-                  <div style={{
-                    fontSize: '48px',
-                    fontWeight: '700',
-                    marginBottom: '10px'
-                  }}>
-                    {card.value}
-                  </div>
-                  <div style={{
-                    position: 'absolute',
-                    right: '20px',
-                    bottom: '20px',
-                    fontSize: '60px',
-                    opacity: '0.2'
+                    borderRadius: '12px',
+                    padding: '12px',
+                    fontSize: '1.5rem'
                   }}>
                     {card.icon}
                   </div>
                 </div>
-              ))}
+                
+                {/* Progress Bar */}
+                <div style={{
+                  background: '#f1f5f9',
+                  borderRadius: '8px',
+                  height: '6px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    background: card.gradient,
+                    height: '100%',
+                    width: `${Math.min(100, (card.value / Math.max(...statCards.map(c => c.value))) * 100)}%`,
+                    borderRadius: '8px',
+                    transition: 'width 1s ease'
+                  }}></div>
+                </div>
+              </div>
             </div>
-
-          </div>
+          ))}
         </div>
       </div>
     </DashboardLayout>

@@ -99,6 +99,19 @@ const gradeController = {
     }
   },
 
+  // Get subject enrollments for grades (filtered by teacher if applicable)
+  async getSubjectEnrollments(req, res) {
+    try {
+      // If user is a teacher (role_id = 3), filter by their teacher_id
+      const teacherId = req.user?.role_id === 3 ? req.user.teacher_id : null;
+      const enrollments = await gradeService.getSubjectEnrollments(teacherId);
+      res.json({ success: true, data: enrollments });
+    } catch (error) {
+      console.error('Error fetching subject enrollments:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch subject enrollments' });
+    }
+  },
+
   // Get grades by class
   async getGradesByClass(req, res) {
     try {

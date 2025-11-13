@@ -17,17 +17,17 @@ function HomeRedirect() {
           // Admin
           setRedirectPath('/dashboard');
         } else if (user.role_id === 2) {
-          // Teacher
-          setRedirectPath('/students');
+          // Dean
+          setRedirectPath('/teachers');
         } else if (user.role_id === 3) {
-          // Registrar
-          setRedirectPath('/students');
+          // Teacher
+          setRedirectPath('/attendance');
         } else if (user.role_id === 4) {
           // Student
           setRedirectPath('/my-schedule');
         } else if (user.role_id === 5) {
-          // Parent (if you have this role)
-          setRedirectPath('/my-profile');
+          // Parent
+          setRedirectPath('/parent-attendance');
         } else if (user.role_id === 7) {
           // Accountant
           setRedirectPath('/fees');

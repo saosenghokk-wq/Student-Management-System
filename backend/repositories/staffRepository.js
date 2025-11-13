@@ -6,7 +6,7 @@ class StaffRepository {
   async findAll() {
     const [rows] = await pool.query(`
       SELECT 
-        s.Id,
+        s.Id as id,
         s.user_id,
         s.eng_name,
         s.khmer_name,
@@ -102,7 +102,9 @@ class StaffRepository {
 
   // Update staff
   async update(id, staffData) {
-    const { eng_name, khmer_name, phone, positions, province_no, district_no, commune_no, village_no } = staffData;
+    const { eng_name, khmer_name, phone, positions, province_no, district_no, commune_no, village_no, username, email, password } = staffData;
+    
+    // Update staff table
     await pool.query(
       `UPDATE staff 
        SET eng_name = ?, khmer_name = ?, phone = ?, positions = ?, 
@@ -110,6 +112,39 @@ class StaffRepository {
        WHERE Id = ?`,
       [eng_name, khmer_name, phone, positions, province_no, district_no, commune_no, village_no, id]
     );
+    
+    // If username, email, or password provided, update users table
+    if (username || email || password) {
+      // Get the user_id for this staff member
+      const [staffRows] = await pool.query('SELECT user_id FROM staff WHERE Id = ?', [id]);
+      if (staffRows.length > 0 && staffRows[0].user_id) {
+        const userId = staffRows[0].user_id;
+        const updates = [];
+        const values = [];
+        
+        if (username) {
+          updates.push('username = ?');
+          values.push(username);
+        }
+        if (email) {
+          updates.push('email = ?');
+          values.push(email);
+        }
+        if (password) {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          updates.push('password = ?');
+          values.push(hashedPassword);
+        }
+        
+        if (updates.length > 0) {
+          values.push(userId);
+          await pool.query(
+            `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+            values
+          );
+        }
+      }
+    }
   }
 
   // Delete staff

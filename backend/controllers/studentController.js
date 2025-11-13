@@ -2,7 +2,9 @@ const asyncHandler = require('../utils/asyncHandler');
 const studentService = require('../services/studentService');
 
 exports.getAllStudents = asyncHandler(async (req, res) => {
-  const students = await studentService.listStudents();
+  // If user is a dean (role_id = 2), filter by their department_id
+  const departmentId = req.user?.role_id === 2 ? req.user.department_id : null;
+  const students = await studentService.listStudents(departmentId);
   res.json(students);
 });
 

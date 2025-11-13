@@ -11,6 +11,9 @@ router.use(authMiddleware);
 // Get grade types (must be before /:id)
 router.get('/types', gradeController.getGradeTypes);
 
+// Get subject enrollments (filtered by teacher if applicable)
+router.get('/subject-enrollments', gradeController.getSubjectEnrollments);
+
 // Student routes (must be before /:id)
 router.get('/my-classes', gradeController.getMyClasses);
 router.get('/my-class/:subjectEnrollId', gradeController.getMyClassGrades);

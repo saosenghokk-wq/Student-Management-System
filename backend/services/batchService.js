@@ -1,8 +1,8 @@
 const batchRepository = require('../repositories/batchRepository');
 
 class BatchService {
-  async getAllBatches() {
-    return await batchRepository.findAll();
+  async getAllBatches(departmentId = null) {
+    return await batchRepository.findAll(departmentId);
   }
 
   async getBatchById(id) {

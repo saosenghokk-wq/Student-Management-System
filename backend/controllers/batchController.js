@@ -3,7 +3,9 @@ const batchService = require('../services/batchService');
 // Get all batches
 exports.getBatches = async (req, res, next) => {
   try {
-    const batches = await batchService.getAllBatches();
+    // If user is a dean (role_id = 2), filter by their department_id
+    const departmentId = req.user?.role_id === 2 ? req.user.department_id : null;
+    const batches = await batchService.getAllBatches(departmentId);
     res.json(batches);
   } catch (err) {
     next(err);

@@ -23,6 +23,10 @@ import MySchedule from './pages/MySchedule.jsx';
 import MyGrades from './pages/MyGrades.jsx';
 import MyAttendance from './pages/MyAttendance.jsx';
 import MyFees from './pages/MyFees.jsx';
+import ParentAttendance from './pages/ParentAttendance.jsx';
+import ParentGrades from './pages/ParentGrades.jsx';
+import StudentClasses from './pages/StudentClasses.jsx';
+import StudentGrades from './pages/StudentGrades.jsx';
 import Fees from './pages/Fees.jsx';
 import Settings from './pages/Settings.jsx';
 import ComingSoon from './pages/ComingSoon.jsx';
@@ -64,6 +68,10 @@ function App() {
         <Route path="/my-schedule" element={<RoleProtectedRoute><MySchedule /></RoleProtectedRoute>} />
         <Route path="/my-attendance" element={<RoleProtectedRoute><MyAttendance /></RoleProtectedRoute>} />
         <Route path="/my-fees" element={<RoleProtectedRoute><MyFees /></RoleProtectedRoute>} />
+        <Route path="/parent-attendance" element={<RoleProtectedRoute><ParentAttendance /></RoleProtectedRoute>} />
+        <Route path="/parent-attendance/student/:studentId/classes" element={<RoleProtectedRoute><StudentClasses /></RoleProtectedRoute>} />
+  <Route path="/parent-grades" element={<RoleProtectedRoute><ParentGrades /></RoleProtectedRoute>} />
+  <Route path="/parent-grades/student/:studentId/grades" element={<RoleProtectedRoute><StudentGrades /></RoleProtectedRoute>} />
         <Route path="/fees" element={<RoleProtectedRoute><Fees /></RoleProtectedRoute>} />
         <Route path="/settings" element={<RoleProtectedRoute><Settings /></RoleProtectedRoute>} />
         

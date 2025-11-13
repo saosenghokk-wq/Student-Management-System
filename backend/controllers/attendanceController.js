@@ -113,7 +113,9 @@ const attendanceController = {
   // Get subject enrollments
   async getSubjectEnrollments(req, res) {
     try {
-      const enrollments = await attendanceService.getSubjectEnrollments();
+      // If user is a teacher (role_id = 3), filter by their teacher_id
+      const teacherId = req.user?.role_id === 3 ? req.user.teacher_id : null;
+      const enrollments = await attendanceService.getSubjectEnrollments(teacherId);
       res.json({ success: true, data: enrollments });
     } catch (error) {
       console.error('Error fetching subject enrollments:', error);

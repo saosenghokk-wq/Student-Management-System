@@ -3,13 +3,10 @@ const router = express.Router();
 const settingController = require('../controllers/settingController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// All routes are protected
-router.use(authMiddleware);
-
-// Get settings (accessible to all authenticated users)
+// Get settings (public - no auth required for login page)
 router.get('/', settingController.getSettings);
 
-// Update settings (admin only - we'll check in frontend)
-router.put('/', settingController.updateSettings);
+// Update settings (admin only - protected)
+router.put('/', authMiddleware, settingController.updateSettings);
 
 module.exports = router;

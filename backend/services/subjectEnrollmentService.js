@@ -1,8 +1,8 @@
 const subjectEnrollmentRepository = require('../repositories/subjectEnrollmentRepository');
 
 class SubjectEnrollmentService {
-  async getAllSubjectEnrollments() {
-    return await subjectEnrollmentRepository.findAll();
+  async getAllSubjectEnrollments(departmentId = null) {
+    return await subjectEnrollmentRepository.findAll(departmentId);
   }
 
   async getSubjectEnrollmentById(id) {

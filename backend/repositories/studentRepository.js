@@ -1,8 +1,16 @@
 const { pool } = require('../config/db');
 
 class StudentRepository {
-  async findAll() {
-    const [rows] = await pool.query('SELECT * FROM student');
+  async findAll(departmentId = null) {
+    let query = 'SELECT * FROM student';
+    const params = [];
+    
+    if (departmentId) {
+      query += ' WHERE department_id = ?';
+      params.push(departmentId);
+    }
+    
+    const [rows] = await pool.query(query, params);
     return rows;
   }
 

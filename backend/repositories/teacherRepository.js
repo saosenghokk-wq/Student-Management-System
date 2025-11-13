@@ -2,8 +2,8 @@ const { pool } = require('../config/db');
 
 class TeacherRepository {
   // Get all teachers with related data
-  async findAll() {
-    const [rows] = await pool.query(`
+  async findAll(departmentId = null) {
+    let query = `
       SELECT 
         t.id,
         t.user_id,
@@ -30,8 +30,17 @@ class TeacherRepository {
       LEFT JOIN teacher_types tt ON t.teacher_types_id = tt.id
       LEFT JOIN position p ON t.position = p.id
       LEFT JOIN users u ON t.user_id = u.id
-      ORDER BY t.created_at DESC
-    `);
+    `;
+    
+    const params = [];
+    if (departmentId) {
+      query += ' WHERE t.department_id = ?';
+      params.push(departmentId);
+    }
+    
+    query += ' ORDER BY t.created_at DESC';
+    
+    const [rows] = await pool.query(query, params);
     return rows;
   }
 

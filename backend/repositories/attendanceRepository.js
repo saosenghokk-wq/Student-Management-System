@@ -121,13 +121,15 @@ const attendanceRepository = {
   },
 
   // Get subject enrollments
-  async getSubjectEnrollments() {
-    const query = `
+  async getSubjectEnrollments(teacherId = null) {
+    let query = `
       SELECT 
         se.id,
         se.subject_id,
         se.batch_id,
         se.semester,
+        se.teacher_id,
+        se.status,
         subj.subject_name,
         subj.subject_code,
         b.batch_code,
@@ -136,9 +138,19 @@ const attendanceRepository = {
       LEFT JOIN subject subj ON se.subject_id = subj.id
       LEFT JOIN batch b ON se.batch_id = b.Id
       LEFT JOIN teacher t ON se.teacher_id = t.id
-      ORDER BY b.batch_code, subj.subject_name
+      WHERE se.status = 1
     `;
-    const [rows] = await pool.execute(query);
+    const params = [];
+    
+    // Filter by teacher if teacherId is provided
+    if (teacherId) {
+      query += ' AND se.teacher_id = ?';
+      params.push(teacherId);
+    }
+    
+    query += ' ORDER BY b.batch_code, subj.subject_name';
+    
+    const [rows] = await pool.execute(query, params);
     return rows;
   },
 

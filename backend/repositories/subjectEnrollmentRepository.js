@@ -2,8 +2,8 @@ const { pool } = require('../config/db');
 
 class SubjectEnrollmentRepository {
   // Get all subject enrollments with related data
-  async findAll() {
-    const [rows] = await pool.query(`
+  async findAll(departmentId = null) {
+    let query = `
       SELECT 
         se.id,
         se.program_id,
@@ -19,6 +19,7 @@ class SubjectEnrollmentRepository {
         se.updated_at,
         p.name as program_name,
         p.code as program_code,
+        p.department_id,
         s.subject_name,
         s.subject_code,
         s.credit,
@@ -34,8 +35,17 @@ class SubjectEnrollmentRepository {
       LEFT JOIN batch b ON se.batch_id = b.Id
       LEFT JOIN subject_enroll_status ses ON se.status = ses.id
       LEFT JOIN department d ON p.department_id = d.id
-      ORDER BY se.created_at DESC
-    `);
+    `;
+    
+    const params = [];
+    if (departmentId) {
+      query += ' WHERE p.department_id = ?';
+      params.push(departmentId);
+    }
+    
+    query += ' ORDER BY se.created_at DESC';
+    
+    const [rows] = await pool.query(query, params);
     return rows;
   }
 

@@ -7,21 +7,21 @@ const ROUTE_PERMISSIONS = {
   // Admin only routes
   '/users': [1],
   '/departments': [1, 3],
-  '/programs': [1, 3],
-  '/subjects': [1, 3],
-  '/batches': [1, 3],
+  '/programs': [1, 2, 3],
+  '/subjects': [1, 2, 3],
+  '/batches': [1, 2, 3],
   '/admissions': [1, 3],
-  '/subject-enrollment': [1, 3],
+  '/subject-enrollment': [1, 2, 3],
   '/staff': [1, 3],
   
-  // Admin, Teacher, Registrar
+  // Admin, Teacher, Registrar, Dean
   '/parents': [1, 3],
   '/students': [1, 2, 3],
-  '/teachers': [1, 3],
+  '/teachers': [1, 2, 3],
   
   // Admin, Teacher
-  '/attendance': [1, 2],
-  '/grades': [1, 2],
+  '/attendance': [1, 3],
+  '/grades': [1, 3],
   
   // Admin and Accountant
   '/fees': [1, 7],
@@ -30,7 +30,7 @@ const ROUTE_PERMISSIONS = {
   '/dashboard': [1], // Only admin can access dashboard
   
   // Admin and Teacher
-  '/schedule': [1, 2],
+  '/schedule': [1, 3],
   
   // Student only
   '/my-schedule': [4],
@@ -39,8 +39,13 @@ const ROUTE_PERMISSIONS = {
   '/my-attendance': [4],
   '/my-fees': [4],
   
+  // Parent only
+  '/parent-attendance': [5],
+  '/parent-attendance/student': [5], // Parent viewing student classes
+  '/parent-grades': [5],
+  
   // Profile is accessible to all
-  '/profile': [1, 2, 3, 4, 7],
+  '/profile': [1, 2, 3, 4, 5, 6, 7],
 };
 
 function RoleProtectedRoute({ children, allowedRoles }) {
@@ -199,8 +204,14 @@ function RoleProtectedRoute({ children, allowedRoles }) {
               // Redirect based on role
               if (user.role_id === 1) {
                 window.location.href = '/dashboard';
+              } else if (user.role_id === 2) {
+                window.location.href = '/teachers';
+              } else if (user.role_id === 3) {
+                window.location.href = '/attendance';
               } else if (user.role_id === 4) {
                 window.location.href = '/my-schedule';
+              } else if (user.role_id === 5) {
+                window.location.href = '/parent-attendance';
               } else if (user.role_id === 7) {
                 window.location.href = '/fees';
               } else {

@@ -186,25 +186,30 @@ export default function Profile() {
                   <p>• Recommended: 400x400px</p>
                 </div>
                 
-                <label htmlFor="image-upload" className="upload-btn">
-                  📷 Choose Image
-                  <input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-                
-                {formData.Image && (
-                  <button
-                    type="button"
-                    className="delete-image-btn"
-                    onClick={handleDeleteImage}
-                  >
-                    🗑️ Remove Image
-                  </button>
+                {/* Hide image upload controls for dean (2), teacher (3), and parent (5) */}
+                {user.role_id !== 2 && user.role_id !== 3 && user.role_id !== 5 && (
+                  <>
+                    <label htmlFor="image-upload" className="upload-btn">
+                      📷 Choose Image
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    
+                    {formData.Image && (
+                      <button
+                        type="button"
+                        className="delete-image-btn"
+                        onClick={handleDeleteImage}
+                      >
+                        🗑️ Remove Image
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -268,14 +273,17 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div className="form-actions">
-                <button type="button" className="btn-secondary" onClick={() => navigate('/')}>
-                  Back to Dashboard
-                </button>
-                <button type="submit" className="btn-primary" disabled={loading || !selectedFile}>
-                  {loading ? 'Uploading...' : 'Upload Image'}
-                </button>
-              </div>
+              {/* Hide form action buttons for dean (2), teacher (3), and parent (5) */}
+              {user.role_id !== 2 && user.role_id !== 3 && user.role_id !== 5 && (
+                <div className="form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => navigate('/')}>
+                    Back to Dashboard
+                  </button>
+                  <button type="submit" className="btn-primary" disabled={loading || !selectedFile}>
+                    {loading ? 'Uploading...' : 'Upload Image'}
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         </div>

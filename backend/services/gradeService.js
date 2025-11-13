@@ -43,6 +43,10 @@ const gradeService = {
 
   async getStudentClassGrades(studentId, subjectEnrollId) {
     return await gradeRepository.getStudentClassGrades(studentId, subjectEnrollId);
+  },
+
+  async getSubjectEnrollments(teacherId = null) {
+    return await gradeRepository.getSubjectEnrollments(teacherId);
   }
 };
 

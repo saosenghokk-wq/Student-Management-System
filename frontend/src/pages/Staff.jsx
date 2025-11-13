@@ -83,10 +83,10 @@ const Staff = () => {
   };
 
   const handleEdit = (staffMember) => {
-    setEditingId(staffMember.Id);
+    setEditingId(staffMember.id);
     setForm({
-      username: '',
-      email: '',
+      username: staffMember.username || '',
+      email: staffMember.email || '',
       password: '',
       eng_name: staffMember.eng_name || '',
       khmer_name: staffMember.khmer_name || '',
@@ -142,7 +142,7 @@ const Staff = () => {
     const payload = {
       eng_name: form.eng_name.trim(),
       khmer_name: form.khmer_name.trim(),
-      phone: form.phone.trim(),
+      phone: String(form.phone).trim(),
       positions: parseInt(form.positions),
       province_no: parseInt(form.province_no) || 0,
       district_no: parseInt(form.district_no) || 0,
@@ -155,6 +155,17 @@ const Staff = () => {
       payload.username = form.username.trim();
       payload.email = form.email.trim();
       payload.password = form.password;
+    } else {
+      // When editing, only update account fields if provided
+      if (form.username && form.username.trim()) {
+        payload.username = form.username.trim();
+      }
+      if (form.email && form.email.trim()) {
+        payload.email = form.email.trim();
+      }
+      if (form.password && form.password.trim()) {
+        payload.password = form.password;
+      }
     }
 
     console.log('Payload:', payload);
@@ -327,11 +338,11 @@ const Staff = () => {
                 ) : filteredStaff.length === 0 ? (
                   <tr><td colSpan="7" style={{ textAlign: 'center' }}>No staff found</td></tr>
                 ) : (
-                  filteredStaff.map(member => (
-                    <tr key={member.Id}>
+                  filteredStaff.map((member) => (
+                    <tr key={member.id}>
                       <td>
-                        <div style={{fontWeight:600}}>{member.eng_name}</div>
-                        <div style={{fontSize:'.75rem',color:'#64748b'}}>ID: {member.Id}</div>
+                        <div style={{fontWeight:500}}>{member.eng_name}</div>
+                        <div style={{fontSize:'.75rem',color:'#64748b'}}>ID: {member.id}</div>
                       </td>
                       <td>{member.khmer_name}</td>
                       <td>{member.phone}</td>
@@ -346,7 +357,7 @@ const Staff = () => {
                         <button className="btn btn-sm" onClick={() => handleEdit(member)} style={{marginRight:4}}>
                           Edit
                         </button>
-                        <button className="btn btn-sm btn-cancel" onClick={() => handleDelete(member.Id)}>
+                        <button className="btn btn-sm btn-cancel" onClick={() => handleDelete(member.id)}>
                           Delete
                         </button>
                       </td>
@@ -370,49 +381,50 @@ const Staff = () => {
               <div className="modal-body">
                 <form onSubmit={handleSubmit} id="staffForm">
                   
-                  {!editingId && (
-                    <div className="form-section">
-                      <h3 className="section-title">
-                        <span className="section-icon">🔐</span>
-                        Account Information
-                      </h3>
-                      <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
-                        <div className="form-field">
-                          <label className="form-label">Username <span className="required">*</span></label>
-                          <input
-                            type="text"
-                            className="form-input"
-                            placeholder="Enter username"
-                            value={form.username}
-                            onChange={(e) => handleChange('username', e.target.value)}
-                            required={!editingId}
-                          />
-                        </div>
-                        <div className="form-field">
-                          <label className="form-label">Email <span className="required">*</span></label>
-                          <input
-                            type="email"
-                            className="form-input"
-                            placeholder="staff@example.com"
-                            value={form.email}
-                            onChange={(e) => handleChange('email', e.target.value)}
-                            required={!editingId}
-                          />
-                        </div>
-                        <div className="form-field">
-                          <label className="form-label">Password <span className="required">*</span></label>
-                          <input
-                            type="password"
-                            className="form-input"
-                            placeholder="Min. 6 characters"
-                            value={form.password}
-                            onChange={(e) => handleChange('password', e.target.value)}
-                            required={!editingId}
-                          />
-                        </div>
+                  <div className="form-section">
+                    <h3 className="section-title">
+                      <span className="section-icon">🔐</span>
+                      Account Information
+                    </h3>
+                    <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+                      <div className="form-field">
+                        <label className="form-label">Username <span className="required">*</span></label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="Enter username"
+                          value={form.username}
+                          onChange={(e) => handleChange('username', e.target.value)}
+                          required={!editingId}
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label className="form-label">Email <span className="required">*</span></label>
+                        <input
+                          type="email"
+                          className="form-input"
+                          placeholder="staff@example.com"
+                          value={form.email}
+                          onChange={(e) => handleChange('email', e.target.value)}
+                          required={!editingId}
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label className="form-label">
+                          Password {editingId && <span style={{color:'#6b7280',fontWeight:400}}>(Leave blank to keep current)</span>}
+                          {!editingId && <span className="required">*</span>}
+                        </label>
+                        <input
+                          type="password"
+                          className="form-input"
+                          placeholder={editingId ? "Enter new password or leave blank" : "Min. 6 characters"}
+                          value={form.password}
+                          onChange={(e) => handleChange('password', e.target.value)}
+                          required={!editingId}
+                        />
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   <div className="form-section">
                     <h3 className="section-title">
@@ -556,7 +568,7 @@ const Staff = () => {
                   Cancel
                 </button>
                 <button type="submit" form="staffForm" className="btn">
-                  {editingId ? 'Update Staff' : 'Add Staff'}
+                  {editingId ? 'Save' : 'Add Staff'}
                 </button>
               </div>
             </div>
