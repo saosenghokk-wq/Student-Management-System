@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
 
 const Staff = () => {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [staff, setStaff] = useState([]);
   const [positions, setPositions] = useState([]);
   const [users, setUsers] = useState([]);
@@ -55,7 +57,7 @@ const Staff = () => {
       setProvinces(results[3] || []);
     } catch (err) {
       console.error('Error loading data:', err);
-      alert('Failed to load data: ' + err.message);
+      showError('Failed to load data: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -116,11 +118,11 @@ const Staff = () => {
     if (!window.confirm('Are you sure you want to delete this staff member?')) return;
     try {
       await api.deleteStaff(id);
-      alert('Staff deleted successfully');
+      showSuccess('Staff deleted successfully');
       loadData();
     } catch (err) {
       console.error('Error deleting staff:', err);
-      alert('Failed to delete staff: ' + err.message);
+      showError('Failed to delete staff: ' + err.message);
     }
   };
 
@@ -130,12 +132,12 @@ const Staff = () => {
 
     // Validation
     if (!form.eng_name || !form.khmer_name || !form.phone || !form.positions) {
-      alert('Please fill in all required fields');
+      showWarning('Please fill in all required fields');
       return;
     }
 
     if (!editingId && (!form.username || !form.email || !form.password)) {
-      alert('Please fill in account information (username, email, password)');
+      showWarning('Please fill in account information (username, email, password)');
       return;
     }
 
@@ -173,16 +175,16 @@ const Staff = () => {
     try {
       if (editingId) {
         await api.updateStaff(editingId, payload);
-        alert('Staff updated successfully');
+        showSuccess('Staff updated successfully');
       } else {
         await api.createStaff(payload);
-        alert('Staff created successfully');
+        showSuccess('Staff created successfully');
       }
       setShowModal(false);
       loadData();
     } catch (err) {
       console.error('Error saving staff:', err);
-      alert('Failed to save staff: ' + err.message);
+      showError('Failed to save staff: ' + err.message);
     }
   };
 

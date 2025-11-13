@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Teachers() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [teachers, setTeachers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [teacherTypes, setTeacherTypes] = useState([]);
@@ -114,15 +116,15 @@ export default function Teachers() {
           village_no: form.village_no || null
         };
         await api.updateTeacher(editingId, updateData);
-        alert('Teacher updated successfully');
+        showSuccess('Teacher updated successfully');
       } else {
         await api.createTeacher(form);
-        alert('Teacher created successfully');
+        showSuccess('Teacher created successfully');
       }
       loadData();
       closeModal();
     } catch (err) {
-      alert(err.message || 'Operation failed');
+      showError(err.message || 'Operation failed');
     }
   };
 
@@ -167,10 +169,10 @@ export default function Teachers() {
     if (!window.confirm('Are you sure you want to delete this teacher?')) return;
     try {
       await api.deleteTeacher(id);
-      alert('Teacher deleted successfully');
+      showSuccess('Teacher deleted successfully');
       loadData();
     } catch (err) {
-      alert(err.message || 'Delete failed');
+      showError(err.message || 'Delete failed');
     }
   };
 

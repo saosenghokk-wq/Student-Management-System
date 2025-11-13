@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 
 export default function Fees() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,7 +34,7 @@ export default function Fees() {
       }
     } catch (error) {
       console.error('Error loading students:', error);
-      alert('Failed to load students: ' + error.message);
+      showError('Failed to load students: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function Fees() {
       }
     } catch (error) {
       console.error('Error loading fee details:', error);
-      alert('Failed to load fee details: ' + error.message);
+      showError('Failed to load fee details: ' + error.message);
     } finally {
       setLoadingDetails(false);
     }
@@ -71,7 +73,7 @@ export default function Fees() {
     e.preventDefault();
     
     if (!paymentData.amount || parseFloat(paymentData.amount) <= 0) {
-      alert('Please enter a valid amount');
+      showWarning('Please enter a valid amount');
       return;
     }
 
@@ -86,13 +88,13 @@ export default function Fees() {
       });
 
       if (response.success) {
-        alert('Fee payment added successfully!');
+        showSuccess('Fee payment added successfully!');
         setShowModal(false);
         loadStudents();
       }
     } catch (error) {
       console.error('Error creating payment:', error);
-      alert('Failed to create payment: ' + error.message);
+      showError('Failed to create payment: ' + error.message);
     } finally {
       setSubmitting(false);
     }

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 
 export default function Departments() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -10,7 +12,6 @@ export default function Departments() {
   const [staffId, setStaffId] = useState('');
   const [staff, setStaff] = useState([]);
   const [creating, setCreating] = useState(false);
-  const [success, setSuccess] = useState('');
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editStaffId, setEditStaffId] = useState('');
@@ -38,7 +39,6 @@ export default function Departments() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    setSuccess('');
     setError('');
     if (!departmentName.trim()) {
       setError('Department name is required');
@@ -56,8 +56,7 @@ export default function Departments() {
       setDepartments(prev => [newDept, ...prev]);
       setDepartmentName('');
       setStaffId('');
-      setSuccess('Department created successfully!');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Department created successfully!');
     } catch (e) {
       console.error('Error creating department:', e);
       setError(e.message || 'Failed to create department');
@@ -71,7 +70,6 @@ export default function Departments() {
     setEditName(dept.department_name);
     setEditStaffId(dept.staff_id || '');
     setError('');
-    setSuccess('');
   };
 
   const cancelEdit = () => {
@@ -83,7 +81,6 @@ export default function Departments() {
   const saveEdit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     if (!editName.trim()) {
       setError('Department name is required');
       return;
@@ -101,8 +98,7 @@ export default function Departments() {
       console.log('Department updated:', updated);
       setDepartments(prev => prev.map(d => d.id === editId ? updated : d));
       cancelEdit();
-      setSuccess('Department updated successfully!');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Department updated successfully!');
     } catch (e) {
       console.error('Error updating department:', e);
       setError(e.message || 'Failed to update department');
@@ -114,9 +110,8 @@ export default function Departments() {
     setError('');
     try {
       await api.deleteDepartment(id);
-      setDepartments(prev => prev.filter(d => d.id !== id));
-      setSuccess('Department deleted');
-      setTimeout(() => setSuccess(''), 2000);
+      setDepartments(departments.filter(d => d.id !== id));
+      showSuccess('Department deleted successfully!');
     } catch (e) {
       setError(e.message);
     }
@@ -177,20 +172,6 @@ export default function Departments() {
             ❌ {error}
           </div>
         )}
-        {success && (
-          <div style={{ 
-            background: '#d1fae5', 
-            border: '1px solid #6ee7b7', 
-            color: '#047857', 
-            padding: '12px 16px', 
-            borderRadius: 6, 
-            marginBottom: 16,
-            fontWeight: 600 
-          }}>
-            ✅ {success}
-          </div>
-        )}
-
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ background: '#f3f4f6' }}>

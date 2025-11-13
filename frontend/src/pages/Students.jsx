@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Students() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [students, setStudents] = useState([]);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -279,7 +280,6 @@ export default function Students() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     
     try {
       // Validate required fields
@@ -348,8 +348,7 @@ export default function Students() {
         schoolarship_id: '',
         description: ''
       });
-      setSuccess('✓ Student created successfully!');
-      setTimeout(() => setSuccess(''), 5000);
+      showSuccess('Student created successfully!');
     } catch (err) {
       console.error('Error creating student:', err);
       setError('❌ ' + (err.message || 'Failed to create student'));
@@ -404,47 +403,6 @@ export default function Students() {
           </button>
         </div>
 
-        {error && (
-          <div style={{ 
-            position: 'fixed',
-            top: '20px',
-            right: '20px',
-            background: '#fee2e2',
-            border: '2px solid #fca5a5',
-            borderRadius: '8px',
-            padding: '16px 20px',
-            color: '#dc2626',
-            fontWeight: 600,
-          fontSize: '0.95rem',
-          zIndex: 2000,
-          boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)',
-          maxWidth: '400px',
-          animation: 'slideIn 0.3s ease-out'
-        }}>
-          {error}
-        </div>
-      )}
-      {success && (
-        <div style={{ 
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: '#dcfce7',
-          border: '2px solid #86efac',
-          borderRadius: '8px',
-          padding: '16px 20px',
-          color: '#15803d',
-          fontWeight: 600,
-          fontSize: '0.95rem',
-          zIndex: 2000,
-          boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)',
-          maxWidth: '400px',
-          animation: 'slideIn 0.3s ease-out'
-        }}>
-          {success}
-        </div>
-      )}
-      
       {/* Add Student Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>

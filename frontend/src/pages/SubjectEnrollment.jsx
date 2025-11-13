@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function SubjectEnrollment() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [enrollments, setEnrollments] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -11,7 +13,6 @@ export default function SubjectEnrollment() {
   const [batches, setBatches] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -86,20 +87,18 @@ export default function SubjectEnrollment() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
 
     try {
       if (editingId) {
         await api.updateSubjectEnrollment(editingId, form);
-        setSuccess('Subject enrollment updated successfully');
+        showSuccess('Subject enrollment updated successfully');
       } else {
         await api.createSubjectEnrollment(form);
-        setSuccess('Subject enrollment created successfully');
+        showSuccess('Subject enrollment created successfully');
       }
       
       await loadData();
       handleCloseModal();
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message);
     }
@@ -130,9 +129,8 @@ export default function SubjectEnrollment() {
 
     try {
       await api.deleteSubjectEnrollment(id);
-      setSuccess('Subject enrollment deleted successfully');
+      showSuccess('Subject enrollment deleted successfully');
       await loadData();
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message);
     }
@@ -179,9 +177,6 @@ export default function SubjectEnrollment() {
             + Add Enrollment
           </button>
         </div>
-
-        {error && <div className="alert error">{error}</div>}
-        {success && <div className="alert success">{success}</div>}
 
         {/* Search */}
         <div className="card" style={{ marginBottom: 20 }}>

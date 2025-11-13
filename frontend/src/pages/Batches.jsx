@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Batches() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [batches, setBatches] = useState([]);
   const [user, setUser] = useState(() => {
     const u = localStorage.getItem('user') || sessionStorage.getItem('user');
@@ -51,7 +53,7 @@ export default function Batches() {
       setLoading(false);
     } catch (err) {
       console.error('Error loading data:', err);
-      alert('Failed to load data');
+      showError('Failed to load data');
       setLoading(false);
     }
   };
@@ -66,15 +68,15 @@ export default function Batches() {
     try {
       if (editingId) {
         await api.updateBatch(editingId, form);
-        alert('Batch updated successfully');
+        showSuccess('Batch updated successfully');
       } else {
         await api.createBatch(form);
-        alert('Batch created successfully');
+        showSuccess('Batch created successfully');
       }
       loadData();
       closeModal();
     } catch (err) {
-      alert(err.message || 'Operation failed');
+      showError(err.message || 'Operation failed');
     }
   };
 
@@ -93,10 +95,10 @@ export default function Batches() {
     if (!window.confirm('Are you sure you want to delete this batch?')) return;
     try {
       await api.deleteBatch(id);
-      alert('Batch deleted successfully');
+      showSuccess('Batch deleted successfully');
       loadData();
     } catch (err) {
-      alert(err.message || 'Delete failed');
+      showError(err.message || 'Delete failed');
     }
   };
 

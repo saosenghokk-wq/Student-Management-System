@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function Parents() {
+  const { showSuccess, showError, showWarning } = useAlert();
   // State declarations
   const [parents, setParents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [query, setQuery] = useState('');
@@ -133,18 +134,17 @@ export default function Parents() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); setSuccess('');
+    setError('');
     try {
       if (editId) {
         await api.updateParent(editId, form);
-        setSuccess('Parent updated successfully');
+        showSuccess('Parent updated successfully');
       } else {
         await api.createParent(form);
-        setSuccess('Parent created successfully');
+        showSuccess('Parent created successfully');
       }
       closeModal();
       loadParents();
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message || 'Operation failed');
       setTimeout(() => setError(''), 4000);
@@ -156,8 +156,7 @@ export default function Parents() {
     try {
       await api.deleteParent(id);
       setParents(prev => prev.filter(p => p.id !== id));
-      setSuccess('Parent deleted');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Parent deleted successfully');
     } catch (err) { setError(err.message || 'Delete failed'); }
   };
 
@@ -195,9 +194,6 @@ export default function Parents() {
             </button>
           </div>
         </div>
-
-        {error && <div className="alert error">{error}</div>}
-        {success && <div className="alert success">{success}</div>}
 
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>

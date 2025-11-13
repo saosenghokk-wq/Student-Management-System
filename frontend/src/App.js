@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AlertProvider } from './contexts/AlertContext.jsx';
+import './styles/alert.css';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Students from './pages/Students.jsx';
@@ -37,9 +39,10 @@ import HomeRedirect from './components/HomeRedirect.jsx';
 
 function App() {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
+    <AlertProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<RoleProtectedRoute><HomeRedirect /></RoleProtectedRoute>} />
         <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
@@ -79,6 +82,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+    </AlertProvider>
   );
 }
 

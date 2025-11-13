@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/modal.css';
 
 function StudentProfile() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [uploading, setUploading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAcademicEditModal, setShowAcademicEditModal] = useState(false);
@@ -180,7 +181,6 @@ function StudentProfile() {
   const handleAcademicSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     
     try {
       const oldDepartmentId = student.department_id;
@@ -211,8 +211,7 @@ function StudentProfile() {
         });
       }
       
-      setSuccess('✓ Academic information updated successfully!');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Academic information updated successfully!');
       setShowAcademicEditModal(false);
       loadStudentDetails();
     } catch (err) {
@@ -226,8 +225,7 @@ function StudentProfile() {
     e.preventDefault();
     try {
       await api.updateStudent(id, personalForm);
-      setSuccess('✅ Personal information updated successfully');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Personal information updated successfully');
       setShowPersonalEditModal(false);
       loadStudentDetails();
     } catch (err) {
@@ -319,8 +317,7 @@ function StudentProfile() {
     e.preventDefault();
     try {
       await api.updateStudent(id, addressForm);
-      setSuccess('✅ Address information updated successfully');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Address information updated successfully');
       setShowAddressEditModal(false);
       loadStudentDetails();
     } catch (err) {
@@ -379,8 +376,7 @@ function StudentProfile() {
       console.log('Submitting user update payload:', payload);
       console.log('Status value:', payload.status, 'Type:', typeof payload.status);
       await api.updateStudent(id, payload);
-      setSuccess('✅ User information updated successfully');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('User information updated successfully');
       setShowUserEditModal(false);
       loadStudentDetails();
     } catch (err) {
@@ -397,8 +393,7 @@ function StudentProfile() {
         parent_id: parentAccountForm.parent_id
       };
       await api.updateStudent(id, payload);
-      setSuccess('✅ Parent information updated successfully');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Parent information updated successfully');
       setShowParentAccountEditModal(false);
       loadStudentDetails();
     } catch (err) {
@@ -413,15 +408,13 @@ function StudentProfile() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
-      setTimeout(() => setError(''), 3000);
+      showWarning('Please select a valid image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image size must be less than 5MB');
-      setTimeout(() => setError(''), 3000);
+      showWarning('Image size must be less than 5MB');
       return;
     }
 
@@ -446,15 +439,13 @@ function StudentProfile() {
         throw new Error(data.error || 'Failed to upload image');
       }
 
-      setSuccess('✓ Profile image updated successfully!');
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess('Profile image updated successfully!');
       
       // Reload student details to get updated image
       loadStudentDetails();
     } catch (err) {
       console.error('Error uploading image:', err);
-      setError('❌ ' + (err.message || 'Failed to upload image'));
-      setTimeout(() => setError(''), 3000);
+      showError(err.message || 'Failed to upload image');
     } finally {
       setUploading(false);
     }
@@ -564,27 +555,6 @@ function StudentProfile() {
         </div>
       )}
       
-      {/* Success Message */}
-      {success && (
-        <div style={{ 
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: '#dcfce7',
-          border: '2px solid #86efac',
-          borderRadius: '8px',
-          padding: '16px 20px',
-          color: '#16a34a',
-          fontWeight: 600,
-          fontSize: '0.95rem',
-          zIndex: 2000,
-          boxShadow: '0 4px 12px rgba(22, 163, 74, 0.2)',
-          maxWidth: '400px'
-        }}>
-          {success}
-        </div>
-      )}
-
       {/* Uploading Overlay */}
       {uploading && (
         <div style={{
@@ -1095,7 +1065,7 @@ function StudentProfile() {
       </div>
 
       {/* Edit Student Modal */}
-      {showEditModal && <EditStudentModal student={student} onClose={() => setShowEditModal(false)} onSuccess={() => { loadStudentDetails(); setShowEditModal(false); setSuccess('✓ Student updated successfully!'); setTimeout(() => setSuccess(''), 3000); }} />}
+      {showEditModal && <EditStudentModal student={student} onClose={() => setShowEditModal(false)} onSuccess={() => { loadStudentDetails(); setShowEditModal(false); showSuccess('Student updated successfully!'); }} />}
 
       {/* Academic Edit Modal */}
       {showAcademicEditModal && (

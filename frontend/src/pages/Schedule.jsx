@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 
 export default function Schedule() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [schedules, setSchedules] = useState([]);
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [uploading, setUploading] = useState(false);
   
   const [form, setForm] = useState({
@@ -77,7 +78,6 @@ export default function Schedule() {
     
     setUploading(true);
     setError('');
-    setSuccess('');
     
     try {
       const response = await fetch('http://localhost:5000/api/schedules', {
@@ -99,13 +99,11 @@ export default function Schedule() {
         throw new Error(data.error || 'Failed to upload schedule');
       }
       
-      setSuccess('✅ Schedule uploaded successfully!');
+      showSuccess('Schedule uploaded successfully!');
       setShowModal(false);
       setForm({ batch_id: '', semester: '', image: null });
       setImagePreview(null);
       loadData();
-      
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('❌ ' + (err.message || 'Failed to upload schedule'));
     } finally {
@@ -130,9 +128,8 @@ export default function Schedule() {
         throw new Error('Failed to delete schedule');
       }
       
-      setSuccess('✅ Schedule deleted successfully!');
+      showSuccess('Schedule deleted successfully!');
       loadData();
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('❌ ' + (err.message || 'Failed to delete schedule'));
     }
@@ -166,19 +163,7 @@ export default function Schedule() {
           </div>
         )}
         
-        {success && (
-          <div style={{ 
-            background: '#dcfce7', 
-            border: '2px solid #86efac', 
-            borderRadius: 8, 
-            padding: '12px 16px', 
-            marginBottom: 20,
-            color: '#16a34a',
-            fontWeight: 600
-          }}>
-            {success}
-          </div>
-        )}
+
 
         {/* Add Button */}
         <div style={{ marginBottom: 20 }}>

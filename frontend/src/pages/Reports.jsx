@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/reports.css';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const Reports = () => {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [activeTab, setActiveTab] = useState('academic');
   const [activeReport, setActiveReport] = useState('student-performance');
   const [reportData, setReportData] = useState([]);
@@ -172,6 +174,10 @@ const Reports = () => {
     if (reportData.length === 0) return;
 
     const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+    
+    // Set default font to support Unicode characters better
+    doc.setFont('helvetica');
+    
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -245,13 +251,22 @@ const Reports = () => {
       currentY += 18;
     }
 
-    // Prepare table data
-    const columns = Object.keys(reportData[0]);
-    const headers = columns.map(col => col.replace(/_/g, ' ').toUpperCase());
+    // Prepare table data - exclude Khmer name columns
+    const allColumns = Object.keys(reportData[0]);
+    const columns = allColumns.filter(col => !col.includes('khmer_name'));
+    
+    const headers = columns.map(col => {
+      // Remove prefixes like "student.", "teacher.", etc.
+      let cleanCol = col.replace(/^(student|teacher|batch|program|department|subject|grade|attendance)\./i, '');
+      // Replace underscores with spaces and capitalize
+      return cleanCol.replace(/_/g, ' ').toUpperCase();
+    });
+    
     const rows = reportData.map(row => 
       columns.map(col => {
         const value = row[col];
-        return value !== null && value !== undefined ? String(value) : '-';
+        if (value === null || value === undefined) return '-';
+        return String(value);
       })
     );
 

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { api } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function AddStudent() {
+  const { showSuccess, showError } = useAlert();
   const [form, setForm] = useState({
     user_id: '',
     std_eng_name: '',
@@ -13,8 +15,6 @@ export default function AddStudent() {
     gender: '0',
     phone: '',
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const change = (e) => {
@@ -24,15 +24,13 @@ export default function AddStudent() {
 
   const submit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     try {
       const payload = { ...form, user_id: parseInt(form.user_id, 10) };
       const created = await api.createStudent(payload);
-      setSuccess(`Student created with id ${created.id}`);
+      showSuccess(`Student created with id ${created.id}`);
       setTimeout(() => navigate('/students'), 1000);
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
@@ -48,9 +46,6 @@ export default function AddStudent() {
 
         <div className="card" style={{ maxWidth: 600 }}>
           <div style={{ padding: 24 }}>
-            {error && <div className="alert error">{error}</div>}
-            {success && <div className="alert success">{success}</div>}
-            
             <form onSubmit={submit}>
               <div className="form-grid">
                 <div className="form-field">

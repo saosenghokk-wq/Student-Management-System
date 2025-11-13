@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Attendance() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [subjectEnrollments, setSubjectEnrollments] = useState([]);
@@ -47,7 +49,7 @@ export default function Attendance() {
       setStatusTypes(statusRes.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Failed to load data');
+      showError('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,7 @@ export default function Attendance() {
       setStudentAttendance(attendanceMap);
     } catch (error) {
       console.error('Error loading students:', error);
-      alert('Failed to load students');
+      showError('Failed to load students');
     } finally {
       setLoading(false);
     }
@@ -118,7 +120,7 @@ export default function Attendance() {
 
   const handleSaveAll = async () => {
     if (!selectedEnrollment) {
-      alert('Please select a class first');
+      showWarning('Please select a class first');
       return;
     }
 
@@ -139,17 +141,17 @@ export default function Attendance() {
     });
 
     if (attendanceRecords.length === 0) {
-      alert('Please mark attendance for at least one student');
+      showWarning('Please mark attendance for at least one student');
       return;
     }
 
     try {
       await api.saveBulkAttendance(attendanceRecords);
-      alert(`Attendance saved successfully for ${attendanceRecords.length} students`);
+      showSuccess(`Attendance saved successfully for ${attendanceRecords.length} students`);
       loadClassStudents(); // Reload to get updated IDs
     } catch (error) {
       console.error('Error saving attendance:', error);
-      alert('Failed to save attendance');
+      showError('Failed to save attendance');
     }
   };
 
@@ -180,7 +182,7 @@ export default function Attendance() {
       setSubView('history');
     } catch (error) {
       console.error('Error loading history:', error);
-      alert('Failed to load attendance history');
+      showError('Failed to load attendance history');
     } finally {
       setLoading(false);
     }

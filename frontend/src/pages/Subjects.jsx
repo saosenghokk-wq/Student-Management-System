@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 
 export default function Subjects() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [subjects, setSubjects] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const [form, setForm] = useState({
     subject_code: '', subject_name: '', program_id: '', credit: ''
@@ -39,7 +40,7 @@ export default function Subjects() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    setError(''); setSuccess('');
+    setError('');
     if (!form.subject_code.trim()) return setError('Subject code is required');
     if (!form.subject_name.trim()) return setError('Subject name is required');
     if (!form.program_id) return setError('Program is required');
@@ -54,15 +55,14 @@ export default function Subjects() {
       });
       setSubjects(prev => [created, ...prev]);
       setForm({ subject_code: '', subject_name: '', program_id: '', credit: '' });
-      setSuccess('Subject created');
-      setTimeout(() => setSuccess(''), 2000);
+      showSuccess('Subject created successfully!');
     } catch (e) { setError(e.message); } finally { setCreating(false); }
   };
 
   const startEdit = (m) => {
     setEditId(m.id);
     setEditForm({ subject_code: m.subject_code, subject_name: m.subject_name, program_id: m.program_id, credit: m.credit });
-    setError(''); setSuccess('');
+    setError('');
   };
   const cancelEdit = () => setEditId(null);
 
@@ -81,8 +81,7 @@ export default function Subjects() {
       });
       setSubjects(prev => prev.map(s => s.id === editId ? updated : s));
       cancelEdit();
-      setSuccess('Subject updated');
-      setTimeout(() => setSuccess(''), 2000);
+      showSuccess('Subject updated successfully!');
     } catch (e) { setError(e.message); }
   };
 
@@ -91,8 +90,7 @@ export default function Subjects() {
     try {
       await api.deleteSubject(id);
       setSubjects(prev => prev.filter(s => s.id !== id));
-      setSuccess('Subject deleted');
-      setTimeout(() => setSuccess(''), 2000);
+      showSuccess('Subject deleted successfully!');
     } catch (e) { setError(e.message); }
   };
 
@@ -125,8 +123,6 @@ export default function Subjects() {
           <button type="submit" disabled={creating} style={{ background: '#4f46e5', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
             {creating ? 'Creating...' : 'Add Subject'}
           </button>
-          {error && <div style={{ color: '#b91c1c', fontWeight: 600 }}>{error}</div>}
-          {success && <div style={{ color: '#047857', fontWeight: 600 }}>{success}</div>}
         </form>
 
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>

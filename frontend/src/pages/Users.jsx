@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function Users() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -11,7 +13,6 @@ export default function Users() {
   const [editUser, setEditUser] = useState(null);
   const [form, setForm] = useState({ username: '', email: '', password: '', status: '1', role_id: '' });
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ username: '', email: '', password: '', role_id: '1', status: '1', department_id: '' });
   const [roles, setRoles] = useState([]);
@@ -71,8 +72,6 @@ export default function Users() {
       role_id: String(user.role_id ?? (roles[0]?.id ?? '')),
       department_id: user.department_id ? String(user.department_id) : ''
     });
-    setSuccess('');
-    setError('');
   };
 
   const openProfileDetail = async (user) => {
@@ -85,7 +84,7 @@ export default function Users() {
       setViewUser(fresh);
       if (fresh.Image) setImagePreview(fresh.Image);
     } catch (e) {
-      setError(e.message);
+      showError(e.message || 'Failed to load user details');
     } finally {
       setViewLoading(false);
     }
@@ -95,11 +94,11 @@ export default function Users() {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
+      showWarning('Please select an image file');
       return;
     }
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      setError('Image must be less than 5MB');
+      showWarning('Image must be less than 5MB');
       return;
     }
     setSelectedImageFile(file);
@@ -112,21 +111,20 @@ export default function Users() {
 
   const uploadUserImage = async () => {
     if (!viewUser || !selectedImageFile || !imagePreview) {
-      setError('Select image first');
+      showWarning('Please select an image first');
       return;
     }
     setImageUploading(true);
-    setError('');
     try {
       await api.updateUser(viewUser.id, { Image: imagePreview });
       // patch local list
       setUsers(prev => prev.map(u => u.id === viewUser.id ? { ...u, Image: imagePreview } : u));
-      setSuccess('✓ Image updated');
+      showSuccess('User image updated successfully!');
       // refresh viewUser
       const fresh = await api.getUser(viewUser.id);
       setViewUser(fresh);
     } catch (e) {
-      setError(e.message);
+      showError(e.message || 'Failed to update image');
     } finally {
       setImageUploading(false);
     }
@@ -136,8 +134,6 @@ export default function Users() {
     e.preventDefault();
     if (!editUser) return;
     setSaving(true);
-    setError('');
-    setSuccess('');
     try {
       const payload = {
         username: form.username,
@@ -153,10 +149,10 @@ export default function Users() {
       await api.updateUser(editUser.id, payload);
       // update local list
       setUsers(prev => prev.map(u => u.id === editUser.id ? { ...u, ...payload } : u));
-      setSuccess('✓ User updated');
+      showSuccess('User updated successfully!');
       setEditUser(null);
     } catch (e) {
-      setError(e.message);
+      showError(e.message || 'Failed to update user');
     } finally {
       setSaving(false);
     }
@@ -178,9 +174,6 @@ export default function Users() {
             <button className="btn" onClick={() => { setAddForm({ username:'', email:'', password:'', role_id:'1', status:'1', department_id: '' }); setShowAdd(true); }}>+ Add User</button>
           </div>
         </div>
-
-        {error && <div className="alert error">{error}</div>}
-        {success && <div className="alert success">{success}</div>}
 
         {loading ? (
           <div className="loader">Loading...</div>
@@ -243,8 +236,6 @@ export default function Users() {
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 setSaving(true);
-                setError('');
-                setSuccess('');
                 try {
                   // Build payload with only known columns
                   const payload = {
@@ -257,10 +248,10 @@ export default function Users() {
                   };
                   const created = await api.createUser(payload);
                   setUsers(prev => [{...created, password: undefined}, ...prev]);
-                  setSuccess('✓ User created');
+                  showSuccess('User created successfully!');
                   setShowAdd(false);
                 } catch (e) {
-                  setError(e.message);
+                  showError(e.message || 'Failed to create user');
                 } finally {
                   setSaving(false);
                 }

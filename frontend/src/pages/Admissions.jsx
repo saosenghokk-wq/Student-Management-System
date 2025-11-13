@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
 
 const Admissions = () => {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [admissions, setAdmissions] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -28,7 +30,7 @@ const Admissions = () => {
       setAdmissions(admissionsData || []);
     } catch (err) {
       console.error('Error loading admissions:', err);
-      alert('Failed to load admissions: ' + err.message);
+      showError('Failed to load admissions: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -58,11 +60,11 @@ const Admissions = () => {
     if (!window.confirm('Are you sure you want to delete this admission?')) return;
     try {
       await api.deleteAdmission(id);
-      alert('Admission deleted successfully');
+      showSuccess('Admission deleted successfully');
       loadData();
     } catch (err) {
       console.error('Error deleting admission:', err);
-      alert('Failed to delete admission: ' + err.message);
+      showError('Failed to delete admission: ' + err.message);
     }
   };
 
@@ -72,7 +74,7 @@ const Admissions = () => {
 
     // Validation
     if (!form.admission_year || !form.start_date || !form.end_date) {
-      alert('Please fill in all required fields');
+      showWarning('Please fill in all required fields');
       return;
     }
 
@@ -87,16 +89,16 @@ const Admissions = () => {
     try {
       if (editingId) {
         await api.updateAdmission(editingId, payload);
-        alert('Admission updated successfully');
+        showSuccess('Admission updated successfully');
       } else {
         await api.createAdmission(payload);
-        alert('Admission created successfully');
+        showSuccess('Admission created successfully');
       }
       setShowModal(false);
       loadData();
     } catch (err) {
       console.error('Error saving admission:', err);
-      alert('Failed to save admission: ' + err.message);
+      showError('Failed to save admission: ' + err.message);
     }
   };
 

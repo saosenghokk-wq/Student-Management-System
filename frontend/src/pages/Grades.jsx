@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Grades() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [subjectEnrollments, setSubjectEnrollments] = useState([]);
@@ -45,7 +47,7 @@ export default function Grades() {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
       if (!token) {
-        alert('Please login first');
+        showWarning('Please login first');
         return;
       }
       
@@ -78,7 +80,7 @@ export default function Grades() {
       
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('Failed to load data: ' + error.message);
+      showError('Failed to load data: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -117,7 +119,7 @@ export default function Grades() {
       setStudentGrades(gradesMap);
     } catch (error) {
       console.error('Error loading students:', error);
-      alert('Failed to load students');
+      showError('Failed to load students');
     } finally {
       setLoading(false);
     }
@@ -157,7 +159,7 @@ export default function Grades() {
 
   const handleSaveAll = async () => {
     if (!selectedEnrollment || !selectedGradeType) {
-      alert('Please select a class and grade type first');
+      showWarning('Please select a class and grade type first');
       return;
     }
 
@@ -178,7 +180,7 @@ export default function Grades() {
     });
 
     if (gradeRecords.length === 0) {
-      alert('Please enter grades for at least one student');
+      showWarning('Please enter grades for at least one student');
       return;
     }
 
@@ -195,14 +197,14 @@ export default function Grades() {
       
       const result = await response.json();
       if (result.success) {
-        alert(`Grades saved successfully for ${gradeRecords.length} students`);
+        showSuccess(`Grades saved successfully for ${gradeRecords.length} students`);
         loadClassStudents(); // Reload to get updated IDs
       } else {
-        alert('Failed to save grades: ' + result.message);
+        showError('Failed to save grades: ' + result.message);
       }
     } catch (error) {
       console.error('Error saving grades:', error);
-      alert('Failed to save grades');
+      showError('Failed to save grades');
     }
   };
 
@@ -222,7 +224,7 @@ export default function Grades() {
       setSubView('history');
     } catch (error) {
       console.error('Error loading history:', error);
-      alert('Failed to load grade history');
+      showError('Failed to load grade history');
     } finally {
       setLoading(false);
     }

@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
+import { useAlert } from '../contexts/AlertContext';
 
 export default function Programs() {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [programs, setPrograms] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [degrees, setDegrees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const [form, setForm] = useState({
     name: '',
@@ -53,7 +54,7 @@ export default function Programs() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    setError(''); setSuccess('');
+    setError('');
     if (!form.name.trim()) return setError('Name is required');
     if (!form.code.trim()) return setError('Code is required');
     if (!form.department_id) return setError('Department is required');
@@ -70,8 +71,7 @@ export default function Programs() {
       });
       setPrograms(prev => [created, ...prev]);
       setForm({ name: '', description: '', code: '', department_id: '', degree_id: '', status: 'active' });
-      setSuccess('Program created');
-      setTimeout(() => setSuccess(''), 2000);
+      showSuccess('Program created successfully!');
     } catch (e) { setError(e.message); } finally { setCreating(false); }
   };
 
@@ -85,7 +85,7 @@ export default function Programs() {
       degree_id: p.degree_id,
       status: p.status
     });
-    setError(''); setSuccess('');
+    setError('');
   };
   const cancelEdit = () => { setEditId(null); };
 
@@ -106,8 +106,7 @@ export default function Programs() {
       });
       setPrograms(prev => prev.map(p => p.id === editId ? updated : p));
       cancelEdit();
-      setSuccess('Program updated');
-      setTimeout(() => setSuccess(''), 2000);
+      showSuccess('Program updated successfully!');
     } catch (e) { setError(e.message); }
   };
 
@@ -116,8 +115,7 @@ export default function Programs() {
     try {
       await api.deleteProgram(id);
       setPrograms(prev => prev.filter(p => p.id !== id));
-      setSuccess('Program deleted');
-      setTimeout(() => setSuccess(''), 2000);
+      showSuccess('Program deleted successfully!');
     } catch (e) { setError(e.message); }
   };
 
@@ -322,7 +320,6 @@ export default function Programs() {
                 {creating ? '⏳ Creating...' : '✅ Add Program'}
               </button>
               {error && <div style={{ color: '#ef4444', fontWeight: '600', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '4px' }}>❌ {error}</div>}
-              {success && <div style={{ color: '#10b981', fontWeight: '600', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '4px' }}>✅ {success}</div>}
             </div>
           </form>
         </div>
