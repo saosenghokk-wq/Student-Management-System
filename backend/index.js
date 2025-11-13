@@ -34,6 +34,7 @@ const gradeRoutes = require('./routes/gradeRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 const settingRoutes = require('./routes/settingRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
@@ -58,6 +59,7 @@ app.use('/api/grades', gradeRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/fees', feeRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Error handling (should be last middleware)
 const errorHandler = require('./middleware/errorHandler');

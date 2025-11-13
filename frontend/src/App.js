@@ -29,6 +29,7 @@ import StudentClasses from './pages/StudentClasses.jsx';
 import StudentGrades from './pages/StudentGrades.jsx';
 import Fees from './pages/Fees.jsx';
 import Settings from './pages/Settings.jsx';
+import Reports from './pages/Reports.jsx';
 import ComingSoon from './pages/ComingSoon.jsx';
 import RoleProtectedRoute from './components/RoleProtectedRoute.jsx';
 import ScrollToTop from './components/ScrollToTop.jsx';
@@ -61,7 +62,6 @@ function App() {
         <Route path="/schedule" element={<RoleProtectedRoute><Schedule /></RoleProtectedRoute>} />
         
         {/* Coming Soon Pages */}
-        <Route path="/reports" element={<RoleProtectedRoute><ComingSoon pageName="Reports" /></RoleProtectedRoute>} />
         <Route path="/enrollment" element={<RoleProtectedRoute><ComingSoon pageName="Enrollment" /></RoleProtectedRoute>} />
         <Route path="/my-profile" element={<RoleProtectedRoute><ComingSoon pageName="My Profile" /></RoleProtectedRoute>} />
         <Route path="/my-grades" element={<RoleProtectedRoute><MyGrades /></RoleProtectedRoute>} />
@@ -73,6 +73,7 @@ function App() {
   <Route path="/parent-grades" element={<RoleProtectedRoute><ParentGrades /></RoleProtectedRoute>} />
   <Route path="/parent-grades/student/:studentId/grades" element={<RoleProtectedRoute><StudentGrades /></RoleProtectedRoute>} />
         <Route path="/fees" element={<RoleProtectedRoute><Fees /></RoleProtectedRoute>} />
+        <Route path="/reports" element={<RoleProtectedRoute><Reports /></RoleProtectedRoute>} />
         <Route path="/settings" element={<RoleProtectedRoute><Settings /></RoleProtectedRoute>} />
         
         <Route path="*" element={<Navigate to="/login" replace />} />

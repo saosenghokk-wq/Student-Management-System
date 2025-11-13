@@ -211,6 +211,21 @@ export const api = {
   // Settings (Admin)
   getSettings: () => request('/api/settings'),
   updateSettings: (settingsData) => request('/api/settings', { method: 'PUT', body: settingsData }),
+  
+  // Reports
+  getReportFilters: () => request('/api/reports/filters'),
+  getStudentPerformanceReport: (params) => request(`/api/reports/student-performance?${new URLSearchParams(params).toString()}`),
+  getGradeDistributionReport: (params) => request(`/api/reports/grade-distribution?${new URLSearchParams(params).toString()}`),
+  getStudentAttendanceReport: (params) => request(`/api/reports/student-attendance?${new URLSearchParams(params).toString()}`),
+  getAttendanceSummaryReport: (params) => request(`/api/reports/attendance-summary?${new URLSearchParams(params).toString()}`),
+  getStudentEnrollmentReport: (params) => request(`/api/reports/student-enrollment?${new URLSearchParams(params).toString()}`),
+  getTeacherWorkloadReport: (params) => request(`/api/reports/teacher-workload?${new URLSearchParams(params).toString()}`),
+  getDepartmentStatisticsReport: () => request('/api/reports/department-statistics'),
+  getAdmissionReport: (params) => request(`/api/reports/admission?${new URLSearchParams(params).toString()}`),
+  getFeeCollectionReport: (params) => request(`/api/reports/fee-collection?${new URLSearchParams(params).toString()}`),
+  getOutstandingFeesReport: (params) => request(`/api/reports/outstanding-fees?${new URLSearchParams(params).toString()}`),
+  getStudentDemographicsReport: () => request('/api/reports/student-demographics'),
+  getPassFailRateReport: (params) => request(`/api/reports/pass-fail-rate?${new URLSearchParams(params).toString()}`),
 };
 
 export default api;
