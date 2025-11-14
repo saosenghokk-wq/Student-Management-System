@@ -17,6 +17,7 @@ export default function SubjectEnrollment() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   const [form, setForm] = useState({
     program_id: '',
@@ -214,60 +215,208 @@ export default function SubjectEnrollment() {
         </div>
 
         {/* Table */}
-        <div className="card">
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
+        <div style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '12px', 
+          overflow: 'hidden', 
+          background: '#fff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+            color: '#fff',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>📋</span>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Enrollment List</h3>
+            <span style={{ 
+              marginLeft: 'auto', 
+              background: 'rgba(255, 255, 255, 0.2)', 
+              padding: '4px 12px', 
+              borderRadius: '16px', 
+              fontSize: '0.875rem' 
+            }}>
+              {filteredEnrollments.length} enrollments
+            </span>
+          </div>
+
+          {/* Entries per page selector */}
+          <div style={{ 
+            padding: '16px 20px', 
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              Show
+            </label>
+            <select
+              value={entriesPerPage}
+              onChange={(e) => setEntriesPerPage(Number(e.target.value))}
+              style={{
+                padding: '6px 32px 6px 12px',
+                fontSize: '0.875rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+                color: '#1e293b',
+                fontWeight: 500,
+                outline: 'none'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              entries per page
+            </label>
+          </div>
+          
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
                 <tr>
-                  <th>Program</th>
-                  <th>Subject</th>
-                  <th>Teacher</th>
-                  <th>Batch</th>
-                  <th>Semester</th>
-                  <th>Status</th>
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th style={{textAlign:'center'}}>Actions</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>No.</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Program</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Subject</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Teacher</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Batch</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Semester</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Status</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Start Date</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>End Date</th>
+                  <th style={{ textAlign: 'center', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredEnrollments.map((enrollment) => (
-                  <tr key={enrollment.id}>
-                    <td>
-                      <div style={{fontWeight:600}}>{enrollment.program_code}</div>
-                      <div style={{fontSize:'.75rem',color:'#64748b'}}>{enrollment.department_name}</div>
+                {filteredEnrollments.slice(0, entriesPerPage).map((enrollment, index) => (
+                  <tr 
+                    key={enrollment.id}
+                    style={{ 
+                      borderBottom: index < filteredEnrollments.length - 1 ? '1px solid #f3f4f6' : 'none',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      color: '#6b7280'
+                    }}>
+                      {index + 1}
                     </td>
-                    <td>
-                      <div style={{fontWeight:600}}>{enrollment.subject_code}</div>
-                      <div style={{fontSize:'.75rem',color:'#64748b'}}>{enrollment.subject_name}</div>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
+                      <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '2px' }}>{enrollment.program_code}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{enrollment.department_name}</div>
                     </td>
-                    <td>{enrollment.teacher_name}</td>
-                    <td>
-                      <div style={{fontWeight:600}}>{enrollment.batch_code}</div>
-                      <div style={{fontSize:'.75rem',color:'#64748b'}}>{enrollment.academic_year}</div>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
+                      <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '2px' }}>{enrollment.subject_code}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{enrollment.subject_name}</div>
                     </td>
-                    <td>Semester {enrollment.semester}</td>
-                    <td>
-                      <span className={`badge ${enrollment.status === 1 ? 'success' : 'danger'}`}>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>{enrollment.teacher_name}</td>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
+                      <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '2px' }}>{enrollment.batch_code}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{enrollment.academic_year}</div>
+                    </td>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563', fontWeight: '600' }}>Semester {enrollment.semester}</td>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
+                      <span style={{
+                        background: enrollment.status === 1 ? '#dcfce7' : '#fee2e2',
+                        color: enrollment.status === 1 ? '#166534' : '#991b1b',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        display: 'inline-block'
+                      }}>
                         {enrollment.status_name}
                       </span>
                     </td>
-                    <td>{new Date(enrollment.start_date).toLocaleDateString()}</td>
-                    <td>{new Date(enrollment.end_date).toLocaleDateString()}</td>
-                    <td style={{textAlign:'center'}}>
-                      <button className="btn btn-sm" onClick={() => handleEdit(enrollment)} style={{marginRight:4}}>
-                        Edit
-                      </button>
-                      <button className="btn btn-sm btn-cancel" onClick={() => handleDelete(enrollment.id)}>
-                        Delete
-                      </button>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>{new Date(enrollment.start_date).toLocaleDateString()}</td>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>{new Date(enrollment.end_date).toLocaleDateString()}</td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <button 
+                          onClick={() => handleEdit(enrollment)}
+                          style={{
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                          }}
+                          onMouseEnter={e => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
+                          }}
+                          onMouseLeave={e => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(enrollment.id)}
+                          style={{
+                            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                          }}
+                          onMouseEnter={e => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                          }}
+                          onMouseLeave={e => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
                 {filteredEnrollments.length === 0 && (
                   <tr>
-                    <td colSpan="9" style={{textAlign:'center',padding:'40px',color:'#64748b'}}>
-                      No enrollments found
+                    <td colSpan="10" style={{ 
+                      textAlign: 'center', 
+                      padding: '48px 20px', 
+                      color: '#6b7280',
+                      fontSize: '1rem'
+                    }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '2rem' }}>📋</span>
+                        No enrollments found. Create your first enrollment above!
+                      </div>
                     </td>
                   </tr>
                 )}

@@ -272,7 +272,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled, lab
   );
 }
 
-export default function AddStudent() {
+export default function AddTeacher() {
   const { showSuccess, showError } = useAlert();
   const navigate = useNavigate();
   
@@ -280,35 +280,21 @@ export default function AddStudent() {
     username: '',
     email: '',
     password: '',
-    student_code: '',
-    std_eng_name: '',
-    std_khmer_name: '',
-    gender: '0',
-    dob: '',
+    eng_name: '',
+    khmer_name: '',
     phone: '',
-    nationality: '',
-    race: '',
-    marital_status: '0',
+    teacher_types_id: '',
+    position: '',
     department_id: '',
-    program_id: '',
-    batch_id: '',
-    from_high_school: '',
-    std_status_id: '',
-    schoolarship_id: '',
-    parent_id: '',
     province_no: '',
     district_no: '',
     commune_no: '',
-    village_no: '',
-    description: ''
+    village_no: ''
   });
 
   const [departments, setDepartments] = useState([]);
-  const [programs, setPrograms] = useState([]);
-  const [batches, setBatches] = useState([]);
-  const [statuses, setStatuses] = useState([]);
-  const [scholarships, setScholarships] = useState([]);
-  const [parents, setParents] = useState([]);
+  const [teacherTypes, setTeacherTypes] = useState([]);
+  const [positions, setPositions] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
@@ -320,17 +306,15 @@ export default function AddStudent() {
 
   const loadInitialData = async () => {
     try {
-      const [depts, stats, schol, pars, provs] = await Promise.all([
+      const [depts, types, pos, provs] = await Promise.all([
         api.getDepartments(),
-        api.getStudentStatuses(),
-        api.getScholarships(),
-        api.getParents(),
+        api.getTeacherTypes(),
+        api.getPositions(),
         api.getProvinces()
       ]);
       setDepartments(depts);
-      setStatuses(stats);
-      setScholarships(schol);
-      setParents(pars);
+      setTeacherTypes(types);
+      setPositions(pos);
       setProvinces(provs);
     } catch (err) {
       showError('Failed to load form data');
@@ -340,79 +324,6 @@ export default function AddStudent() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
-  };
-
-  const handleDepartmentChange = async (e) => {
-    const deptId = e.target.value;
-    setForm(f => ({ ...f, department_id: deptId, program_id: '', batch_id: '' }));
-    if (deptId) {
-      try {
-        const progs = await api.getProgramsByDepartment(deptId);
-        setPrograms(progs);
-        setBatches([]);
-      } catch (err) {
-        showError('Failed to load programs');
-      }
-    } else {
-      setPrograms([]);
-      setBatches([]);
-    }
-  };
-
-  const handleProgramChange = async (e) => {
-    const progId = e.target.value;
-    setForm(f => ({ ...f, program_id: progId, batch_id: '', student_code: '' }));
-    if (progId) {
-      try {
-        const batchData = await api.getBatchesByProgram(progId);
-        setBatches(batchData);
-      } catch (err) {
-        showError('Failed to load batches');
-      }
-    } else {
-      setBatches([]);
-    }
-  };
-
-  const handleBatchChange = async (e) => {
-    const batchId = e.target.value;
-    if (batchId) {
-      try {
-        // Get the selected batch info
-        const selectedBatch = batches.find(b => b.Id == batchId);
-        
-        if (!selectedBatch) {
-          showError('Batch not found');
-          setForm(f => ({ ...f, batch_id: batchId, student_code: '' }));
-          return;
-        }
-        
-        // Get students in this batch to count them
-        const studentsInBatch = await api.getStudentsByBatch(batchId);
-        
-        // Handle different response formats (array or object with data property)
-        let studentCount = 0;
-        if (Array.isArray(studentsInBatch)) {
-          studentCount = studentsInBatch.length;
-        } else if (studentsInBatch && Array.isArray(studentsInBatch.data)) {
-          studentCount = studentsInBatch.data.length;
-        } else if (studentsInBatch && typeof studentsInBatch.length === 'number') {
-          studentCount = studentsInBatch.length;
-        }
-        
-        // Generate student code: batch_code + (count + 1)
-        const nextNumber = studentCount + 1;
-        const newStudentCode = `${selectedBatch.batch_code}${String(nextNumber).padStart(3, '0')}`;
-        
-        setForm(f => ({ ...f, batch_id: batchId, student_code: newStudentCode }));
-      } catch (err) {
-        console.error('Error generating student code:', err);
-        showError('Failed to generate student code');
-        setForm(f => ({ ...f, batch_id: batchId, student_code: '' }));
-      }
-    } else {
-      setForm(f => ({ ...f, batch_id: '', student_code: '' }));
-    }
   };
 
   const handleProvinceChange = async (e) => {
@@ -477,52 +388,73 @@ export default function AddStudent() {
         username: form.username,
         email: form.email,
         password: form.password,
-        role_id: 4,
-        student_code: form.student_code,
-        std_eng_name: form.std_eng_name,
-        std_khmer_name: form.std_khmer_name || null,
-        gender: parseInt(form.gender, 10),
-        dob: form.dob || null,
-        phone: form.phone || null,
-        nationality: form.nationality || null,
-        race: form.race || null,
-        marital_status: parseInt(form.marital_status, 10),
-        department_id: parseInt(form.department_id, 10),
-        program_id: parseInt(form.program_id, 10),
-        batch_id: form.batch_id ? parseInt(form.batch_id, 10) : null,
-        from_high_school: form.from_high_school,
-        std_status_id: form.std_status_id ? parseInt(form.std_status_id, 10) : null,
-        schoolarship_id: form.schoolarship_id ? parseInt(form.schoolarship_id, 10) : null,
-        parent_id: form.parent_id ? parseInt(form.parent_id, 10) : null,
-        province_no: form.province_no ? parseInt(form.province_no, 10) : null,
-        district_no: form.district_no ? parseInt(form.district_no, 10) : null,
-        commune_no: form.commune_no ? parseInt(form.commune_no, 10) : null,
-        village_no: form.village_no ? parseInt(form.village_no, 10) : null,
-        description: form.description || null
+        eng_name: form.eng_name,
+        khmer_name: form.khmer_name,
+        phone: form.phone,
+        teacher_types_id: form.teacher_types_id ? parseInt(form.teacher_types_id, 10) : null,
+        position: form.position ? parseInt(form.position, 10) : null,
+        department_id: form.department_id ? parseInt(form.department_id, 10) : null,
+        province_no: form.province_no || null,
+        district_no: form.district_no || null,
+        commune_no: form.commune_no || null,
+        village_no: form.village_no || null
       };
 
-      await api.createStudent(payload);
-      showSuccess('Student created successfully');
-      setTimeout(() => navigate('/students'), 1000);
+      await api.createTeacher(payload);
+      showSuccess('Teacher created successfully!');
+      navigate('/teachers');
     } catch (err) {
-      showError(err.message || 'Failed to create student');
+      showError(err.message || 'Failed to create teacher');
     }
   };
 
   return (
     <DashboardLayout>
-      <div className="page" style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
-        {/* Page Header */}
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
-            👨‍🎓 Add New Student
-          </h1>
-          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Fill in the information below to create a new student record</p>
+      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <button
+              onClick={() => navigate('/teachers')}
+              style={{
+                background: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: '#374151',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.background = '#f9fafb'}
+              onMouseLeave={(e) => e.target.style.background = 'white'}
+            >
+              ← Back
+            </button>
+            <h1 style={{ 
+              fontSize: '1.875rem',
+              fontWeight: '700',
+              color: '#1f2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              margin: 0
+            }}>
+              👨‍🏫 Add New Teacher
+            </h1>
+          </div>
+          <p style={{ color: '#6b7280', fontSize: '1rem', marginLeft: '52px' }}>
+            Fill in the information below to add a new teacher
+          </p>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleSubmit}>
-          {/* Two Column Layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             
             {/* LEFT COLUMN */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -546,8 +478,8 @@ export default function AddStudent() {
                 }}>
                   <span>🔐</span> Account Information
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
                       Username <span style={{ color: '#ef4444' }}>*</span>
                     </label>
@@ -561,33 +493,33 @@ export default function AddStudent() {
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
-                  <div>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
                       Email <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
-                      type="email" 
+                      type="email"
                       name="email" 
                       value={form.email} 
                       onChange={handleChange} 
                       required 
                       className="form-input" 
-                      placeholder="Enter email address"
+                      placeholder="teacher@example.com"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
-                  <div>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
                       Password <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
-                      type="password" 
+                      type="password"
                       name="password" 
                       value={form.password} 
                       onChange={handleChange} 
                       required 
                       className="form-input" 
-                      placeholder="Enter secure password"
+                      placeholder="Min. 6 characters"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
@@ -616,29 +548,11 @@ export default function AddStudent() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Student Code <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input 
-                      name="student_code" 
-                      value={form.student_code} 
-                      onChange={handleChange} 
-                      required 
-                      readOnly
-                      className="form-input" 
-                      placeholder="Auto-generated when batch is selected"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem', background: '#f9fafb', cursor: 'not-allowed' }}
-                    />
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
-                      💡 Student code will be generated automatically based on batch code + student count
-                    </p>
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
                       English Name <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
-                      name="std_eng_name" 
-                      value={form.std_eng_name} 
+                      name="eng_name" 
+                      value={form.eng_name} 
                       onChange={handleChange} 
                       required 
                       className="form-input" 
@@ -648,103 +562,36 @@ export default function AddStudent() {
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Khmer Name
+                      Khmer Name <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
-                      name="std_khmer_name" 
-                      value={form.std_khmer_name} 
+                      name="khmer_name" 
+                      value={form.khmer_name} 
                       onChange={handleChange} 
+                      required 
                       className="form-input" 
-                      placeholder="Enter Khmer name"
+                      placeholder="បញ្ចូលឈ្មោះខ្មែរ"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
-                  <div>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Gender
-                    </label>
-                    <select 
-                      name="gender" 
-                      value={form.gender} 
-                      onChange={handleChange} 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="0">Male</option>
-                      <option value="1">Female</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Date of Birth
-                    </label>
-                    <input 
-                      type="date" 
-                      name="dob" 
-                      value={form.dob} 
-                      onChange={handleChange} 
-                      className="form-input"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Phone
+                      Phone <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
                       name="phone" 
                       value={form.phone} 
                       onChange={handleChange} 
+                      required 
                       className="form-input" 
-                      placeholder="Enter phone"
+                      placeholder="012 345 678"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Nationality
-                    </label>
-                    <input 
-                      name="nationality" 
-                      value={form.nationality} 
-                      onChange={handleChange} 
-                      className="form-input" 
-                      placeholder="Cambodian"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Race
-                    </label>
-                    <input 
-                      name="race" 
-                      value={form.race} 
-                      onChange={handleChange} 
-                      className="form-input" 
-                      placeholder="Khmer"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Marital Status
-                    </label>
-                    <select 
-                      name="marital_status" 
-                      value={form.marital_status} 
-                      onChange={handleChange} 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="0">Single</option>
-                      <option value="1">Married</option>
-                    </select>
                   </div>
                 </div>
               </div>
 
-              {/* Family & Address */}
+              {/* Address Information */}
               <div style={{ 
                 background: 'white', 
                 borderRadius: '12px', 
@@ -761,101 +608,67 @@ export default function AddStudent() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span>🏠</span> Family & Address
+                  <span>📍</span> Address (Optional)
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Parent
+                      Province
                     </label>
                     <SearchableSelect
-                      options={parents.map(p => ({
-                        value: p.id,
-                        label: `${p.parent_code} - ${p.father_name}${p.mother_name ? ` (Mother: ${p.mother_name})` : ''}`,
-                        parent_code: p.parent_code,
-                        father_name: p.father_name,
-                        mother_name: p.mother_name
-                      }))}
-                      value={form.parent_id}
-                      onChange={(e) => setForm(prev => ({ ...prev, parent_id: e.target.value }))}
-                      placeholder="Select Parent"
-                      labelKey="label"
-                      valueKey="value"
-                      searchKeys={['parent_code', 'father_name', 'mother_name']}
+                      options={provinces}
+                      value={form.province_no}
+                      onChange={handleProvinceChange}
+                      placeholder="Select Province"
+                      labelKey="province_name"
+                      valueKey="province_no"
+                      searchKeys={['province_name', 'province_no']}
                     />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        Province
-                      </label>
-                      <SearchableSelect
-                        options={provinces.map(p => ({
-                          value: p.province_no,
-                          label: p.province_name
-                        }))}
-                        value={form.province_no}
-                        onChange={handleProvinceChange}
-                        placeholder="Select Province"
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        District
-                      </label>
-                      <SearchableSelect
-                        options={districts.map(d => ({
-                          value: d.district_no,
-                          label: d.district_name
-                        }))}
-                        value={form.district_no}
-                        onChange={handleDistrictChange}
-                        placeholder="Select District"
-                        disabled={!form.province_no}
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        Commune
-                      </label>
-                      <SearchableSelect
-                        options={communes.map(c => ({
-                          value: c.commune_no,
-                          label: c.commune_name
-                        }))}
-                        value={form.commune_no}
-                        onChange={handleCommuneChange}
-                        placeholder="Select Commune"
-                        disabled={!form.district_no}
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        Village
-                      </label>
-                      <SearchableSelect
-                        options={villages.map(v => ({
-                          value: v.village_no,
-                          label: v.village_name
-                        }))}
-                        value={form.village_no}
-                        onChange={handleVillageChange}
-                        placeholder="Select Village"
-                        disabled={!form.commune_no}
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      District
+                    </label>
+                    <SearchableSelect
+                      options={districts}
+                      value={form.district_no}
+                      onChange={handleDistrictChange}
+                      placeholder="Select District"
+                      disabled={!form.province_no}
+                      labelKey="district_name"
+                      valueKey="district_no"
+                      searchKeys={['district_name', 'district_no']}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Commune
+                    </label>
+                    <SearchableSelect
+                      options={communes}
+                      value={form.commune_no}
+                      onChange={handleCommuneChange}
+                      placeholder="Select Commune"
+                      disabled={!form.district_no}
+                      labelKey="commune_name"
+                      valueKey="commune_no"
+                      searchKeys={['commune_name', 'commune_no']}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Village
+                    </label>
+                    <SearchableSelect
+                      options={villages}
+                      value={form.village_no}
+                      onChange={handleVillageChange}
+                      placeholder="Select Village"
+                      disabled={!form.commune_no}
+                      labelKey="village_name"
+                      valueKey="village_no"
+                      searchKeys={['village_name', 'village_no']}
+                    />
                   </div>
                 </div>
               </div>
@@ -864,7 +677,7 @@ export default function AddStudent() {
             {/* RIGHT COLUMN */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* Academic Information */}
+              {/* Professional Information */}
               <div style={{ 
                 background: 'white', 
                 borderRadius: '12px', 
@@ -881,9 +694,41 @@ export default function AddStudent() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span>🎓</span> Academic Information
+                  <span>💼</span> Professional Information
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Teacher Type <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <select 
+                      name="teacher_types_id" 
+                      value={form.teacher_types_id} 
+                      onChange={handleChange} 
+                      required 
+                      className="form-select"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
+                    >
+                      <option value="">Select Type</option>
+                      {teacherTypes.map(t => <option key={t.id} value={t.id}>{t.types}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Position <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <select 
+                      name="position" 
+                      value={form.position} 
+                      onChange={handleChange} 
+                      required 
+                      className="form-select"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
+                    >
+                      <option value="">Select Position</option>
+                      {positions.map(p => <option key={p.id} value={p.id}>{p.position}</option>)}
+                    </select>
+                  </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
                       Department <span style={{ color: '#ef4444' }}>*</span>
@@ -891,7 +736,7 @@ export default function AddStudent() {
                     <select 
                       name="department_id" 
                       value={form.department_id} 
-                      onChange={handleDepartmentChange} 
+                      onChange={handleChange} 
                       required 
                       className="form-select"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
@@ -900,163 +745,66 @@ export default function AddStudent() {
                       {departments.map(d => <option key={d.id} value={d.id}>{d.department_name}</option>)}
                     </select>
                   </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Program <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <select 
-                      name="program_id" 
-                      value={form.program_id} 
-                      onChange={handleProgramChange} 
-                      disabled={!form.department_id} 
-                      required 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Program</option>
-                      {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Batch
-                    </label>
-                    <select 
-                      name="batch_id" 
-                      value={form.batch_id} 
-                      onChange={handleBatchChange} 
-                      disabled={!form.program_id} 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Batch</option>
-                      {batches.map(b => <option key={b.Id} value={b.Id}>{b.batch_code} ({b.academic_year})</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      From High School <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input 
-                      name="from_high_school" 
-                      value={form.from_high_school} 
-                      onChange={handleChange} 
-                      required 
-                      className="form-input"
-                      placeholder="Enter high school name"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Status
-                    </label>
-                    <select 
-                      name="std_status_id" 
-                      value={form.std_status_id} 
-                      onChange={handleChange} 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Status</option>
-                      {statuses.map(s => <option key={s.id} value={s.id}>{s.std_status}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Scholarship
-                    </label>
-                    <select 
-                      name="schoolarship_id" 
-                      value={form.schoolarship_id} 
-                      onChange={handleChange} 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">No Scholarship</option>
-                      {scholarships.map(s => <option key={s.id} value={s.id}>{s.scholarship}</option>)}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Information */}
-              <div style={{ 
-                background: 'white', 
-                borderRadius: '12px', 
-                border: '1px solid #e5e7eb', 
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                padding: '20px'
-              }}>
-                <h3 style={{ 
-                  fontSize: '1rem', 
-                  fontWeight: '600', 
-                  color: '#1f2937', 
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <span>📝</span> Additional Information
-                </h3>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                    Description
-                  </label>
-                  <textarea 
-                    name="description" 
-                    value={form.description} 
-                    onChange={handleChange} 
-                    rows={4} 
-                    placeholder="Add any additional notes..."
-                    className="form-textarea"
-                    style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem', resize: 'vertical' }}
-                  />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons - Sticky at bottom */}
+          {/* Submit Buttons */}
           <div style={{ 
-            position: 'sticky',
-            bottom: 0,
-            background: 'white',
-            padding: '16px',
-            borderTop: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+            marginTop: '24px', 
             display: 'flex', 
-            gap: '12px',
-            justifyContent: 'flex-end'
+            gap: '12px', 
+            justifyContent: 'flex-end',
+            padding: '20px',
+            background: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
           }}>
-            <button 
-              type="button" 
-              onClick={() => navigate('/students')} 
-              className="btn btn-cancel"
-              style={{ 
+            <button
+              type="button"
+              onClick={() => navigate('/teachers')}
+              style={{
                 padding: '10px 24px',
                 fontSize: '0.875rem',
-                fontWeight: '500',
-                minWidth: '120px'
+                fontWeight: '600',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                background: 'white',
+                color: '#374151',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
+              onMouseEnter={(e) => e.target.style.background = '#f9fafb'}
+              onMouseLeave={(e) => e.target.style.background = 'white'}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="btn btn-submit"
-              style={{ 
+            <button
+              type="submit"
+              style={{
                 padding: '10px 24px',
                 fontSize: '0.875rem',
-                fontWeight: '500',
-                minWidth: '120px',
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                fontWeight: '600',
                 border: 'none',
-                color: 'white'
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
               }}
             >
-              ✓ Create Student
+              ➕ Add Teacher
             </button>
           </div>
         </form>

@@ -38,6 +38,10 @@ export default function Parents() {
     commune_no: '',
     village_no: ''
   });
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
 
   // Load parents
   const loadParents = async () => {
@@ -140,11 +144,12 @@ export default function Parents() {
         await api.updateParent(editId, form);
         showSuccess('Parent updated successfully');
       } else {
-        await api.createParent(form);
+        const newParent = await api.createParent(form);
+        setParents(prev => [newParent, ...prev]);
         showSuccess('Parent created successfully');
       }
       closeModal();
-      loadParents();
+      if (editId) loadParents();
     } catch (err) {
       setError(err.message || 'Operation failed');
       setTimeout(() => setError(''), 4000);
@@ -176,12 +181,48 @@ export default function Parents() {
 
   return (
     <DashboardLayout>
-      <div className="page">
-        <div className="page-header">
+      <div className="page-container" style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1>Parents</h1>
-            <p style={{ margin: '4px 0 0', fontSize: '.8rem', color: '#64748b' }}>Manage parent records</p>
+            <h1 style={{ 
+              marginBottom: '8px',
+              fontSize: '1.875rem',
+              fontWeight: '700',
+              color: '#1f2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              👨‍👩‍👧‍👦 Parents Management
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '1rem' }}>Manage parent and guardian records</p>
           </div>
+          <button
+            onClick={() => window.location.href = '/parents/add'}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#fff',
+              padding: '12px 24px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+            }}
+            onMouseEnter={e => e.target.style.transform = 'translateY(-1px)'}
+            onMouseLeave={e => e.target.style.transform = 'translateY(0)'}
+          >
+            ➕ Add Parent
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="card" style={{ marginBottom: 20 }}>
           <div className="page-actions">
             <input
               className="search-input"
@@ -189,9 +230,6 @@ export default function Parents() {
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
-            <button className="btn" onClick={() => { setShowModal(true); loadProvinces(); }}>
-              + Add Parent
-            </button>
           </div>
         </div>
 
@@ -327,56 +365,297 @@ export default function Parents() {
         </div>
       )}
 
-        <div className="card">
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th style={{width:'60px'}}>ID</th>
-                  <th>Code</th>
-                  <th>Mother Name</th>
-                  <th>Mother Phone</th>
-                  <th style={{width:'100px'}}>Mother</th>
-                  <th>Father Name</th>
-                  <th>Father Phone</th>
-                  <th style={{width:'100px'}}>Father</th>
-                  <th style={{width:'140px'}}>Actions</th>
-                </tr>
+        <div style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '12px', 
+          overflow: 'hidden', 
+          background: '#fff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+            color: '#fff',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>📋</span>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Parents List</h3>
+            <span style={{ 
+              marginLeft: 'auto', 
+              background: 'rgba(255, 255, 255, 0.2)', 
+              padding: '4px 12px', 
+              borderRadius: '16px', 
+              fontSize: '0.875rem' 
+            }}>
+              {parents.length} parents
+            </span>
+          </div>
+          
+          {/* Entries per page selector */}
+          <div style={{ 
+            padding: '16px 20px', 
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              Show
+            </label>
+            <select
+              value={entriesPerPage}
+              onChange={(e) => {
+                setEntriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: '6px 32px 6px 12px',
+                fontSize: '0.875rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+                color: '#1e293b',
+                fontWeight: 500,
+                outline: 'none'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              entries per page
+            </label>
+          </div>
+          
+          <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '50px' }}>No</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>ID</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Code</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Mother Name</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Mother Phone</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Mother</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Father Name</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Father Phone</th>
+                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Father</th>
+                    <th style={{ textAlign: 'center', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
+                  </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={9} style={{ padding: 16, textAlign: 'center' }}>No parents found.</td></tr>
-                ) : (
-                  filtered.map(p => (
-                    <tr key={p.id}>
-                      <td>{p.id}</td>
-                      <td style={{fontWeight:600}}>{p.parent_code}</td>
-                      <td>{p.mother_name}</td>
-                      <td>{p.mother_phone}</td>
-                      <td>
-                        <span className={`badge ${p.mother_status==='alive'?'success':'danger'}`}>
-                          {p.mother_status || '-'}
-                        </span>
-                      </td>
-                      <td>{p.father_name}</td>
-                      <td>{p.father_phone}</td>
-                      <td>
-                        <span className={`badge ${p.father_status==='alive'?'success':'danger'}`}>
-                          {p.father_status || '-'}
-                        </span>
-                      </td>
-                      <td>
-                        <button className="btn btn-sm" onClick={() => startEdit(p)}>Edit</button>
-                        <button className="btn btn-sm btn-cancel" onClick={() => deleteParent(p.id)} style={{marginLeft:4}}>Delete</button>
+                {(() => {
+                  const startIndex = (currentPage - 1) * entriesPerPage;
+                  const endIndex = startIndex + entriesPerPage;
+                  const paginatedParents = filtered.slice(startIndex, endIndex);
+                  
+                  return paginatedParents.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '0.875rem' }}>
+                        No parents found.
                       </td>
                     </tr>
-                  ))
-                )}
+                  ) : (
+                    paginatedParents.map((p, index) => (
+                      <tr 
+                        key={p.id}
+                        style={{
+                          borderBottom: '1px solid #f3f4f6',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#6b7280' }}>
+                            {startIndex + index + 1}
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {p.id}
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
+                            {p.parent_code}
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {p.mother_name}
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {p.mother_phone}
+                          </td>
+                          <td style={{ padding: '16px 20px' }}>
+                            <span className={`badge ${p.mother_status==='alive'?'success':'danger'}`}>
+                              {p.mother_status || '-'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {p.father_name}
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {p.father_phone}
+                          </td>
+                          <td style={{ padding: '16px 20px' }}>
+                            <span className={`badge ${p.father_status==='alive'?'success':'danger'}`}>
+                              {p.father_status || '-'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 20px' }}>
+                            <button
+                              onClick={() => startEdit(p)}
+                              style={{
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                color: 'white',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)',
+                                transition: 'all 0.2s',
+                                marginRight: '8px'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.2)';
+                              }}
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              onClick={() => deleteParent(p.id)}
+                              style={{
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                color: 'white',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
+                              }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </td>
+                        </tr>
+                    ))
+                  );
+                })()}
               </tbody>
             </table>
           </div>
         </div>
-      </div>
+          
+          {/* Pagination Controls */}
+          {filtered.length > 0 && (
+            <div style={{
+              padding: '16px 20px',
+              borderTop: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                Showing {Math.min((currentPage - 1) * entriesPerPage + 1, filtered.length)} to {Math.min(currentPage * entriesPerPage, filtered.length)} of {filtered.length} entries
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.875rem',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    backgroundColor: currentPage === 1 ? '#f1f5f9' : '#fff',
+                    color: currentPage === 1 ? '#94a3b8' : '#475569',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  First
+                </button>
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.875rem',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    backgroundColor: currentPage === 1 ? '#f1f5f9' : '#fff',
+                    color: currentPage === 1 ? '#94a3b8' : '#475569',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  Previous
+                </button>
+                <div style={{
+                  padding: '6px 16px',
+                  fontSize: '0.875rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  backgroundColor: '#f8fafc',
+                  color: '#1e293b',
+                  fontWeight: 600
+                }}>
+                  {currentPage} / {Math.ceil(filtered.length / entriesPerPage)}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage >= Math.ceil(filtered.length / entriesPerPage)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.875rem',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    backgroundColor: currentPage >= Math.ceil(filtered.length / entriesPerPage) ? '#f1f5f9' : '#fff',
+                    color: currentPage >= Math.ceil(filtered.length / entriesPerPage) ? '#94a3b8' : '#475569',
+                    cursor: currentPage >= Math.ceil(filtered.length / entriesPerPage) ? 'not-allowed' : 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  Next
+                </button>
+                <button
+                  onClick={() => setCurrentPage(Math.ceil(filtered.length / entriesPerPage))}
+                  disabled={currentPage >= Math.ceil(filtered.length / entriesPerPage)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.875rem',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    backgroundColor: currentPage >= Math.ceil(filtered.length / entriesPerPage) ? '#f1f5f9' : '#fff',
+                    color: currentPage >= Math.ceil(filtered.length / entriesPerPage) ? '#94a3b8' : '#475569',
+                    cursor: currentPage >= Math.ceil(filtered.length / entriesPerPage) ? 'not-allowed' : 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  Last
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
     </DashboardLayout>
   );
 }

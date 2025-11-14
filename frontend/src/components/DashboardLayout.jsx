@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../styles/dashboard.css';
 import { api } from '../api/api';
@@ -6,7 +6,9 @@ import { api } from '../api/api';
 export default function DashboardLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const sidebarRef = useRef(null);
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || 'null'));
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [systemSettings, setSystemSettings] = useState({
     system_title: 'Student Management System',
     system_logo: '/Picture1.jpg'
@@ -62,6 +64,8 @@ export default function DashboardLayout({ children }) {
     return () => { mounted = false; };
   }, []);
 
+
+
   if (!user) {
     navigate('/login');
     return null;
@@ -89,11 +93,6 @@ export default function DashboardLayout({ children }) {
   const getMenuItems = () => {
     const adminItems = [
       { path: '/dashboard', label: 'Dashboard', icon: '🏠', section: 'main' },
-      { path: '/users', label: 'Users', icon: '👤', section: 'management' },
-      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'management' },
-      { path: '/students', label: 'Students', icon: '👥', section: 'management' },
-      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'management' },
-      { path: '/staff', label: 'Staff', icon: '👔', section: 'management' },
       { path: '/departments', label: 'Departments', icon: '🏢', section: 'academic' },
       { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
       { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
@@ -101,6 +100,11 @@ export default function DashboardLayout({ children }) {
       { path: '/admissions', label: 'Admissions', icon: '🎓', section: 'academic' },
       { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
       { path: '/schedule', label: 'Schedule', icon: '📅', section: 'academic' },
+      { path: '/users', label: 'Users', icon: '👤', section: 'management' },
+      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'management' },
+      { path: '/students', label: 'Students', icon: '👥', section: 'management' },
+      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'management' },
+      { path: '/staff', label: 'Staff', icon: '👔', section: 'management' },
       { path: '/attendance', label: 'Attendance', icon: '📋', section: 'operations' },
       { path: '/grades', label: 'Grades', icon: '📊', section: 'operations' },
       { path: '/fees', label: 'Fees', icon: '💰', section: 'operations' },
@@ -179,6 +183,38 @@ export default function DashboardLayout({ children }) {
     <div className="dashboard-layout">
       {/* Top Header */}
       <header className="top-header">
+        <button 
+          onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            color: '#fff',
+            fontSize: '1.3rem',
+            cursor: 'pointer',
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '10px',
+            transition: 'all 0.2s',
+            marginRight: '12px',
+            boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+            fontWeight: '600',
+            width: '44px',
+            height: '44px'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+          }}
+          title={isSidebarVisible ? 'Hide Menu' : 'Show Menu'}
+        >
+          ☰
+        </button>
         <Link 
           to={
             user.role_id === 1 ? "/dashboard" : 
@@ -215,7 +251,14 @@ export default function DashboardLayout({ children }) {
       </header>
 
       <div className="dashboard-body">
-        <aside className="sidebar">
+        <aside 
+          className="sidebar" 
+          ref={sidebarRef}
+          style={{
+            transform: isSidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s ease-in-out'
+          }}
+        >
           <nav className="sidebar-nav">
             {sections.map(section => (
               <div key={section} className="nav-section">
@@ -244,7 +287,13 @@ export default function DashboardLayout({ children }) {
           </div>
         </aside>
 
-        <main className="main-content">
+        <main 
+          className="main-content"
+          style={{
+            marginLeft: isSidebarVisible ? '260px' : '0',
+            transition: 'margin-left 0.3s ease-in-out'
+          }}
+        >
           {children}
         </main>
       </div>

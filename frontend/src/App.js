@@ -5,6 +5,7 @@ import './styles/alert.css';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Students from './pages/Students.jsx';
+import AddStudent from './pages/AddStudent.jsx';
 import StudentProfile from './pages/StudentProfile.jsx';
 import Profile from './pages/Profile.jsx';
 import Users from './pages/Users.jsx';
@@ -12,11 +13,14 @@ import Departments from './pages/Departments.jsx';
 import Programs from './pages/Programs.jsx';
 import Subjects from './pages/Subjects.jsx';
 import Parents from './pages/Parents.jsx';
+import AddParent from './pages/AddParent.jsx';
 import SubjectEnrollment from './pages/SubjectEnrollment.jsx';
 import Teachers from './pages/Teachers.jsx';
+import AddTeacher from './pages/AddTeacher.jsx';
 import Batches from './pages/Batches.jsx';
 import Admissions from './pages/Admissions.jsx';
 import Staff from './pages/Staff.jsx';
+import AddStaff from './pages/AddStaff.jsx';
 import Attendance from './pages/Attendance.jsx';
 import AttendanceDetail from './pages/AttendanceDetail.jsx';
 import Grades from './pages/Grades.jsx';
@@ -47,6 +51,7 @@ function App() {
         <Route path="/" element={<RoleProtectedRoute><HomeRedirect /></RoleProtectedRoute>} />
         <Route path="/dashboard" element={<RoleProtectedRoute><Dashboard /></RoleProtectedRoute>} />
         <Route path="/students" element={<RoleProtectedRoute><Students /></RoleProtectedRoute>} />
+        <Route path="/students/add" element={<RoleProtectedRoute><AddStudent /></RoleProtectedRoute>} />
         <Route path="/students/:id" element={<RoleProtectedRoute><StudentProfile /></RoleProtectedRoute>} />
         <Route path="/profile" element={<RoleProtectedRoute><Profile /></RoleProtectedRoute>} />
         <Route path="/users" element={<RoleProtectedRoute><Users /></RoleProtectedRoute>} />
@@ -54,11 +59,14 @@ function App() {
         <Route path="/programs" element={<RoleProtectedRoute><Programs /></RoleProtectedRoute>} />
         <Route path="/subjects" element={<RoleProtectedRoute><Subjects /></RoleProtectedRoute>} />
         <Route path="/parents" element={<RoleProtectedRoute><Parents /></RoleProtectedRoute>} />
+        <Route path="/parents/add" element={<RoleProtectedRoute><AddParent /></RoleProtectedRoute>} />
         <Route path="/subject-enrollment" element={<RoleProtectedRoute><SubjectEnrollment /></RoleProtectedRoute>} />
         <Route path="/teachers" element={<RoleProtectedRoute><Teachers /></RoleProtectedRoute>} />
+        <Route path="/teachers/add" element={<RoleProtectedRoute><AddTeacher /></RoleProtectedRoute>} />
         <Route path="/batches" element={<RoleProtectedRoute><Batches /></RoleProtectedRoute>} />
         <Route path="/admissions" element={<RoleProtectedRoute><Admissions /></RoleProtectedRoute>} />
         <Route path="/staff" element={<RoleProtectedRoute><Staff /></RoleProtectedRoute>} />
+        <Route path="/staff/add" element={<RoleProtectedRoute><AddStaff /></RoleProtectedRoute>} />
         <Route path="/attendance" element={<RoleProtectedRoute><Attendance /></RoleProtectedRoute>} />
         <Route path="/attendance/student/:studentId" element={<RoleProtectedRoute><AttendanceDetail /></RoleProtectedRoute>} />
         <Route path="/grades" element={<RoleProtectedRoute><Grades /></RoleProtectedRoute>} />

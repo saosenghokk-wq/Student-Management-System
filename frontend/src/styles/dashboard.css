@@ -222,6 +222,7 @@ html, body {
   position: fixed;
   height: calc(100vh - 70px);
   overflow-y: auto;
+  scroll-behavior: auto;
 }
 
 .sidebar-nav {

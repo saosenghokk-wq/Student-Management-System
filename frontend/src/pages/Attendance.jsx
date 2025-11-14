@@ -466,22 +466,23 @@ export default function Attendance() {
                   justifyContent: 'space-between', 
                   alignItems: 'center',
                   marginBottom: '24px',
-                  padding: '20px',
+                  padding: '20px 24px',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   borderRadius: '12px',
-                  color: 'white'
+                  color: 'white',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
                 }}>
                   <div>
-                    <h3 style={{ margin: '0 0 5px 0', fontSize: '1.2rem', fontWeight: '700' }}>
-                      📋 Mark Attendance
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '1.4rem' }}>📋</span> Mark Attendance
                     </h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', opacity: 0.95, fontWeight: '500' }}>
                       {selectedEnrollment.subject_name} - {selectedEnrollment.batch_code} (Semester {selectedEnrollment.semester})
                     </p>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Date</div>
-                    <div style={{ fontSize: '1rem', fontWeight: '600' }}>
+                  <div style={{ textAlign: 'right', background: 'rgba(255,255,255,0.15)', padding: '12px 20px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '4px' }}>Date</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '700' }}>
                       {new Date(attendanceDate).toLocaleDateString('en-US', { 
                         weekday: 'short', 
                         year: 'numeric', 
@@ -492,20 +493,20 @@ export default function Attendance() {
                   </div>
                 </div>
 
-                <div className="table-container" style={{ maxHeight: 'calc(100vh - 500px)', overflow: 'auto' }}>
-                  <table className="data-table" style={{ fontSize: '0.95rem' }}>
-                    <thead style={{ position: 'sticky', top: 0, background: '#f9fafb', zIndex: 10 }}>
+                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', background: 'white' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                    <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', position: 'sticky', top: 0, zIndex: 10 }}>
                       <tr>
-                        <th style={{ width: '60px', textAlign: 'center' }}>No.</th>
-                        <th style={{ width: '130px' }}>Student ID</th>
-                        <th style={{ minWidth: '200px' }}>Student Name</th>
-                        <th style={{ width: '200px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <th style={{ width: '70px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>No.</th>
+                        <th style={{ width: '140px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student ID</th>
+                        <th style={{ minWidth: '220px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student Name</th>
+                        <th style={{ width: '220px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-start' }}>
                             <span>Attendance Status</span>
-                            <span style={{ color: '#ef4444', fontSize: '1rem' }}>*</span>
+                            <span style={{ color: '#fef2f2', fontSize: '0.95rem' }}>*</span>
                           </div>
                         </th>
-                        <th style={{ minWidth: '250px' }}>Remark</th>
+                        <th style={{ minWidth: '280px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Remark</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -520,54 +521,58 @@ export default function Attendance() {
                         else if (statusId == 4) rowColor = '#eff6ff'; // Excused - light blue
 
                         return (
-                          <tr key={student.id} style={{ background: rowColor, transition: 'background 0.2s' }}>
-                            <td style={{ textAlign: 'center', fontWeight: '600', fontSize: '0.9rem' }}>
+                          <tr key={student.id} style={{ background: rowColor, transition: 'background 0.2s', borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ textAlign: 'center', fontWeight: '700', fontSize: '0.9rem', padding: '14px 12px', color: '#374151' }}>
                               {index + 1}
                             </td>
-                            <td>
+                            <td style={{ padding: '14px 12px' }}>
                               <span style={{ 
                                 fontFamily: 'monospace', 
                                 fontWeight: '600',
                                 fontSize: '0.9rem',
                                 color: '#374151',
                                 background: '#f3f4f6',
-                                padding: '4px 8px',
-                                borderRadius: '4px',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
                                 display: 'inline-block'
                               }}>
                                 {student.student_code}
                               </span>
                             </td>
-                            <td>
+                            <td style={{ padding: '14px 12px' }}>
                               <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.95rem' }}>
                                 {student.eng_name}
                               </div>
                               {student.khmer_name && (
-                                <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '2px' }}>
+                                <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '3px' }}>
                                   {student.khmer_name}
                                 </div>
                               )}
                             </td>
-                            <td>
+                            <td style={{ padding: '14px 12px' }}>
                               <select
                                 value={studentAttendance[student.id]?.status_type || ''}
                                 onChange={(e) => handleStatusChange(student.id, e.target.value)}
                                 style={{ 
                                   width: '100%', 
-                                  padding: '11px 14px', 
-                                  border: hasStatus ? '2px solid #10b981' : '2px solid #e5e7eb', 
-                                  borderRadius: '10px', 
-                                  fontSize: '0.95rem',
+                                  padding: '12px 16px', 
+                                  border: hasStatus ? '2px solid #10b981' : '2px solid #cbd5e1', 
+                                  borderRadius: '8px', 
+                                  fontSize: '0.9rem',
                                   fontWeight: '600',
-                                  background: hasStatus ? '#f0fdf4' : '#f9fafb',
+                                  background: hasStatus ? '#f0fdf4' : 'white',
                                   cursor: 'pointer',
                                   transition: 'all 0.2s',
-                                  color: hasStatus ? '#1f2937' : '#9ca3af'
+                                  color: hasStatus ? '#1f2937' : '#64748b',
+                                  boxShadow: hasStatus ? '0 2px 6px rgba(16, 185, 129, 0.15)' : '0 1px 3px rgba(0,0,0,0.08)',
+                                  outline: 'none'
                                 }}
+                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = hasStatus ? '#10b981' : '#cbd5e1'}
                               >
                                 <option value="" style={{ color: '#9ca3af' }}>-- Select Status --</option>
                                 {statusTypes.map(status => (
-                                  <option key={status.id} value={status.id} style={{ color: '#1f2937' }}>
+                                  <option key={status.id} value={status.id} style={{ color: '#1f2937', padding: '8px' }}>
                                     {status.status_name === 'Present' && '✅ '}
                                     {status.status_name === 'Absent' && '❌ '}
                                     {status.status_name === 'Late' && '⏰ '}
@@ -577,7 +582,7 @@ export default function Attendance() {
                                 ))}
                               </select>
                             </td>
-                            <td>
+                            <td style={{ padding: '14px 12px' }}>
                               <input
                                 type="text"
                                 value={studentAttendance[student.id]?.remake || ''}
@@ -585,21 +590,24 @@ export default function Attendance() {
                                 placeholder="Add note (optional)..."
                                 style={{ 
                                   width: '100%', 
-                                  padding: '11px 14px', 
-                                  border: '2px solid #e5e7eb', 
-                                  borderRadius: '10px', 
+                                  padding: '12px 16px', 
+                                  border: '2px solid #cbd5e1', 
+                                  borderRadius: '8px', 
                                   fontSize: '0.9rem',
                                   transition: 'all 0.2s',
-                                  background: '#f9fafb',
-                                  boxSizing: 'border-box'
+                                  background: 'white',
+                                  boxSizing: 'border-box',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                                  outline: 'none',
+                                  color: '#1f2937'
                                 }}
                                 onFocus={(e) => {
                                   e.target.style.borderColor = '#667eea';
-                                  e.target.style.background = 'white';
+                                  e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.15)';
                                 }}
                                 onBlur={(e) => {
-                                  e.target.style.borderColor = '#e5e7eb';
-                                  e.target.style.background = '#f9fafb';
+                                  e.target.style.borderColor = '#cbd5e1';
+                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
                                 }}
                               />
                             </td>
@@ -885,35 +893,35 @@ export default function Attendance() {
                   Loading history...
                 </div>
               ) : (
-                <div className="table-container" style={{ maxHeight: 'calc(100vh - 400px)', overflow: 'auto' }}>
-                  <table className="data-table">
-                    <thead style={{ position: 'sticky', top: 0, background: '#f9fafb', zIndex: 10 }}>
+                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', background: 'white' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                    <thead style={{ position: 'sticky', top: 0, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', zIndex: 10 }}>
                       <tr>
-                        <th style={{ width: '60px' }}>No.</th>
-                        <th style={{ minWidth: '200px' }}>Student Name</th>
-                        <th style={{ width: '130px' }}>Student ID</th>
-                        <th style={{ width: '100px', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                            <span>✅</span> Present
+                        <th style={{ width: '70px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>No.</th>
+                        <th style={{ minWidth: '220px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student Name</th>
+                        <th style={{ width: '140px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student ID</th>
+                        <th style={{ width: '120px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '1.1rem' }}>✅</span> Present
                           </div>
                         </th>
-                        <th style={{ width: '100px', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                            <span>❌</span> Absent
+                        <th style={{ width: '120px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '1.1rem' }}>❌</span> Absent
                           </div>
                         </th>
-                        <th style={{ width: '100px', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                            <span>⏰</span> Late
+                        <th style={{ width: '120px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '1.1rem' }}>⏰</span> Late
                           </div>
                         </th>
-                        <th style={{ width: '100px', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                            <span>📝</span> Excused
+                        <th style={{ width: '120px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '1.1rem' }}>📝</span> Excused
                           </div>
                         </th>
-                        <th style={{ width: '100px', textAlign: 'center' }}>Total Days</th>
-                        <th style={{ width: '120px', textAlign: 'center' }}>Actions</th>
+                        <th style={{ width: '120px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Total Days</th>
+                        <th style={{ width: '140px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -956,31 +964,33 @@ export default function Attendance() {
                           return Object.keys(studentStats).map((studentId, index) => {
                             const stats = studentStats[studentId];
                             return (
-                              <tr key={studentId}>
-                                <td style={{ textAlign: 'center', fontWeight: '600', color: '#6b7280' }}>
+                              <tr key={studentId} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
+                                <td style={{ textAlign: 'center', fontWeight: '700', fontSize: '0.9rem', padding: '14px 12px', color: '#374151' }}>
                                   {index + 1}
                                 </td>
-                                <td>
-                                  <div style={{ fontWeight: '600', color: '#1f2937' }}>
+                                <td style={{ padding: '14px 12px' }}>
+                                  <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.95rem' }}>
                                     {stats.student_name}
                                   </div>
                                 </td>
-                                <td>
+                                <td style={{ padding: '14px 12px' }}>
                                   <span style={{ 
                                     fontFamily: 'monospace', 
-                                    fontWeight: '500',
+                                    fontWeight: '600',
                                     background: '#f3f4f6',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    fontSize: '0.9rem'
+                                    padding: '6px 10px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.9rem',
+                                    color: '#374151',
+                                    display: 'inline-block'
                                   }}>
                                     {stats.student_code}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <span style={{ 
                                     display: 'inline-block',
-                                    padding: '4px 12px',
+                                    padding: '6px 14px',
                                     background: '#d1fae5',
                                     color: '#065f46',
                                     borderRadius: '6px',
@@ -990,10 +1000,10 @@ export default function Attendance() {
                                     {stats.present}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <span style={{ 
                                     display: 'inline-block',
-                                    padding: '4px 12px',
+                                    padding: '6px 14px',
                                     background: '#fee2e2',
                                     color: '#991b1b',
                                     borderRadius: '6px',
@@ -1003,10 +1013,10 @@ export default function Attendance() {
                                     {stats.absent}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <span style={{ 
                                     display: 'inline-block',
-                                    padding: '4px 12px',
+                                    padding: '6px 14px',
                                     background: '#fef3c7',
                                     color: '#92400e',
                                     borderRadius: '6px',
@@ -1016,10 +1026,10 @@ export default function Attendance() {
                                     {stats.late}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <span style={{ 
                                     display: 'inline-block',
-                                    padding: '4px 12px',
+                                    padding: '6px 14px',
                                     background: '#dbeafe',
                                     color: '#1e40af',
                                     borderRadius: '6px',
@@ -1029,10 +1039,10 @@ export default function Attendance() {
                                     {stats.excused}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <span style={{ 
                                     display: 'inline-block',
-                                    padding: '4px 12px',
+                                    padding: '6px 14px',
                                     background: '#f3f4f6',
                                     color: '#374151',
                                     borderRadius: '6px',
@@ -1042,7 +1052,7 @@ export default function Attendance() {
                                     {stats.total}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <button 
                                     onClick={() => handleViewStudentDetails(studentId)}
                                     style={{

@@ -78,6 +78,7 @@ export const api = {
   getUser: (id) => request(`/api/users/${id}`),
   updateUser: (id, payload) => request(`/api/users/${id}`, { method: 'PUT', body: payload }),
   createUser: (payload) => request('/api/users', { method: 'POST', body: payload }),
+  deleteUser: (id) => request(`/api/users/${id}`, { method: 'DELETE' }),
   // Roles
   getRoles: () => request('/api/roles'),
   // Profile

@@ -19,6 +19,11 @@ export default function Teachers() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -118,10 +123,11 @@ export default function Teachers() {
         await api.updateTeacher(editingId, updateData);
         showSuccess('Teacher updated successfully');
       } else {
-        await api.createTeacher(form);
+        const newTeacher = await api.createTeacher(form);
+        setTeachers(prev => [newTeacher, ...prev]);
         showSuccess('Teacher created successfully');
       }
-      loadData();
+      if (editingId) loadData();
       closeModal();
     } catch (err) {
       showError(err.message || 'Operation failed');
@@ -213,20 +219,43 @@ export default function Teachers() {
 
   return (
     <DashboardLayout>
-      <div className="page">
-        <div className="page-header">
+      <div className="page-container" style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1>Teachers Management</h1>
-            <p style={{ margin: '4px 0 0', fontSize: '.8rem', color: '#64748b' }}>
-              Manage and view all teacher records
-            </p>
+            <h1 style={{ 
+              marginBottom: '8px',
+              fontSize: '1.875rem',
+              fontWeight: '700',
+              color: '#1f2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              👨‍🏫 Teachers Management
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '1rem' }}>Manage and view all teacher records</p>
           </div>
-          <button 
-            className="btn" 
-            onClick={openModal}
-            style={{ width: '140px', height: '36px', padding: '0' }}
+          <button
+            onClick={() => window.location.href = '/teachers/add'}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#fff',
+              padding: '12px 24px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+            }}
+            onMouseEnter={e => e.target.style.transform = 'translateY(-1px)'}
+            onMouseLeave={e => e.target.style.transform = 'translateY(0)'}
           >
-            + Add Teacher
+            ➕ Add Teacher
           </button>
         </div>
 
@@ -266,11 +295,78 @@ export default function Teachers() {
         </div>
 
         {/* Table */}
-        <div className="card">
+        <div style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '12px', 
+          overflow: 'hidden', 
+          background: '#fff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+            color: '#fff',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>📋</span>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Teachers List</h3>
+            <span style={{ 
+              marginLeft: 'auto', 
+              background: 'rgba(255, 255, 255, 0.2)', 
+              padding: '4px 12px', 
+              borderRadius: '16px', 
+              fontSize: '0.875rem' 
+            }}>
+              {filteredTeachers.length} teachers
+            </span>
+          </div>
+          
+          {/* Entries per page selector */}
+          <div style={{ 
+            padding: '16px 20px', 
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              Show
+            </label>
+            <select
+              value={entriesPerPage}
+              onChange={(e) => {
+                setEntriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: '6px 32px 6px 12px',
+                fontSize: '0.875rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+                color: '#1e293b',
+                fontWeight: 500,
+                outline: 'none'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              entries per page
+            </label>
+          </div>
+          
           <div className="table-responsive">
             <table className="table">
               <thead>
                 <tr>
+                  <th style={{width:'60px'}}>No</th>
                   <th>English Name</th>
                   <th>Khmer Name</th>
                   <th>Phone</th>
@@ -281,38 +377,106 @@ export default function Teachers() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTeachers.map((teacher) => (
-                  <tr key={teacher.id}>
-                    <td>
-                      <div style={{fontWeight:600}}>{teacher.eng_name}</div>
-                      <div style={{fontSize:'.75rem',color:'#64748b'}}>ID: {teacher.id}</div>
-                    </td>
-                    <td>{teacher.khmer_name}</td>
-                    <td>{teacher.phone}</td>
-                    <td>
-                      <span className={`badge success`}>
-                        {teacher.teacher_type_name || '-'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge`} style={{background:'#fef3c7',color:'#92400e',border:'1px solid #fcd34d'}}>
-                        {teacher.position_name || '-'}
-                      </span>
-                    </td>
-                    <td>{teacher.department_name || '-'}</td>
-                    <td style={{textAlign:'center'}}>
-                      <button className="btn btn-sm" onClick={() => handleEdit(teacher)} style={{marginRight:4}}>
-                        Edit
-                      </button>
-                      <button className="btn btn-sm btn-cancel" onClick={() => handleDelete(teacher.id)}>
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {(() => {
+                  const startIndex = (currentPage - 1) * entriesPerPage;
+                  const endIndex = startIndex + entriesPerPage;
+                  const paginatedTeachers = filteredTeachers.slice(startIndex, endIndex);
+                  
+                  return paginatedTeachers.map((teacher, index) => (
+                    <tr 
+                      key={teacher.id}
+                      style={{
+                        borderBottom: '1px solid #f3f4f6',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#6b7280' }}>
+                            {startIndex + index + 1}
+                          </td>
+                          <td style={{ padding: '16px 20px' }}>
+                            <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>{teacher.eng_name}</div>
+                            <div style={{ fontSize: '.75rem', color: '#64748b' }}>ID: {teacher.id}</div>
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {teacher.khmer_name}
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {teacher.phone}
+                          </td>
+                          <td style={{ padding: '16px 20px' }}>
+                            <span className={`badge success`}>
+                              {teacher.teacher_type_name || '-'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 20px' }}>
+                            <span className={`badge`} style={{background:'#fef3c7',color:'#92400e',border:'1px solid #fcd34d'}}>
+                              {teacher.position_name || '-'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {teacher.department_name || '-'}
+                          </td>
+                          <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => handleEdit(teacher)}
+                              style={{
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                color: 'white',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.2)',
+                                transition: 'all 0.2s',
+                                marginRight: '8px'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.2)';
+                              }}
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(teacher.id)}
+                              style={{
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                color: 'white',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
+                              }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </td>
+                        </tr>
+                  ));
+                })()}
                 {filteredTeachers.length === 0 && (
                   <tr>
-                    <td colSpan="7" style={{textAlign:'center',padding:'40px',color:'#64748b'}}>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '0.875rem' }}>
                       {searchQuery ? `No teachers found matching "${searchQuery}"` : 'No teachers yet. Click "Add Teacher" to create a new record.'}
                     </td>
                   </tr>

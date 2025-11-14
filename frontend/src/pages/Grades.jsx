@@ -480,41 +480,42 @@ export default function Grades() {
                   display: 'flex', 
                   justifyContent: 'space-between', 
                   alignItems: 'center',
-                  marginBottom: '20px',
-                  padding: '15px',
+                  marginBottom: '24px',
+                  padding: '20px 24px',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  borderRadius: '8px',
-                  color: 'white'
+                  borderRadius: '12px',
+                  color: 'white',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
                 }}>
                   <div>
-                    <h3 style={{ margin: '0 0 5px 0', fontSize: '1.1rem', fontWeight: '600' }}>
-                      � Enter Grades
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '1.4rem' }}>📝</span> Enter Grades
                     </h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.9 }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', opacity: 0.95, fontWeight: '500' }}>
                       {selectedEnrollment.subject_name} - {selectedEnrollment.batch_code} (Semester {selectedEnrollment.semester})
                     </p>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Grade Type</div>
-                    <div style={{ fontSize: '1rem', fontWeight: '600' }}>
+                  <div style={{ textAlign: 'right', background: 'rgba(255,255,255,0.15)', padding: '12px 20px', borderRadius: '8px' }}>
+                    <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '4px' }}>Grade Type</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '700' }}>
                       {selectedGradeType?.grade_type} (Max: {selectedGradeType?.max_score})
                     </div>
                   </div>
                 </div>
 
-                <div className="table-container" style={{ maxHeight: 'calc(100vh - 500px)', overflow: 'auto' }}>
-                  <table className="data-table" style={{ fontSize: '0.95rem' }}>
-                    <thead style={{ position: 'sticky', top: 0, background: '#f9fafb', zIndex: 10 }}>
+                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', background: 'white' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                    <thead style={{ position: 'sticky', top: 0, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', zIndex: 10 }}>
                       <tr>
-                        <th style={{ width: '60px', textAlign: 'center' }}>No.</th>
-                        <th style={{ width: '130px' }}>Student ID</th>
-                        <th style={{ minWidth: '200px' }}>Student Name</th>
-                        <th style={{ width: '150px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <th style={{ width: '70px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>No.</th>
+                        <th style={{ width: '140px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student ID</th>
+                        <th style={{ minWidth: '220px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student Name</th>
+                        <th style={{ width: '180px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
                             <span>Score (/{selectedGradeType?.max_score})</span>
                           </div>
                         </th>
-                        <th style={{ minWidth: '250px' }}>Remark</th>
+                        <th style={{ minWidth: '280px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Remark</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -535,35 +536,35 @@ export default function Grades() {
                         }
 
                         return (
-                          <tr key={student.id} style={{ background: rowColor, transition: 'background 0.2s' }}>
-                            <td style={{ textAlign: 'center', fontWeight: '600', fontSize: '0.9rem' }}>
+                          <tr key={student.id} style={{ background: rowColor, transition: 'background 0.2s', borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ textAlign: 'center', fontWeight: '700', fontSize: '0.9rem', padding: '14px 12px', color: '#374151' }}>
                               {index + 1}
                             </td>
-                            <td>
+                            <td style={{ padding: '14px 12px' }}>
                               <span style={{ 
                                 fontFamily: 'monospace', 
                                 fontWeight: '600',
                                 fontSize: '0.9rem',
                                 color: '#374151',
                                 background: '#f3f4f6',
-                                padding: '4px 8px',
-                                borderRadius: '4px',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
                                 display: 'inline-block'
                               }}>
                                 {student.student_code}
                               </span>
                             </td>
-                            <td>
+                            <td style={{ padding: '14px 12px' }}>
                               <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.95rem' }}>
                                 {student.eng_name}
                               </div>
                               {student.khmer_name && (
-                                <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '2px' }}>
+                                <div style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '3px' }}>
                                   {student.khmer_name}
                                 </div>
                               )}
                             </td>
-                            <td style={{ padding: '8px' }}>
+                            <td style={{ padding: '14px 12px', textAlign: 'center' }}>
                               <input
                                 type="number"
                                 min="0"
@@ -573,20 +574,30 @@ export default function Grades() {
                                 placeholder="0"
                                 style={{ 
                                   width: '120px', 
-                                  padding: '8px 12px', 
-                                  border: '2px solid #e5e7eb', 
+                                  padding: '12px 16px', 
+                                  border: '2px solid #cbd5e1', 
                                   borderRadius: '8px', 
                                   fontSize: '0.95rem',
                                   fontWeight: '600',
                                   background: 'white',
                                   transition: 'all 0.2s',
-                                  boxSizing: 'border-box'
+                                  boxSizing: 'border-box',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                                  outline: 'none',
+                                  color: '#1f2937',
+                                  textAlign: 'center'
                                 }}
-                                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                onFocus={(e) => {
+                                  e.target.style.borderColor = '#667eea';
+                                  e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.15)';
+                                }}
+                                onBlur={(e) => {
+                                  e.target.style.borderColor = '#cbd5e1';
+                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+                                }}
                               />
                             </td>
-                            <td style={{ padding: '8px' }}>
+                            <td style={{ padding: '14px 12px' }}>
                               <input
                                 type="text"
                                 value={grade.remark || ''}
@@ -595,15 +606,25 @@ export default function Grades() {
                                 style={{ 
                                   width: '100%', 
                                   maxWidth: '300px',
-                                  padding: '8px 12px', 
-                                  border: '1px solid #e5e7eb', 
+                                  padding: '12px 16px', 
+                                  border: '2px solid #cbd5e1', 
                                   borderRadius: '8px', 
                                   fontSize: '0.9rem',
-                                  transition: 'border-color 0.2s',
-                                  boxSizing: 'border-box'
+                                  transition: 'all 0.2s',
+                                  boxSizing: 'border-box',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                                  outline: 'none',
+                                  background: 'white',
+                                  color: '#1f2937'
                                 }}
-                                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                                onFocus={(e) => {
+                                  e.target.style.borderColor = '#667eea';
+                                  e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.15)';
+                                }}
+                                onBlur={(e) => {
+                                  e.target.style.borderColor = '#cbd5e1';
+                                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+                                }}
                               />
                             </td>
                           </tr>
@@ -768,16 +789,16 @@ export default function Grades() {
                   Loading history...
                 </div>
               ) : (
-                <div className="table-container" style={{ maxHeight: 'calc(100vh - 400px)', overflow: 'auto' }}>
-                  <table className="data-table">
-                    <thead style={{ position: 'sticky', top: 0, background: '#f9fafb', zIndex: 10 }}>
+                <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', background: 'white' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                    <thead style={{ position: 'sticky', top: 0, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', zIndex: 10 }}>
                       <tr>
-                        <th style={{ width: '60px' }}>No.</th>
-                        <th style={{ minWidth: '200px' }}>Student Name</th>
-                        <th style={{ width: '130px' }}>Student ID</th>
-                        <th style={{ width: '120px', textAlign: 'center' }}>Total Records</th>
-                        <th style={{ width: '150px', textAlign: 'center' }}>Latest Grade</th>
-                        <th style={{ width: '150px', textAlign: 'center' }}>Actions</th>
+                        <th style={{ width: '70px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>No.</th>
+                        <th style={{ minWidth: '220px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student Name</th>
+                        <th style={{ width: '140px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Student ID</th>
+                        <th style={{ width: '140px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Total Records</th>
+                        <th style={{ width: '160px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Latest Grade</th>
+                        <th style={{ width: '160px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -819,28 +840,30 @@ export default function Grades() {
                             const latestRecord = student.records[student.records.length - 1];
                             
                             return (
-                              <tr key={student.student_id}>
-                                <td style={{ textAlign: 'center', fontWeight: '600', color: '#6b7280' }}>
+                              <tr key={student.student_id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
+                                <td style={{ textAlign: 'center', fontWeight: '700', fontSize: '0.9rem', padding: '14px 12px', color: '#374151' }}>
                                   {index + 1}
                                 </td>
-                                <td>
-                                  <div style={{ fontWeight: '600', color: '#1f2937' }}>
+                                <td style={{ padding: '14px 12px' }}>
+                                  <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.95rem' }}>
                                     {student.student_name}
                                   </div>
                                 </td>
-                                <td>
+                                <td style={{ padding: '14px 12px' }}>
                                   <span style={{ 
                                     fontFamily: 'monospace', 
-                                    fontWeight: '500',
+                                    fontWeight: '600',
                                     background: '#f3f4f6',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    fontSize: '0.9rem'
+                                    padding: '6px 10px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.9rem',
+                                    color: '#374151',
+                                    display: 'inline-block'
                                   }}>
                                     {student.student_code}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <span style={{ 
                                     display: 'inline-block',
                                     padding: '6px 14px',
@@ -853,23 +876,23 @@ export default function Grades() {
                                     {student.records.length}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
-                                  <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '4px' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
+                                  <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '6px', fontWeight: '500' }}>
                                     {latestRecord.grade_type}
                                   </div>
                                   <span style={{ 
                                     display: 'inline-block',
-                                    padding: '6px 12px',
+                                    padding: '6px 14px',
                                     background: '#dcfce7',
                                     color: '#166534',
                                     borderRadius: '6px',
                                     fontWeight: '700',
-                                    fontSize: '0.95rem'
+                                    fontSize: '1rem'
                                   }}>
                                     {latestRecord.score}/{latestRecord.max_score}
                                   </span>
                                 </td>
-                                <td style={{ textAlign: 'center' }}>
+                                <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                                   <button
                                     onClick={() => handleViewStudentDetails(student.student_id)}
                                     style={{

@@ -32,6 +32,10 @@ export default function Students() {
   const [allPrograms, setAllPrograms] = useState([]);
   const [allScholarships, setAllScholarships] = useState([]);
   
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -58,6 +62,11 @@ export default function Students() {
     schoolarship_id: '',
     description: ''
   });
+
+  // Delete confirmation modal states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -320,7 +329,7 @@ export default function Students() {
       console.log('Submitting form:', cleanForm);
       const newStudent = await api.createStudent(cleanForm);
       console.log('Student created:', newStudent);
-      setStudents([...students, newStudent]);
+      setStudents([newStudent, ...students]);
       setShowModal(false);
       setForm({
         username: '',
@@ -388,18 +397,78 @@ export default function Students() {
     return matchesSearch && matchesDepartment && matchesBatch;
   });
 
+  const handleDeleteClick = (student) => {
+    setStudentToDelete(student);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!studentToDelete) return;
+    setIsDeleting(true);
+    try {
+      await api.deleteStudent(studentToDelete.id);
+      setStudents(prev => prev.filter(s => s.id !== studentToDelete.id));
+      showSuccess('Student deleted successfully!');
+      setShowDeleteModal(false);
+      setStudentToDelete(null);
+    } catch (e) {
+      const errorMsg = e.message || 'Failed to delete student';
+      if (errorMsg.includes('cannot') || errorMsg.includes("can't") || errorMsg.includes('not allowed')) {
+        showError(`Cannot delete this student: ${errorMsg}`);
+      } else {
+        showError(errorMsg);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setStudentToDelete(null);
+  };
+
   if (loading) return <DashboardLayout><div className="loader">Loading students...</div></DashboardLayout>;
 
   return (
     <DashboardLayout>
-      <div className="page">
-        <div className="page-header">
+      <div className="page-container" style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h1>Students</h1>
-            <p style={{ margin: '4px 0 0', fontSize: '.8rem', color: '#64748b' }}>Manage and view all student records</p>
+            <h1 style={{ 
+              marginBottom: '8px',
+              fontSize: '1.875rem',
+              fontWeight: '700',
+              color: '#1f2937',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              🎓 Students Management
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '1rem' }}>Manage and view all student records</p>
           </div>
-          <button className="btn" onClick={() => setShowModal(true)} style={{ width: '120px', height: '36px', padding: '0' }}>
-            + Add Student
+          <button
+            onClick={() => window.location.href = '/students/add'}
+            style={{
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#fff',
+              padding: '12px 24px',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+            }}
+            onMouseEnter={e => e.target.style.transform = 'translateY(-1px)'}
+            onMouseLeave={e => e.target.style.transform = 'translateY(0)'}
+          >
+            ➕ Add Student
           </button>
         </div>
 
@@ -612,138 +681,407 @@ export default function Students() {
       )}
 
       {/* Search and Filter Section */}
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="page-actions">
+      <div style={{ 
+        background: '#fff',
+        padding: '20px',
+        borderRadius: '12px',
+        marginBottom: '24px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        border: '1px solid #e5e7eb'
+      }}>
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '12px',
+          alignItems: 'stretch'
+        }}>
           {/* Search Box */}
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search by name, code, department..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ flex: '0 1 280px', minWidth: '220px' }}
-          />
+          <div style={{ flex: '1 1 280px', minWidth: '220px' }}>
+            <div style={{ position: 'relative' }}>
+              <span style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.1rem',
+                color: '#9ca3af'
+              }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search by name, code, department..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px 10px 40px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  backgroundColor: '#f9fafb',
+                  height: '42px',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.backgroundColor = '#fff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.backgroundColor = '#f9fafb';
+                }}
+              />
+            </div>
+          </div>
 
           {/* Department Filter */}
-          <select
-            value={filterDepartment}
-            onChange={(e) => onChangeFilterDepartment(e.target.value)}
-            className="form-field"
-            style={{ flex: '0 1 240px', padding: '10px 12px' }}
-            title={allDepartments.find(d => String(d.id) === String(filterDepartment))?.department_name || 'All Departments'}
-          >
-            <option value="">All Departments</option>
-            {allDepartments.map(dept => (
-              <option key={dept.id} value={dept.id}>{dept.department_name}</option>
-            ))}
-          </select>
+          <div style={{ flex: '0 1 240px', minWidth: '200px' }}>
+            <select
+              value={filterDepartment}
+              onChange={(e) => onChangeFilterDepartment(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '11px 36px 11px 12px',
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                backgroundColor: '#f9fafb',
+                cursor: 'pointer',
+                outline: 'none',
+                fontWeight: '500',
+                color: '#374151',
+                transition: 'all 0.2s',
+                height: '42px',
+                appearance: 'none',
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 12px center'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#3b82f6';
+                e.target.style.backgroundColor = '#fff';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.backgroundColor = '#f9fafb';
+              }}
+            >
+              <option value="">📚 All Departments</option>
+              {allDepartments.map(dept => (
+                <option key={dept.id} value={dept.id}>{dept.department_name}</option>
+              ))}
+            </select>
+          </div>
 
           {/* Batch Filter */}
-          <select
-            value={filterBatch}
-            onChange={(e) => setFilterBatch(e.target.value)}
-            className="form-field"
-            style={{ flex: '0 1 240px', padding: '10px 12px' }}
-            title={
-              (filterBatch && (filteredBatches.find(b => String(b.Id) === String(filterBatch))?.batch_code))
-              || 'All Batches'
-            }
-          >
-            <option value="">All Batches</option>
+          <div style={{ flex: '0 1 240px', minWidth: '200px' }}>
+            <select
+              value={filterBatch}
+              onChange={(e) => setFilterBatch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '11px 36px 11px 12px',
+                border: '2px solid #e5e7eb',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                backgroundColor: '#f9fafb',
+                cursor: 'pointer',
+                outline: 'none',
+                fontWeight: '500',
+                color: '#374151',
+                transition: 'all 0.2s',
+                height: '42px',
+                appearance: 'none',
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 12px center'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#3b82f6';
+                e.target.style.backgroundColor = '#fff';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#e5e7eb';
+                e.target.style.backgroundColor = '#f9fafb';
+              }}
+            >
+            <option value="">🎓 All Batches</option>
             {filteredBatches.map(batch => (
               <option key={batch.Id} value={batch.Id}>{batch.batch_code} ({batch.academic_year})</option>
               ))}
           </select>
+          </div>
 
           {/* Clear Filters Button */}
           {(searchQuery || filterDepartment || filterBatch) && (
             <button
-              className="btn btn-cancel"
               onClick={() => {
                 setSearchQuery('');
                 setFilterDepartment('');
                 setFilterBatch('');
               }}
-              style={{ padding: '10px 20px' }}
+              style={{
+                padding: '0 20px',
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                height: '42px',
+                whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 6px rgba(239, 68, 68, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+              }}
             >
-              ✕ Clear Filters
+              ✕ Clear All
             </button>
           )}
         </div>
 
         {/* Results Count */}
-        <div style={{ 
-          marginTop: 16, 
-          padding: '12px 16px', 
-          background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', 
-          borderRadius: '10px',
-          fontSize: '0.85rem', 
-          color: '#0c4a6e', 
-          fontWeight: 600,
+        {(searchQuery || filterDepartment || filterBatch) && (
+          <div style={{ 
+            marginTop: 16, 
+            padding: '14px 18px', 
+            background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', 
+            borderRadius: '10px',
+            fontSize: '0.875rem', 
+            color: '#065f46', 
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            border: '1px solid #a7f3d0'
+          }}>
+            <span style={{fontSize:'1.3rem'}}>📊</span>
+            <span>Found <strong style={{ color: '#047857', fontSize: '1rem' }}>{filteredStudents.length}</strong> of <strong>{students.length}</strong> students</span>
+          </div>
+        )}
+      </div>
+
+      <div style={{ 
+        border: '1px solid #e5e7eb', 
+        borderRadius: '12px', 
+        overflow: 'hidden', 
+        background: '#fff',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+      }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+          color: '#fff',
+          padding: '16px 20px',
           display: 'flex',
           alignItems: 'center',
           gap: '8px'
         }}>
-          <span style={{fontSize:'1.2rem'}}>📊</span>
-          Showing <strong>{filteredStudents.length}</strong> of <strong>{students.length}</strong> students
+          <span style={{ fontSize: '1.1rem' }}>📋</span>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Students List</h3>
+          <span style={{ 
+            marginLeft: 'auto', 
+            background: 'rgba(255, 255, 255, 0.2)', 
+            padding: '4px 12px', 
+            borderRadius: '16px', 
+            fontSize: '0.875rem' 
+          }}>
+            {filteredStudents.length} students
+          </span>
         </div>
-      </div>
+        
+        {/* Entries per page selector */}
+        <div style={{ 
+          padding: '16px 20px', 
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+            Show
+          </label>
+          <select
+            value={entriesPerPage}
+            onChange={(e) => {
+              setEntriesPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            style={{
+              padding: '6px 32px 6px 12px',
+              fontSize: '0.875rem',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              backgroundColor: '#fff',
+              cursor: 'pointer',
+              color: '#1e293b',
+              fontWeight: 500,
+              outline: 'none'
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+            entries per page
+          </label>
+        </div>
 
-      <div className="card">
-        <div className="table-responsive">
-          <table className="table">
-            <thead>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
               <tr>
-                <th style={{width:'120px'}}>Student Code</th>
-                <th>Name</th>
-                <th style={{width:'80px'}}>Gender</th>
-                <th>Scholarship</th>
-                <th>Department</th>
-                <th>Batch Code</th>
-                <th style={{width:'120px',textAlign:'center'}}>Actions</th>
+                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>No</th>
+                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '140px' }}>Student Code</th>
+                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Name</th>
+                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '100px' }}>Gender</th>
+                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Scholarship</th>
+                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Department</th>
+                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '130px' }}>Batch Code</th>
+                <th style={{ textAlign: 'center', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '180px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.length > 0 ? (
-                filteredStudents.map(s => {
+              {(() => {
+                const startIndex = (currentPage - 1) * entriesPerPage;
+                const endIndex = startIndex + entriesPerPage;
+                const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+                
+                return paginatedStudents.length > 0 ? (
+                  paginatedStudents.map((s, index) => {
                   const deptName = getDepartmentName(s.department_id, s.department_name);
                   const batchCode = getBatchCode(s.batch_id, s.batch_code);
                   const scholarshipName = getScholarshipName(s.schoolarship_id);
                   const genderText = s.gender === '1' ? 'Female' : 'Male';
                   return (
-                    <tr key={s.id}>
-                      <td style={{fontWeight:600}}>{s.student_code}</td>
-                      <td>{s.std_eng_name}</td>
-                      <td>{genderText}</td>
-                      <td>
+                    <tr 
+                      key={s.id}
+                      style={{
+                        borderBottom: '1px solid #f3f4f6',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#6b7280' }}>
+                        {startIndex + index + 1}
+                      </td>
+                      <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
+                        {s.student_code}
+                      </td>
+                      <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                        {s.std_eng_name}
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <span style={{ 
+                          background: genderText === 'Female' ? '#fce7f3' : '#dbeafe', 
+                          color: genderText === 'Female' ? '#be185d' : '#1e40af', 
+                          padding: '4px 10px', 
+                          borderRadius: 6, 
+                          fontWeight: 500, 
+                          fontSize: '.75rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          {genderText === 'Female' ? '♀️' : '♂️'} {genderText}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
                         <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: 6, fontWeight: 500, fontSize:'.75rem' }}>
                           {scholarshipName}
                         </span>
                       </td>
-                      <td>
+                      <td style={{ padding: '16px 20px' }}>
                         <span style={{ background: '#dbeafe', color: '#1e40af', padding: '4px 10px', borderRadius: 6, fontWeight: 500, fontSize:'.75rem' }}>
                           {deptName}
                         </span>
                       </td>
-                      <td>
+                      <td style={{ padding: '16px 20px' }}>
                         <span style={{ background: '#f3e8ff', color: '#6b21a8', padding: '4px 10px', borderRadius: 6, fontWeight: 500, fontSize:'.75rem' }}>
                           {batchCode}
                         </span>
                       </td>
-                      <td style={{textAlign:'center'}}>
-                        <button 
-                          className="btn btn-sm"
-                          onClick={() => window.location.href = `/students/${s.id}`}
-                        >
-                          View Detail
-                        </button>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ 
+                          display: 'flex', 
+                          gap: '8px',
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}>
+                          <button 
+                            onClick={() => window.location.href = `/students/${s.id}`}
+                            style={{
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              border: 'none',
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                              color: 'white',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.4)',
+                              transition: 'all 0.2s',
+                              whiteSpace: 'nowrap'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.4)';
+                            }}
+                          >
+                            👁️ View
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteClick(s)}
+                            style={{
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              border: 'none',
+                              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                              color: 'white',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                              transition: 'all 0.2s',
+                              whiteSpace: 'nowrap'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.4)';
+                            }}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  );
+                  )
                 })
               ) : (
               <tr>
-                <td colSpan="7" style={{ padding: 40, textAlign: 'center', color: '#64748b', fontSize: '.95rem' }}>
+                <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '0.875rem' }}>
                   {searchQuery || filterDepartment || filterBatch ? (
                     <>
                       <div style={{ fontSize: '2rem', marginBottom: 12 }}>🔍</div>
@@ -758,10 +1096,284 @@ export default function Students() {
                   )}
                 </td>
               </tr>
-            )}
+            );
+              })()}
           </tbody>
         </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {filteredStudents.length > 0 && (
+          <div style={{
+            padding: '16px 20px',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+              Showing {Math.min((currentPage - 1) * entriesPerPage + 1, filteredStudents.length)} to {Math.min(currentPage * entriesPerPage, filteredStudents.length)} of {filteredStudents.length} entries
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.875rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  backgroundColor: currentPage === 1 ? '#f1f5f9' : '#fff',
+                  color: currentPage === 1 ? '#94a3b8' : '#475569',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                First
+              </button>
+              <button
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.875rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  backgroundColor: currentPage === 1 ? '#f1f5f9' : '#fff',
+                  color: currentPage === 1 ? '#94a3b8' : '#475569',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Previous
+              </button>
+              <div style={{
+                padding: '6px 16px',
+                fontSize: '0.875rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#f8fafc',
+                color: '#1e293b',
+                fontWeight: 600
+              }}>
+                {currentPage} / {Math.ceil(filteredStudents.length / entriesPerPage)}
+              </div>
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage >= Math.ceil(filteredStudents.length / entriesPerPage)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.875rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  backgroundColor: currentPage >= Math.ceil(filteredStudents.length / entriesPerPage) ? '#f1f5f9' : '#fff',
+                  color: currentPage >= Math.ceil(filteredStudents.length / entriesPerPage) ? '#94a3b8' : '#475569',
+                  cursor: currentPage >= Math.ceil(filteredStudents.length / entriesPerPage) ? 'not-allowed' : 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Next
+              </button>
+              <button
+                onClick={() => setCurrentPage(Math.ceil(filteredStudents.length / entriesPerPage))}
+                disabled={currentPage >= Math.ceil(filteredStudents.length / entriesPerPage)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.875rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  backgroundColor: currentPage >= Math.ceil(filteredStudents.length / entriesPerPage) ? '#f1f5f9' : '#fff',
+                  color: currentPage >= Math.ceil(filteredStudents.length / entriesPerPage) ? '#94a3b8' : '#475569',
+                  cursor: currentPage >= Math.ceil(filteredStudents.length / entriesPerPage) ? 'not-allowed' : 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Last
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && studentToDelete && (
+          <div className="modal-overlay" onClick={handleDeleteCancel}>
+            <div 
+              className="modal" 
+              style={{ maxWidth: '480px', textAlign: 'center' }} 
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{
+                padding: '32px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '20px'
+              }}>
+                {/* Warning Icon */}
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2.5rem'
+                }}>
+                  ⚠️
+                </div>
+
+                {/* Title */}
+                <div>
+                  <h2 style={{
+                    margin: '0 0 8px',
+                    fontSize: '1.5rem',
+                    fontWeight: '700',
+                    color: '#dc2626'
+                  }}>
+                    Delete Student?
+                  </h2>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '0.95rem',
+                    color: '#64748b',
+                    lineHeight: '1.6'
+                  }}>
+                    Are you sure you want to delete this student?
+                  </p>
+                </div>
+
+                {/* Student Info Card */}
+                <div style={{
+                  width: '100%',
+                  padding: '16px',
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    justifyContent: 'center'
+                  }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      fontSize: '1.5rem'
+                    }}>
+                      🎓
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{
+                        fontWeight: '600',
+                        fontSize: '1.05rem',
+                        color: '#1e293b',
+                        marginBottom: '2px'
+                      }}>
+                        {studentToDelete.std_eng_name}
+                      </div>
+                      <div style={{
+                        fontSize: '0.875rem',
+                        color: '#64748b'
+                      }}>
+                        {studentToDelete.student_code}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warning Message */}
+                <div style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  color: '#991b1b',
+                  lineHeight: '1.5'
+                }}>
+                  ⚠️ This action cannot be undone. All data associated with this student will be permanently deleted.
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  gap: '12px',
+                  width: '100%',
+                  marginTop: '8px'
+                }}>
+                  <button
+                    onClick={handleDeleteCancel}
+                    disabled={isDeleting}
+                    style={{
+                      flex: 1,
+                      padding: '12px 24px',
+                      background: '#fff',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      color: '#64748b',
+                      cursor: isDeleting ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                      opacity: isDeleting ? 0.5 : 1
+                    }}
+                    onMouseEnter={(e) => !isDeleting && (e.target.style.background = '#f8fafc')}
+                    onMouseLeave={(e) => !isDeleting && (e.target.style.background = '#fff')}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteConfirm}
+                    disabled={isDeleting}
+                    style={{
+                      flex: 1,
+                      padding: '12px 24px',
+                      background: isDeleting 
+                        ? 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)' 
+                        : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      color: '#fff',
+                      cursor: isDeleting ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 4px 6px rgba(239, 68, 68, 0.3)',
+                      opacity: isDeleting ? 0.7 : 1
+                    }}
+                    onMouseEnter={(e) => !isDeleting && (e.target.style.transform = 'translateY(-2px)')}
+                    onMouseLeave={(e) => !isDeleting && (e.target.style.transform = 'translateY(0)')}
+                  >
+                    {isDeleting ? (
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <span style={{
+                          width: '16px',
+                          height: '16px',
+                          border: '2px solid #fff',
+                          borderTopColor: 'transparent',
+                          borderRadius: '50%',
+                          animation: 'spin 0.6s linear infinite'
+                        }}></span>
+                        Deleting...
+                      </span>
+                    ) : (
+                      '🗑️ Delete Student'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       </div>
     </DashboardLayout>

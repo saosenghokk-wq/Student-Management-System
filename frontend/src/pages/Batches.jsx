@@ -18,6 +18,7 @@ export default function Batches() {
   const [editingId, setEditingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [form, setForm] = useState({
     batch_code: '',
     program_id: '',
@@ -70,10 +71,11 @@ export default function Batches() {
         await api.updateBatch(editingId, form);
         showSuccess('Batch updated successfully');
       } else {
-        await api.createBatch(form);
+        const newBatch = await api.createBatch(form);
+        setBatches(prev => [newBatch, ...prev]);
         showSuccess('Batch created successfully');
       }
-      loadData();
+      if (editingId) loadData();
       closeModal();
     } catch (err) {
       showError(err.message || 'Operation failed');
@@ -188,50 +190,183 @@ export default function Batches() {
         </div>
 
         {/* Table */}
-        <div className="card">
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
+        <div style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '12px', 
+          overflow: 'hidden', 
+          background: '#fff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+            color: '#fff',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '1.1rem' }}>📚</span>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Batch Records</h3>
+            <span style={{ 
+              marginLeft: 'auto', 
+              background: 'rgba(255, 255, 255, 0.2)', 
+              padding: '4px 12px', 
+              borderRadius: '16px', 
+              fontSize: '0.875rem' 
+            }}>
+              {filteredBatches.length} batches
+            </span>
+          </div>
+
+          {/* Entries per page selector */}
+          <div style={{ 
+            padding: '16px 20px', 
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              Show
+            </label>
+            <select
+              value={entriesPerPage}
+              onChange={(e) => setEntriesPerPage(Number(e.target.value))}
+              style={{
+                padding: '6px 32px 6px 12px',
+                fontSize: '0.875rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+                color: '#1e293b',
+                fontWeight: 500,
+                outline: 'none'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              entries per page
+            </label>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
                 <tr>
-                  <th>Batch Code</th>
-                  <th>Program</th>
-                  <th>Department</th>
-                  <th>Academic Year</th>
-                  <th>Admission Year</th>
-                  <th style={{textAlign:'center'}}>Actions</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>No.</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Batch Code</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Program</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Department</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Academic Year</th>
+                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Admission Year</th>
+                  <th style={{ textAlign: 'center', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredBatches.map((batch) => (
-                  <tr key={batch.Id}>
-                    <td>
-                      <div style={{fontWeight:600}}>{batch.batch_code}</div>
-                      <div style={{fontSize:'.75rem',color:'#64748b'}}>ID: {batch.Id}</div>
+                {filteredBatches.slice(0, entriesPerPage).map((batch, index) => (
+                  <tr key={batch.Id} style={{
+                    borderBottom: index < filteredBatches.length - 1 ? '1px solid #f3f4f6' : 'none',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      color: '#6b7280'
+                    }}>
+                      {index + 1}
                     </td>
-                    <td>
-                      <div style={{fontWeight:600}}>{batch.program_code}</div>
-                      <div style={{fontSize:'.75rem',color:'#64748b'}}>{batch.program_name}</div>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
+                      <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '2px' }}>{batch.batch_code}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>ID: {batch.Id}</div>
                     </td>
-                    <td>{batch.department_name || '-'}</td>
-                    <td>
-                      <span className={`badge success`}>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
+                      <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '2px' }}>{batch.program_code}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{batch.program_name}</div>
+                    </td>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                      {batch.department_name || '-'}
+                    </td>
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
+                      <span style={{
+                        padding: '6px 16px',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: 'white',
+                        borderRadius: '8px',
+                        fontSize: '0.875rem',
+                        fontWeight: '600'
+                      }}>
                         {batch.academic_year}
                       </span>
                     </td>
-                    <td>{batch.admission_year}</td>
-                    <td style={{textAlign:'center'}}>
-                      <button className="btn btn-sm" onClick={() => handleEdit(batch)} style={{marginRight:4}}>
-                        Edit
+                    <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#1f2937' }}>
+                      {batch.admission_year}
+                    </td>
+                    <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                      <button
+                        onClick={() => handleEdit(batch)}
+                        style={{
+                          padding: '8px 16px',
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          marginRight: '8px',
+                          boxShadow: '0 2px 4px rgba(59, 130, 246, 0.4)',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.4)';
+                        }}
+                      >
+                        ✏️ Edit
                       </button>
-                      <button className="btn btn-sm btn-cancel" onClick={() => handleDelete(batch.Id)}>
-                        Delete
+                      <button
+                        onClick={() => handleDelete(batch.Id)}
+                        style={{
+                          padding: '8px 16px',
+                          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.5)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.4)';
+                        }}
+                      >
+                        🗑️ Delete
                       </button>
                     </td>
                   </tr>
                 ))}
                 {filteredBatches.length === 0 && (
                   <tr>
-                    <td colSpan="6" style={{textAlign:'center',padding:'40px',color:'#64748b'}}>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '0.875rem' }}>
                       {searchQuery ? `No batches found matching "${searchQuery}"` : 'No batches yet. Click "Add Batch" to create a new record.'}
                     </td>
                   </tr>

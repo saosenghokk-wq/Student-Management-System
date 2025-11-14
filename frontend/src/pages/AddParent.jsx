@@ -272,7 +272,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled, lab
   );
 }
 
-export default function AddStudent() {
+export default function AddParent() {
   const { showSuccess, showError } = useAlert();
   const navigate = useNavigate();
   
@@ -280,35 +280,21 @@ export default function AddStudent() {
     username: '',
     email: '',
     password: '',
-    student_code: '',
-    std_eng_name: '',
-    std_khmer_name: '',
-    gender: '0',
-    dob: '',
-    phone: '',
-    nationality: '',
-    race: '',
-    marital_status: '0',
-    department_id: '',
-    program_id: '',
-    batch_id: '',
-    from_high_school: '',
-    std_status_id: '',
-    schoolarship_id: '',
-    parent_id: '',
+    parent_code: '',
+    mother_name: '',
+    mother_occupation: '',
+    mother_phone: '',
+    mother_status: 'alive',
+    father_name: '',
+    father_occupation: '',
+    father_phone: '',
+    father_status: 'alive',
     province_no: '',
     district_no: '',
     commune_no: '',
-    village_no: '',
-    description: ''
+    village_no: ''
   });
 
-  const [departments, setDepartments] = useState([]);
-  const [programs, setPrograms] = useState([]);
-  const [batches, setBatches] = useState([]);
-  const [statuses, setStatuses] = useState([]);
-  const [scholarships, setScholarships] = useState([]);
-  const [parents, setParents] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
@@ -320,192 +306,83 @@ export default function AddStudent() {
 
   const loadInitialData = async () => {
     try {
-      const [depts, stats, schol, pars, provs] = await Promise.all([
-        api.getDepartments(),
-        api.getStudentStatuses(),
-        api.getScholarships(),
-        api.getParents(),
-        api.getProvinces()
+      const [provs, parents] = await Promise.all([
+        api.getProvinces(),
+        api.getParents()
       ]);
-      setDepartments(depts);
-      setStatuses(stats);
-      setScholarships(schol);
-      setParents(pars);
-      setProvinces(provs);
+      setProvinces(provs || []);
+      
+      // Generate parent code: P + (parent count + 1)
+      const parentCount = Array.isArray(parents) ? parents.length : (parents?.data?.length || 0);
+      const newParentCode = `P${String(parentCount + 1).padStart(3, '0')}`;
+      setForm(prev => ({ ...prev, parent_code: newParentCode }));
     } catch (err) {
-      showError('Failed to load form data');
+      showError('Failed to load initial data');
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
-  };
-
-  const handleDepartmentChange = async (e) => {
-    const deptId = e.target.value;
-    setForm(f => ({ ...f, department_id: deptId, program_id: '', batch_id: '' }));
-    if (deptId) {
-      try {
-        const progs = await api.getProgramsByDepartment(deptId);
-        setPrograms(progs);
-        setBatches([]);
-      } catch (err) {
-        showError('Failed to load programs');
-      }
-    } else {
-      setPrograms([]);
-      setBatches([]);
-    }
-  };
-
-  const handleProgramChange = async (e) => {
-    const progId = e.target.value;
-    setForm(f => ({ ...f, program_id: progId, batch_id: '', student_code: '' }));
-    if (progId) {
-      try {
-        const batchData = await api.getBatchesByProgram(progId);
-        setBatches(batchData);
-      } catch (err) {
-        showError('Failed to load batches');
-      }
-    } else {
-      setBatches([]);
-    }
-  };
-
-  const handleBatchChange = async (e) => {
-    const batchId = e.target.value;
-    if (batchId) {
-      try {
-        // Get the selected batch info
-        const selectedBatch = batches.find(b => b.Id == batchId);
-        
-        if (!selectedBatch) {
-          showError('Batch not found');
-          setForm(f => ({ ...f, batch_id: batchId, student_code: '' }));
-          return;
-        }
-        
-        // Get students in this batch to count them
-        const studentsInBatch = await api.getStudentsByBatch(batchId);
-        
-        // Handle different response formats (array or object with data property)
-        let studentCount = 0;
-        if (Array.isArray(studentsInBatch)) {
-          studentCount = studentsInBatch.length;
-        } else if (studentsInBatch && Array.isArray(studentsInBatch.data)) {
-          studentCount = studentsInBatch.data.length;
-        } else if (studentsInBatch && typeof studentsInBatch.length === 'number') {
-          studentCount = studentsInBatch.length;
-        }
-        
-        // Generate student code: batch_code + (count + 1)
-        const nextNumber = studentCount + 1;
-        const newStudentCode = `${selectedBatch.batch_code}${String(nextNumber).padStart(3, '0')}`;
-        
-        setForm(f => ({ ...f, batch_id: batchId, student_code: newStudentCode }));
-      } catch (err) {
-        console.error('Error generating student code:', err);
-        showError('Failed to generate student code');
-        setForm(f => ({ ...f, batch_id: batchId, student_code: '' }));
-      }
-    } else {
-      setForm(f => ({ ...f, batch_id: '', student_code: '' }));
-    }
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleProvinceChange = async (e) => {
-    const provNo = e.target.value;
-    setForm(f => ({ ...f, province_no: provNo, district_no: '', commune_no: '', village_no: '' }));
-    if (provNo) {
+    const no = e.target.value;
+    setForm(prev => ({ ...prev, province_no: no, district_no: '', commune_no: '', village_no: '' }));
+    setDistricts([]);
+    setCommunes([]);
+    setVillages([]);
+    if (no) {
       try {
-        const dists = await api.getDistricts(provNo);
-        setDistricts(dists);
-        setCommunes([]);
-        setVillages([]);
+        const data = await api.getDistricts(no);
+        setDistricts(data || []);
       } catch (err) {
         showError('Failed to load districts');
       }
-    } else {
-      setDistricts([]);
-      setCommunes([]);
-      setVillages([]);
     }
   };
 
   const handleDistrictChange = async (e) => {
-    const distNo = e.target.value;
-    setForm(f => ({ ...f, district_no: distNo, commune_no: '', village_no: '' }));
-    if (distNo) {
+    const no = e.target.value;
+    setForm(prev => ({ ...prev, district_no: no, commune_no: '', village_no: '' }));
+    setCommunes([]);
+    setVillages([]);
+    if (no) {
       try {
-        const comms = await api.getCommunes(distNo);
-        setCommunes(comms);
-        setVillages([]);
+        const data = await api.getCommunes(no);
+        setCommunes(data || []);
       } catch (err) {
         showError('Failed to load communes');
       }
-    } else {
-      setCommunes([]);
-      setVillages([]);
     }
   };
 
   const handleCommuneChange = async (e) => {
-    const commNo = e.target.value;
-    setForm(f => ({ ...f, commune_no: commNo, village_no: '' }));
-    if (commNo) {
+    const no = e.target.value;
+    setForm(prev => ({ ...prev, commune_no: no, village_no: '' }));
+    setVillages([]);
+    if (no) {
       try {
-        const vills = await api.getVillages(commNo);
-        setVillages(vills);
+        const data = await api.getVillages(no);
+        setVillages(data || []);
       } catch (err) {
         showError('Failed to load villages');
       }
-    } else {
-      setVillages([]);
     }
   };
 
   const handleVillageChange = (e) => {
-    setForm(f => ({ ...f, village_no: e.target.value }));
+    setForm(prev => ({ ...prev, village_no: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        username: form.username,
-        email: form.email,
-        password: form.password,
-        role_id: 4,
-        student_code: form.student_code,
-        std_eng_name: form.std_eng_name,
-        std_khmer_name: form.std_khmer_name || null,
-        gender: parseInt(form.gender, 10),
-        dob: form.dob || null,
-        phone: form.phone || null,
-        nationality: form.nationality || null,
-        race: form.race || null,
-        marital_status: parseInt(form.marital_status, 10),
-        department_id: parseInt(form.department_id, 10),
-        program_id: parseInt(form.program_id, 10),
-        batch_id: form.batch_id ? parseInt(form.batch_id, 10) : null,
-        from_high_school: form.from_high_school,
-        std_status_id: form.std_status_id ? parseInt(form.std_status_id, 10) : null,
-        schoolarship_id: form.schoolarship_id ? parseInt(form.schoolarship_id, 10) : null,
-        parent_id: form.parent_id ? parseInt(form.parent_id, 10) : null,
-        province_no: form.province_no ? parseInt(form.province_no, 10) : null,
-        district_no: form.district_no ? parseInt(form.district_no, 10) : null,
-        commune_no: form.commune_no ? parseInt(form.commune_no, 10) : null,
-        village_no: form.village_no ? parseInt(form.village_no, 10) : null,
-        description: form.description || null
-      };
-
-      await api.createStudent(payload);
-      showSuccess('Student created successfully');
-      setTimeout(() => navigate('/students'), 1000);
+      await api.createParent(form);
+      showSuccess('Parent created successfully');
+      setTimeout(() => navigate('/parents'), 1000);
     } catch (err) {
-      showError(err.message || 'Failed to create student');
+      showError(err.message || 'Failed to create parent');
     }
   };
 
@@ -515,9 +392,9 @@ export default function AddStudent() {
         {/* Page Header */}
         <div style={{ marginBottom: '24px' }}>
           <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
-            👨‍🎓 Add New Student
+            👨‍👩‍👧‍👦 Add New Parent
           </h1>
-          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Fill in the information below to create a new student record</p>
+          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>Fill in the information below to create a new parent record</p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -572,7 +449,7 @@ export default function AddStudent() {
                       onChange={handleChange} 
                       required 
                       className="form-input" 
-                      placeholder="Enter email address"
+                      placeholder="name@example.com"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
@@ -587,14 +464,14 @@ export default function AddStudent() {
                       onChange={handleChange} 
                       required 
                       className="form-input" 
-                      placeholder="Enter secure password"
+                      placeholder="Enter password"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Personal Information */}
+              {/* Parent Code */}
               <div style={{ 
                 background: 'white', 
                 borderRadius: '12px', 
@@ -611,251 +488,105 @@ export default function AddStudent() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span>👤</span> Personal Information
+                  <span>🪪</span> Parent Code
+                </h3>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                    Parent Code <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input 
+                    name="parent_code" 
+                    value={form.parent_code} 
+                    onChange={handleChange} 
+                    required 
+                    readOnly
+                    className="form-input" 
+                    placeholder="Auto-generated"
+                    style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem', background: '#f9fafb', cursor: 'not-allowed' }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
+                    💡 Parent code is automatically generated (P + parent count)
+                  </p>
+                </div>
+              </div>
+
+              {/* Mother Information */}
+              <div style={{ 
+                background: 'white', 
+                borderRadius: '12px', 
+                border: '1px solid #e5e7eb', 
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                padding: '20px'
+              }}>
+                <h3 style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: '600', 
+                  color: '#1f2937', 
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span>👩</span> Mother Information
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Student Code <span style={{ color: '#ef4444' }}>*</span>
+                      Mother Name <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
-                      name="student_code" 
-                      value={form.student_code} 
-                      onChange={handleChange} 
-                      required 
-                      readOnly
-                      className="form-input" 
-                      placeholder="Auto-generated when batch is selected"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem', background: '#f9fafb', cursor: 'not-allowed' }}
-                    />
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
-                      💡 Student code will be generated automatically based on batch code + student count
-                    </p>
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      English Name <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input 
-                      name="std_eng_name" 
-                      value={form.std_eng_name} 
+                      name="mother_name" 
+                      value={form.mother_name} 
                       onChange={handleChange} 
                       required 
                       className="form-input" 
-                      placeholder="Enter English name"
+                      placeholder="Full name"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Occupation
+                    </label>
+                    <input 
+                      name="mother_occupation" 
+                      value={form.mother_occupation} 
+                      onChange={handleChange} 
+                      className="form-input" 
+                      placeholder="Occupation"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Phone <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input 
+                      type="tel" 
+                      name="mother_phone" 
+                      value={form.mother_phone} 
+                      onChange={handleChange} 
+                      required 
+                      className="form-input" 
+                      placeholder="Phone number"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Khmer Name
-                    </label>
-                    <input 
-                      name="std_khmer_name" 
-                      value={form.std_khmer_name} 
-                      onChange={handleChange} 
-                      className="form-input" 
-                      placeholder="Enter Khmer name"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Gender
+                      Status <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <select 
-                      name="gender" 
-                      value={form.gender} 
+                      name="mother_status" 
+                      value={form.mother_status} 
                       onChange={handleChange} 
+                      required 
                       className="form-select"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     >
-                      <option value="0">Male</option>
-                      <option value="1">Female</option>
+                      <option value="alive">Alive</option>
+                      <option value="deceased">Deceased</option>
                     </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Date of Birth
-                    </label>
-                    <input 
-                      type="date" 
-                      name="dob" 
-                      value={form.dob} 
-                      onChange={handleChange} 
-                      className="form-input"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Phone
-                    </label>
-                    <input 
-                      name="phone" 
-                      value={form.phone} 
-                      onChange={handleChange} 
-                      className="form-input" 
-                      placeholder="Enter phone"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Nationality
-                    </label>
-                    <input 
-                      name="nationality" 
-                      value={form.nationality} 
-                      onChange={handleChange} 
-                      className="form-input" 
-                      placeholder="Cambodian"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Race
-                    </label>
-                    <input 
-                      name="race" 
-                      value={form.race} 
-                      onChange={handleChange} 
-                      className="form-input" 
-                      placeholder="Khmer"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Marital Status
-                    </label>
-                    <select 
-                      name="marital_status" 
-                      value={form.marital_status} 
-                      onChange={handleChange} 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="0">Single</option>
-                      <option value="1">Married</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Family & Address */}
-              <div style={{ 
-                background: 'white', 
-                borderRadius: '12px', 
-                border: '1px solid #e5e7eb', 
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                padding: '20px'
-              }}>
-                <h3 style={{ 
-                  fontSize: '1rem', 
-                  fontWeight: '600', 
-                  color: '#1f2937', 
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <span>🏠</span> Family & Address
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Parent
-                    </label>
-                    <SearchableSelect
-                      options={parents.map(p => ({
-                        value: p.id,
-                        label: `${p.parent_code} - ${p.father_name}${p.mother_name ? ` (Mother: ${p.mother_name})` : ''}`,
-                        parent_code: p.parent_code,
-                        father_name: p.father_name,
-                        mother_name: p.mother_name
-                      }))}
-                      value={form.parent_id}
-                      onChange={(e) => setForm(prev => ({ ...prev, parent_id: e.target.value }))}
-                      placeholder="Select Parent"
-                      labelKey="label"
-                      valueKey="value"
-                      searchKeys={['parent_code', 'father_name', 'mother_name']}
-                    />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        Province
-                      </label>
-                      <SearchableSelect
-                        options={provinces.map(p => ({
-                          value: p.province_no,
-                          label: p.province_name
-                        }))}
-                        value={form.province_no}
-                        onChange={handleProvinceChange}
-                        placeholder="Select Province"
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        District
-                      </label>
-                      <SearchableSelect
-                        options={districts.map(d => ({
-                          value: d.district_no,
-                          label: d.district_name
-                        }))}
-                        value={form.district_no}
-                        onChange={handleDistrictChange}
-                        placeholder="Select District"
-                        disabled={!form.province_no}
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        Commune
-                      </label>
-                      <SearchableSelect
-                        options={communes.map(c => ({
-                          value: c.commune_no,
-                          label: c.commune_name
-                        }))}
-                        value={form.commune_no}
-                        onChange={handleCommuneChange}
-                        placeholder="Select Commune"
-                        disabled={!form.district_no}
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                        Village
-                      </label>
-                      <SearchableSelect
-                        options={villages.map(v => ({
-                          value: v.village_no,
-                          label: v.village_name
-                        }))}
-                        value={form.village_no}
-                        onChange={handleVillageChange}
-                        placeholder="Select Village"
-                        disabled={!form.commune_no}
-                        labelKey="label"
-                        valueKey="value"
-                        searchKeys={['label']}
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -864,7 +595,7 @@ export default function AddStudent() {
             {/* RIGHT COLUMN */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* Academic Information */}
+              {/* Father Information */}
               <div style={{ 
                 background: 'white', 
                 borderRadius: '12px', 
@@ -881,106 +612,71 @@ export default function AddStudent() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span>🎓</span> Academic Information
+                  <span>👨</span> Father Information
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ gridColumn: '1 / -1' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Department <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <select 
-                      name="department_id" 
-                      value={form.department_id} 
-                      onChange={handleDepartmentChange} 
-                      required 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Department</option>
-                      {departments.map(d => <option key={d.id} value={d.id}>{d.department_name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Program <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <select 
-                      name="program_id" 
-                      value={form.program_id} 
-                      onChange={handleProgramChange} 
-                      disabled={!form.department_id} 
-                      required 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Program</option>
-                      {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Batch
-                    </label>
-                    <select 
-                      name="batch_id" 
-                      value={form.batch_id} 
-                      onChange={handleBatchChange} 
-                      disabled={!form.program_id} 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Batch</option>
-                      {batches.map(b => <option key={b.Id} value={b.Id}>{b.batch_code} ({b.academic_year})</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      From High School <span style={{ color: '#ef4444' }}>*</span>
+                      Father Name <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
-                      name="from_high_school" 
-                      value={form.from_high_school} 
+                      name="father_name" 
+                      value={form.father_name} 
                       onChange={handleChange} 
                       required 
-                      className="form-input"
-                      placeholder="Enter high school name"
+                      className="form-input" 
+                      placeholder="Full name"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Status
+                      Occupation
                     </label>
-                    <select 
-                      name="std_status_id" 
-                      value={form.std_status_id} 
+                    <input 
+                      name="father_occupation" 
+                      value={form.father_occupation} 
                       onChange={handleChange} 
-                      className="form-select"
+                      className="form-input" 
+                      placeholder="Occupation"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Status</option>
-                      {statuses.map(s => <option key={s.id} value={s.id}>{s.std_status}</option>)}
-                    </select>
+                    />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Scholarship
+                      Phone <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input 
+                      type="tel" 
+                      name="father_phone" 
+                      value={form.father_phone} 
+                      onChange={handleChange} 
+                      required 
+                      className="form-input" 
+                      placeholder="Phone number"
+                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
+                    />
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Status <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <select 
-                      name="schoolarship_id" 
-                      value={form.schoolarship_id} 
+                      name="father_status" 
+                      value={form.father_status} 
                       onChange={handleChange} 
+                      required 
                       className="form-select"
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     >
-                      <option value="">No Scholarship</option>
-                      {scholarships.map(s => <option key={s.id} value={s.id}>{s.scholarship}</option>)}
+                      <option value="alive">Alive</option>
+                      <option value="deceased">Deceased</option>
                     </select>
                   </div>
                 </div>
               </div>
 
-              {/* Additional Information */}
+              {/* Address Information */}
               <div style={{ 
                 background: 'white', 
                 borderRadius: '12px', 
@@ -997,21 +693,68 @@ export default function AddStudent() {
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span>📝</span> Additional Information
+                  <span>📍</span> Address
                 </h3>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                    Description
-                  </label>
-                  <textarea 
-                    name="description" 
-                    value={form.description} 
-                    onChange={handleChange} 
-                    rows={4} 
-                    placeholder="Add any additional notes..."
-                    className="form-textarea"
-                    style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem', resize: 'vertical' }}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Province
+                    </label>
+                    <SearchableSelect
+                      options={provinces}
+                      value={form.province_no}
+                      onChange={handleProvinceChange}
+                      placeholder="Select Province"
+                      labelKey="province_name"
+                      valueKey="province_no"
+                      searchKeys={['province_name', 'province_no']}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      District
+                    </label>
+                    <SearchableSelect
+                      options={districts}
+                      value={form.district_no}
+                      onChange={handleDistrictChange}
+                      placeholder="Select District"
+                      disabled={!form.province_no}
+                      labelKey="district_name"
+                      valueKey="district_no"
+                      searchKeys={['district_name', 'district_no']}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Commune
+                    </label>
+                    <SearchableSelect
+                      options={communes}
+                      value={form.commune_no}
+                      onChange={handleCommuneChange}
+                      placeholder="Select Commune"
+                      disabled={!form.district_no}
+                      labelKey="commune_name"
+                      valueKey="commune_no"
+                      searchKeys={['commune_name', 'commune_no']}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Village
+                    </label>
+                    <SearchableSelect
+                      options={villages}
+                      value={form.village_no}
+                      onChange={handleVillageChange}
+                      placeholder="Select Village"
+                      disabled={!form.commune_no}
+                      labelKey="village_name"
+                      valueKey="village_no"
+                      searchKeys={['village_name', 'village_no']}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1032,7 +775,7 @@ export default function AddStudent() {
           }}>
             <button 
               type="button" 
-              onClick={() => navigate('/students')} 
+              onClick={() => navigate('/parents')} 
               className="btn btn-cancel"
               style={{ 
                 padding: '10px 24px',
@@ -1056,7 +799,7 @@ export default function AddStudent() {
                 color: 'white'
               }}
             >
-              ✓ Create Student
+              ✓ Create Parent
             </button>
           </div>
         </form>

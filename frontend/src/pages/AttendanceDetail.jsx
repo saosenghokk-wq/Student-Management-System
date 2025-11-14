@@ -563,16 +563,32 @@ function AttendanceDetail() {
             </h3>
           </div>
 
-          <div style={{ overflowX: 'auto', maxHeight: '700px', overflowY: 'auto' }}>
-            <table className="data-table">
-              <thead style={{ position: 'sticky', top: 0, background: '#f9fafb', zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', background: 'white' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+              <thead style={{ position: 'sticky', top: 0, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', zIndex: 10 }}>
                 <tr>
-                  <th style={{ width: '70px', textAlign: 'center' }}>No.</th>
-                  <th style={{ minWidth: '180px' }}>📅 Date</th>
-                  <th style={{ width: '140px', textAlign: 'center' }}>Status</th>
-                  <th style={{ minWidth: '300px' }}>💬 Remark</th>
-                  <th style={{ minWidth: '160px' }}>👤 Modified By</th>
-                  <th style={{ minWidth: '180px' }}>🕒 Modified Date</th>
+                  <th style={{ width: '70px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>No.</th>
+                  <th style={{ minWidth: '200px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.1rem' }}>📅</span> Date
+                    </div>
+                  </th>
+                  <th style={{ width: '160px', textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Status</th>
+                  <th style={{ minWidth: '320px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.1rem' }}>💬</span> Remark
+                    </div>
+                  </th>
+                  <th style={{ minWidth: '180px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.1rem' }}>👤</span> Modified By
+                    </div>
+                  </th>
+                  <th style={{ minWidth: '200px', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.1rem' }}>🕒</span> Modified Date
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -590,16 +606,17 @@ function AttendanceDetail() {
                   </tr>
                 ) : (
                   attendanceRecords.map((record, index) => (
-                    <tr key={record.id}>
+                    <tr key={record.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
                       <td style={{ 
                         textAlign: 'center', 
                         fontWeight: '700', 
-                        color: '#9ca3af',
-                        fontSize: '0.9rem'
+                        color: '#374151',
+                        fontSize: '0.9rem',
+                        padding: '14px 12px'
                       }}>
                         {index + 1}
                       </td>
-                      <td>
+                      <td style={{ padding: '14px 12px' }}>
                         <div style={{ 
                           fontWeight: '700',
                           color: '#1f2937',
@@ -613,7 +630,7 @@ function AttendanceDetail() {
                           })}
                         </div>
                       </td>
-                      <td style={{ textAlign: 'center' }}>
+                      <td style={{ textAlign: 'center', padding: '14px 12px' }}>
                         <span style={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -639,29 +656,31 @@ function AttendanceDetail() {
                           {record.status_name}
                         </span>
                       </td>
-                      <td>
+                      <td style={{ padding: '14px 12px' }}>
                         <div style={{ 
                           fontSize: '0.9rem', 
                           color: record.remake ? '#374151' : '#9ca3af',
-                          fontStyle: record.remake ? 'normal' : 'italic'
+                          fontStyle: record.remake ? 'normal' : 'italic',
+                          fontWeight: record.remake ? '500' : '400'
                         }}>
                           {record.remake || 'No remark'}
                         </div>
                       </td>
-                      <td>
+                      <td style={{ padding: '14px 12px' }}>
                         <div style={{ 
                           fontSize: '0.9rem', 
-                          color: '#6b7280',
-                          fontWeight: '500'
+                          color: '#374151',
+                          fontWeight: '600'
                         }}>
                           {record.modified_by_name || '-'}
                         </div>
                       </td>
-                      <td>
+                      <td style={{ padding: '14px 12px' }}>
                         <div style={{ 
                           fontSize: '0.85rem', 
-                          color: '#6b7280',
-                          fontFamily: 'monospace'
+                          color: '#374151',
+                          fontFamily: 'monospace',
+                          fontWeight: '500'
                         }}>
                           {record.marked_at ? new Date(record.marked_at).toLocaleString('en-US', {
                             month: 'short',
