@@ -4,7 +4,7 @@ import { api } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 
 export default function Programs() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess } = useAlert();
   const [programs, setPrograms] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [degrees, setDegrees] = useState([]);
@@ -26,6 +26,8 @@ export default function Programs() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -136,6 +138,20 @@ export default function Programs() {
     } catch (e) { setError(e.message); }
   };
 
+  // Filter programs based on search term and department
+  const filteredPrograms = programs.filter(p => {
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || (
+      p.name?.toLowerCase().includes(searchLower) ||
+      p.code?.toLowerCase().includes(searchLower) ||
+      p.description?.toLowerCase().includes(searchLower) ||
+      p.department_name?.toLowerCase().includes(searchLower) ||
+      p.degree_name?.toLowerCase().includes(searchLower)
+    );
+    const matchesDepartment = !selectedDepartment || p.department_id === selectedDepartment;
+    return matchesSearch && matchesDepartment;
+  });
+
   return (
     <DashboardLayout>
       <div className="page-container" style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -186,25 +202,96 @@ export default function Programs() {
           background: '#fff',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
         }}>
+          {/* Search Bar and Department Filter */}
           <div style={{
             background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-            color: '#fff',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            padding: '20px',
+            borderBottom: '1px solid #e5e7eb'
           }}>
-            <span style={{ fontSize: '1.1rem' }}>📋</span>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Programs List</h3>
-            <span style={{ 
-              marginLeft: 'auto', 
-              background: 'rgba(255, 255, 255, 0.2)', 
-              padding: '4px 12px', 
-              borderRadius: '16px', 
-              fontSize: '0.875rem' 
-            }}>
-              {programs.length} programs
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>📚</span> Programs List
+              </h3>
+              <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                {filteredPrograms.length} programs
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Search Box */}
+              <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
+                <span style={{
+                  position: 'absolute',
+                  left: '14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontSize: '1.1rem'
+                }}>🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search programs..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px 10px 42px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#667eea';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
+              {/* Department Filter */}
+              <div style={{ minWidth: '250px' }}>
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => {
+                    setSelectedDepartment(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box',
+                    background: 'white'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#667eea';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                >
+                  <option value="">🏢 All Departments</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.department_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
           
           {/* Entries per page selector */}
@@ -251,7 +338,6 @@ export default function Programs() {
               <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
                 <tr>
                   <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>No</th>
-                  <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>ID</th>
                   <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Name</th>
                   <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Code</th>
                   <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Description</th>
@@ -264,7 +350,7 @@ export default function Programs() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ 
+                  <td colSpan={7} style={{ 
                     padding: '48px 20px', 
                     textAlign: 'center', 
                     color: '#6b7280',
@@ -285,7 +371,7 @@ export default function Programs() {
                 </tr>
               ) : programs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ 
+                  <td colSpan={7} style={{ 
                     padding: '48px 20px', 
                     textAlign: 'center', 
                     color: '#6b7280',
@@ -300,7 +386,17 @@ export default function Programs() {
               ) : (() => {
                 const startIndex = (currentPage - 1) * entriesPerPage;
                 const endIndex = startIndex + entriesPerPage;
-                const paginatedPrograms = programs.slice(startIndex, endIndex);
+                const paginatedPrograms = filteredPrograms.slice(startIndex, endIndex);
+                
+                if (paginatedPrograms.length === 0 && searchTerm) {
+                  return (
+                    <tr>
+                      <td colSpan={7} style={{ padding: '24px', textAlign: 'center', color: '#6b7280' }}>
+                        No programs match your search.
+                      </td>
+                    </tr>
+                  );
+                }
                 
                 return paginatedPrograms.map((p, index) => (
                   <tr 
@@ -319,14 +415,6 @@ export default function Programs() {
                       color: '#374151'
                     }}>
                       {startIndex + index + 1}
-                    </td>
-                    <td style={{ 
-                      padding: '16px 20px', 
-                      fontSize: '0.9rem',
-                      fontWeight: '600',
-                      color: '#374151'
-                    }}>
-                      #{p.id}
                     </td>
                     <td style={{ padding: '16px 20px', fontSize: '0.95rem' }}>
                       <div style={{ fontWeight: '600', color: '#1f2937' }}>{p.name}</div>

@@ -8,7 +8,6 @@ import '../styles/modal.css';
 const Staff = () => {
   const { showSuccess, showError, showWarning } = useAlert();
   const [staff, setStaff] = useState([]);
-  const [positions, setPositions] = useState([]);
   const [users, setUsers] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -30,7 +29,6 @@ const Staff = () => {
     eng_name: '',
     khmer_name: '',
     phone: '',
-    positions: '',
     province_no: '',
     district_no: '',
     commune_no: '',
@@ -46,20 +44,17 @@ const Staff = () => {
     try {
       const results = await Promise.all([
         api.getAllStaff().catch(err => { console.error('Staff load error:', err); return []; }),
-        api.getStaffPositions().catch(err => { console.error('Positions load error:', err); return []; }),
         api.getUsers().catch(err => { console.error('Users load error:', err); return []; }),
         api.getProvinces().catch(err => { console.error('Provinces load error:', err); return []; })
       ]);
       
       console.log('Staff loaded:', results[0]);
-      console.log('Positions loaded:', results[1]);
-      console.log('Users loaded:', results[2]);
-      console.log('Provinces loaded:', results[3]);
+      console.log('Users loaded:', results[1]);
+      console.log('Provinces loaded:', results[2]);
       
       setStaff(results[0] || []);
-      setPositions(results[1] || []);
-      setUsers(results[2] || []);
-      setProvinces(results[3] || []);
+      setUsers(results[1] || []);
+      setProvinces(results[2] || []);
     } catch (err) {
       console.error('Error loading data:', err);
       showError('Failed to load data: ' + err.message);
@@ -77,7 +72,6 @@ const Staff = () => {
       eng_name: '',
       khmer_name: '',
       phone: '',
-      positions: '',
       province_no: '',
       district_no: '',
       commune_no: '',
@@ -98,7 +92,6 @@ const Staff = () => {
       eng_name: staffMember.eng_name || '',
       khmer_name: staffMember.khmer_name || '',
       phone: staffMember.phone || '',
-      positions: staffMember.positions || '',
       province_no: staffMember.province_no || '',
       district_no: staffMember.district_no || '',
       commune_no: staffMember.commune_no || '',
@@ -136,8 +129,8 @@ const Staff = () => {
     console.log('Submitting form:', form);
 
     // Validation
-    if (!form.eng_name || !form.khmer_name || !form.phone || !form.positions) {
-      showWarning('Please fill in all required fields');
+    if (!form.eng_name || !form.khmer_name || !form.phone) {
+      showError('Please fill in all required fields');
       return;
     }
 
@@ -150,7 +143,6 @@ const Staff = () => {
       eng_name: form.eng_name.trim(),
       khmer_name: form.khmer_name.trim(),
       phone: String(form.phone).trim(),
-      positions: parseInt(form.positions),
       province_no: parseInt(form.province_no) || 0,
       district_no: parseInt(form.district_no) || 0,
       commune_no: parseInt(form.commune_no) || 0,
@@ -262,7 +254,6 @@ const Staff = () => {
       (member.eng_name && member.eng_name.toLowerCase().includes(q)) ||
       (member.khmer_name && member.khmer_name.toLowerCase().includes(q)) ||
       (member.phone && member.phone.toString().includes(q)) ||
-      (member.position_name && member.position_name.toLowerCase().includes(q)) ||
       (member.username && member.username.toLowerCase().includes(q))
     );
   });
@@ -285,9 +276,9 @@ const Staff = () => {
               alignItems: 'center',
               gap: '12px'
             }}>
-              👔 Staff Management
+              👔 Dean Management
             </h1>
-            <p style={{ color: '#6b7280', fontSize: '1rem' }}>Manage administrative and support staff</p>
+            <p style={{ color: '#6b7280', fontSize: '1rem' }}>Manage deans and department heads</p>
           </div>
           <button
             onClick={() => window.location.href = '/staff/add'}
@@ -309,46 +300,10 @@ const Staff = () => {
             onMouseEnter={e => e.target.style.transform = 'translateY(-1px)'}
             onMouseLeave={e => e.target.style.transform = 'translateY(0)'}
           >
-            ➕ Add Staff
+            ➜ Add Dean
           </button>
         </div>
 
-        {/* Search */}
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="page-actions">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by name, phone, or position..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ flex: '0 1 320px', minWidth: '220px' }}
-            />
-            {searchQuery && (
-              <button className="btn btn-cancel" onClick={clearSearch} style={{ padding: '10px 16px' }}>
-                ✕ Clear
-              </button>
-            )}
-          </div>
-
-          <div style={{ 
-            marginTop: 16, 
-            padding: '12px 16px', 
-            background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', 
-            borderRadius: '10px',
-            fontSize: '0.85rem', 
-            color: '#0c4a6e', 
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{fontSize:'1.2rem'}}>👔</span>
-            Showing <strong>{filteredStaff.length}</strong> of <strong>{staff.length}</strong> staff
-          </div>
-        </div>
-
-        {/* Table */}
         <div style={{ 
           border: '1px solid #e5e7eb', 
           borderRadius: '12px', 
@@ -356,25 +311,53 @@ const Staff = () => {
           background: '#fff',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
         }}>
+          {/* Search Bar */}
           <div style={{
             background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-            color: '#fff',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            padding: '20px',
+            borderBottom: '1px solid #e5e7eb'
           }}>
-            <span style={{ fontSize: '1.1rem' }}>📋</span>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Staff List</h3>
-            <span style={{ 
-              marginLeft: 'auto', 
-              background: 'rgba(255, 255, 255, 0.2)', 
-              padding: '4px 12px', 
-              borderRadius: '16px', 
-              fontSize: '0.875rem' 
-            }}>
-              {filteredStaff.length} staff
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>👔</span> Deans List
+              </h3>
+              <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                {filteredStaff.length} deans
+              </span>
+            </div>
+            <div style={{ position: 'relative', maxWidth: '400px' }}>
+              <span style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.1rem'
+              }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search deans..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px 10px 42px',
+                  fontSize: '0.95rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
           </div>
           
           {/* Entries per page selector */}
@@ -424,7 +407,7 @@ const Staff = () => {
                   <th>English Name</th>
                   <th>Khmer Name</th>
                   <th>Phone</th>
-                  <th>Position</th>
+                  <th>Department</th>
                   <th>Username</th>
                   <th>Location</th>
                   <th style={{textAlign:'center'}}>Actions</th>
@@ -464,10 +447,8 @@ const Staff = () => {
                           <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
                             {member.phone}
                           </td>
-                          <td style={{ padding: '16px 20px' }}>
-                            <span className={`badge`} style={{background:'#fef3c7',color:'#92400e',border:'1px solid #fcd34d'}}>
-                              {member.position_name || '-'}
-                            </span>
+                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
+                            {member.department_name || '-'}
                           </td>
                           <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
                             {member.username || '-'}
@@ -634,29 +615,6 @@ const Staff = () => {
                           onChange={(e) => handleChange('phone', e.target.value)}
                           required
                         />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="form-section">
-                    <h3 className="section-title">
-                      <span className="section-icon">💼</span>
-                      Professional Information
-                    </h3>
-                    <div className="form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
-                      <div className="form-field">
-                        <label className="form-label">Position <span className="required">*</span></label>
-                        <select
-                          className="form-input"
-                          value={form.positions}
-                          onChange={(e) => handleChange('positions', e.target.value)}
-                          required
-                        >
-                          <option value="">Select Position</option>
-                          {positions.map(pos => (
-                            <option key={pos.id} value={pos.id}>{pos.position}</option>
-                          ))}
-                        </select>
                       </div>
                     </div>
                   </div>

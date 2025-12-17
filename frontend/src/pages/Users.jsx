@@ -240,19 +240,6 @@ export default function Users() {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="page-actions">
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              className="search-input"
-            />
-          </div>
-        </div>
-
         {loading ? (
           <div className="loader">Loading...</div>
         ) : (
@@ -263,25 +250,53 @@ export default function Users() {
             background: '#fff',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
           }}>
+            {/* Search Bar */}
             <div style={{
               background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-              color: '#fff',
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
+              padding: '20px',
+              borderBottom: '1px solid #e5e7eb'
             }}>
-              <span style={{ fontSize: '1.1rem' }}>📋</span>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Users List</h3>
-              <span style={{ 
-                marginLeft: 'auto', 
-                background: 'rgba(255, 255, 255, 0.2)', 
-                padding: '4px 12px', 
-                borderRadius: '16px', 
-                fontSize: '0.875rem' 
-              }}>
-                {filtered.length} users
-              </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1.2rem' }}>👥</span> Users List
+                </h3>
+                <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                  {filtered.length} users
+                </span>
+              </div>
+              <div style={{ position: 'relative', maxWidth: '400px' }}>
+                <span style={{
+                  position: 'absolute',
+                  left: '14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontSize: '1.1rem'
+                }}>🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px 10px 42px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#667eea';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
             </div>
             
             {/* Entries per page selector */}
@@ -328,7 +343,6 @@ export default function Users() {
                   <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
                     <tr>
                       <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>No</th>
-                      <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '80px' }}>ID</th>
                       <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Username</th>
                       <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Gmail</th>
                       <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Role</th>
@@ -351,7 +365,6 @@ export default function Users() {
                       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                       onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#6b7280' }}>{startIndex + index + 1}</td>
-                        <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>{u.id}</td>
                         <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>{u.username || '-'}</td>
                         <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>{u.email || '-'}</td>
                         <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>{(roles.find(r => String(r.id) === String(u.role_id))?.name) || '-'}</td>

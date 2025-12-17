@@ -5,6 +5,8 @@ const { db } = require('./config/db');
 const cors = require('cors');
 
 const app = express();
+
+// Simple CORS - Allow all origins in development
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increase limit for base64 images
 app.use(express.urlencoded({ limit: '50mb', extended: true }));

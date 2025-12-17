@@ -8,9 +8,6 @@ router.use(protect);
 // Get all staff
 router.get('/', staffController.getStaff);
 
-// Get positions for dropdown
-router.get('/positions', staffController.getPositions);
-
 // Get staff by ID
 router.get('/:id', staffController.getStaffById);
 

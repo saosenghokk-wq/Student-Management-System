@@ -52,6 +52,30 @@ const feeRepository = {
       paymentData.description
     ]);
     return { id: result.insertId, ...paymentData };
+  },
+
+  // Update fee payment
+  async updatePayment(paymentId, paymentData) {
+    const query = `
+      UPDATE fee_payment 
+      SET amount = ?, payment_method = ?, pay_date = ?, description = ?
+      WHERE id = ?
+    `;
+    const [result] = await pool.execute(query, [
+      paymentData.amount,
+      paymentData.payment_method,
+      paymentData.pay_date,
+      paymentData.description,
+      paymentId
+    ]);
+    return result.affectedRows > 0;
+  },
+
+  // Delete fee payment
+  async deletePayment(paymentId) {
+    const query = `DELETE FROM fee_payment WHERE id = ?`;
+    const [result] = await pool.execute(query, [paymentId]);
+    return result.affectedRows > 0;
   }
 };
 

@@ -4,12 +4,10 @@ import { api } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 
 export default function Departments() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess } = useAlert();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [departmentName, setDepartmentName] = useState('');
-  const [staffId, setStaffId] = useState('');
   const [staff, setStaff] = useState([]);
   const [creating, setCreating] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -22,6 +20,7 @@ export default function Departments() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -59,7 +58,7 @@ export default function Departments() {
       return;
     }
     if (!form.staff_id) {
-      setError('Please select head staff');
+      setError('Please select dean');
       return;
     }
     setCreating(true);
@@ -101,7 +100,7 @@ export default function Departments() {
       return;
     }
     if (!form.staff_id) {
-      setError('Please select head staff');
+      setError('Please select dean');
       return;
     }
     setCreating(true);
@@ -194,25 +193,56 @@ export default function Departments() {
           background: '#fff',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
         }}>
+          {/* Search Bar */}
           <div style={{
             background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-            color: '#fff',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            padding: '20px',
+            borderBottom: '1px solid #e5e7eb'
           }}>
-            <span style={{ fontSize: '1.1rem' }}>🏛️</span>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Departments List</h3>
-            <span style={{ 
-              marginLeft: 'auto', 
-              background: 'rgba(255, 255, 255, 0.2)', 
-              padding: '4px 12px', 
-              borderRadius: '16px', 
-              fontSize: '0.875rem' 
-            }}>
-              {departments.length} departments
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>🏛️</span> Departments List
+              </h3>
+              <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                {departments.length} departments
+              </span>
+            </div>
+            <div style={{ position: 'relative', maxWidth: '400px' }}>
+              <span style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.1rem'
+              }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search departments..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px 10px 42px',
+                  fontSize: '0.95rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
           </div>
           
           {/* Entries per page selector */}
@@ -258,28 +288,39 @@ export default function Departments() {
             <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
               <tr>
                 <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', width: '60px', borderBottom: '2px solid #5a67d8' }}>No</th>
-                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>ID</th>
                 <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Department Name</th>
-                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Head Staff (EN)</th>
-                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Head Staff (KH)</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Dean (EN)</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Dean (KH)</th>
                 <th style={{ textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>Loading...</td></tr>
+                <tr><td colSpan={5} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>Loading...</td></tr>
               ) : (() => {
+                // Filter departments based on search term
+                const filteredDepartments = departments.filter(d => {
+                  const searchLower = searchTerm.toLowerCase();
+                  return (
+                    d.department_name?.toLowerCase().includes(searchLower) ||
+                    d.staff_en_name?.toLowerCase().includes(searchLower) ||
+                    d.staff_kh_name?.toLowerCase().includes(searchLower) ||
+                    d.id?.toString().includes(searchLower)
+                  );
+                });
+                
                 const startIndex = (currentPage - 1) * entriesPerPage;
                 const endIndex = startIndex + entriesPerPage;
-                const paginatedDepartments = departments.slice(startIndex, endIndex);
+                const paginatedDepartments = filteredDepartments.slice(startIndex, endIndex);
                 
                   return paginatedDepartments.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>No departments found.</td></tr>
+                  <tr><td colSpan={5} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>
+                    {searchTerm ? 'No departments match your search.' : 'No departments found.'}
+                  </td></tr>
                 ) : (
                   paginatedDepartments.map((d, index) => (
                     <tr key={d.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
                       <td style={{ padding: '14px 12px', fontSize: '0.9rem', fontWeight: '600', color: '#374151' }}>{startIndex + index + 1}</td>
-                      <td style={{ padding: '14px 12px', fontSize: '0.9rem', fontWeight: '600', color: '#374151' }}>{d.id}</td>
                       <td style={{ padding: '14px 12px', fontSize: '0.95rem', fontWeight: '600', color: '#1f2937' }}>{d.department_name}</td>
                       <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>{d.staff_eng_name || '-'}</td>
                       <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>{d.staff_khmer_name || '-'}</td>
@@ -378,7 +419,7 @@ export default function Departments() {
                     />
                   </div>
                   <div className="form-field">
-                    <label className="form-label">Head Staff <span style={{ color: '#ef4444' }}>*</span></label>
+                    <label className="form-label">Dean <span style={{ color: '#ef4444' }}>*</span></label>
                     <select
                       value={form.staff_id}
                       onChange={(e) => setForm({ ...form, staff_id: e.target.value })}

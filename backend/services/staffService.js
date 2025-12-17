@@ -20,10 +20,6 @@ class StaffService {
   async deleteStaff(id) {
     return await staffRepository.delete(id);
   }
-
-  async getPositions() {
-    return await staffRepository.getPositions();
-  }
 }
 
 module.exports = new StaffService();

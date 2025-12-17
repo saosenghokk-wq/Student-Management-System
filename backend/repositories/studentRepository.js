@@ -2,13 +2,28 @@ const { pool } = require('../config/db');
 
 class StudentRepository {
   async findAll(departmentId = null) {
-    let query = 'SELECT * FROM student';
+    let query = `
+      SELECT 
+        s.*,
+        d.department_name,
+        p.name as program_name,
+        b.batch_code,
+        b.Id as batch_id,
+        u.image as profile_image
+      FROM student s
+      LEFT JOIN department d ON s.department_id = d.id
+      LEFT JOIN programs p ON s.program_id = p.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN users u ON s.user_id = u.id
+    `;
     const params = [];
     
     if (departmentId) {
-      query += ' WHERE department_id = ?';
+      query += ' WHERE s.department_id = ?';
       params.push(departmentId);
     }
+    
+    query += ' ORDER BY s.created_at DESC';
     
     const [rows] = await pool.query(query, params);
     return rows;
@@ -23,11 +38,13 @@ class StudentRepository {
         s.std_khmer_name,
         s.gender,
         s.phone,
+        s.batch_id,
+        s.department_id,
         b.batch_code as batch_name,
         d.department_name,
         p.name as program_name
       FROM student s
-      LEFT JOIN batch b ON s.batch_id = b.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
       LEFT JOIN department d ON s.department_id = d.id
       LEFT JOIN programs p ON s.program_id = p.id
     `;
@@ -45,7 +62,7 @@ class StudentRepository {
       params.push(searchParam, searchParam, searchParam, searchParam, searchParam);
     }
     
-    query += ` ORDER BY s.std_eng_name ASC`;
+    query += ` ORDER BY s.created_at DESC`;
     
     const [rows] = await pool.query(query, params);
     return rows;

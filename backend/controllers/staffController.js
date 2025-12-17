@@ -27,7 +27,7 @@ exports.getStaffById = async (req, res, next) => {
 // Create new staff
 exports.createStaff = async (req, res, next) => {
   try {
-    const { username, email, password, eng_name, khmer_name, phone, positions, province_no, district_no, commune_no, village_no } = req.body;
+    const { username, email, password, eng_name, khmer_name, phone, province_no, district_no, commune_no, village_no } = req.body;
     
     const staffId = await staffService.createStaff({
       username,
@@ -36,7 +36,6 @@ exports.createStaff = async (req, res, next) => {
       eng_name,
       khmer_name,
       phone,
-      positions,
       province_no,
       district_no,
       commune_no,
@@ -69,16 +68,6 @@ exports.deleteStaff = async (req, res, next) => {
     const { id } = req.params;
     await staffService.deleteStaff(id);
     res.json({ message: 'Staff deleted successfully' });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Get positions for dropdown
-exports.getPositions = async (req, res, next) => {
-  try {
-    const positions = await staffService.getPositions();
-    res.json(positions);
   } catch (err) {
     next(err);
   }

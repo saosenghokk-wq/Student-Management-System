@@ -30,6 +30,7 @@ async function request(path, { method = 'GET', body, headers = {} } = {}) {
   }
 
   const token = getToken();
+  
   const res = await fetch(`${API_BASE}${path}`, {
     method,
     headers: {
@@ -40,10 +41,12 @@ async function request(path, { method = 'GET', body, headers = {} } = {}) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
+  
   if (!res.ok) {
     const message = data?.error || data?.message || 'Request failed';
     throw new Error(message);
   }
+  
   return data;
 }
 
@@ -165,7 +168,6 @@ export const api = {
   createStaff: (payload) => request('/api/staff', { method: 'POST', body: payload }),
   updateStaff: (id, payload) => request(`/api/staff/${id}`, { method: 'PUT', body: payload }),
   deleteStaff: (id) => request(`/api/staff/${id}`, { method: 'DELETE' }),
-  getStaffPositions: () => request('/api/staff/positions'),
   // Attendance
   getAllAttendance: () => request('/api/attendance'),
   getAttendance: (id) => request(`/api/attendance/${id}`),
@@ -200,6 +202,8 @@ export const api = {
   // Fees (Admin/Accountant)
   getAllStudentsForFees: (search) => request(`/api/fees/students?search=${search || ''}`),
   createFeePayment: (paymentData) => request('/api/fees/payments', { method: 'POST', body: paymentData }),
+  updateFeePayment: (paymentId, paymentData) => request(`/api/fees/payments/${paymentId}`, { method: 'PUT', body: paymentData }),
+  deleteFeePayment: (paymentId) => request(`/api/fees/payments/${paymentId}`, { method: 'DELETE' }),
   getStudentFeeDetails: (studentId) => request(`/api/fees/student/${studentId}`),
   // Grades (Admin/Teacher)
   getAllGrades: () => request('/api/grades'),

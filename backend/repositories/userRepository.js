@@ -2,7 +2,7 @@ const { pool } = require('../config/db');
 
 class UserRepository {
   async findAll() {
-    const [rows] = await pool.query('SELECT * FROM users');
+    const [rows] = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
     return rows;
   }
 

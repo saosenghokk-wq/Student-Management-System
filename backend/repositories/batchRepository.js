@@ -7,6 +7,7 @@ class BatchRepository {
       SELECT 
         b.Id,
         b.batch_code,
+        b.batch_code as batch_name,
         b.program_id,
         b.academic_year,
         b.admission_id,

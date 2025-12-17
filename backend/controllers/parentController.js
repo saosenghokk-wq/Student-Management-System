@@ -46,7 +46,7 @@ exports.list = async (req, res, next) => {
       SELECT p.*, u.username, u.email, u.status as user_status
       FROM parent p
       LEFT JOIN users u ON p.user_id = u.id
-      ORDER BY p.id ASC
+      ORDER BY p.created_at DESC
     `);
     res.json(rows);
   } catch (err) {

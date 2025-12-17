@@ -36,6 +36,7 @@ import StudentGrades from './pages/StudentGrades.jsx';
 import Fees from './pages/Fees.jsx';
 import Settings from './pages/Settings.jsx';
 import Reports from './pages/Reports.jsx';
+import GenerateCard from './pages/GenerateCard.jsx';
 import ComingSoon from './pages/ComingSoon.jsx';
 import RoleProtectedRoute from './components/RoleProtectedRoute.jsx';
 import ScrollToTop from './components/ScrollToTop.jsx';
@@ -85,6 +86,7 @@ function App() {
   <Route path="/parent-grades/student/:studentId/grades" element={<RoleProtectedRoute><StudentGrades /></RoleProtectedRoute>} />
         <Route path="/fees" element={<RoleProtectedRoute><Fees /></RoleProtectedRoute>} />
         <Route path="/reports" element={<RoleProtectedRoute><Reports /></RoleProtectedRoute>} />
+        <Route path="/generate-card" element={<RoleProtectedRoute><GenerateCard /></RoleProtectedRoute>} />
         <Route path="/settings" element={<RoleProtectedRoute><Settings /></RoleProtectedRoute>} />
         
         <Route path="*" element={<Navigate to="/login" replace />} />

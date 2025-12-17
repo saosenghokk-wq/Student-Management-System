@@ -154,42 +154,6 @@ export default function Batches() {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="page-actions">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by batch code, program, or year..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ flex: '0 1 320px', minWidth: '220px' }}
-            />
-            {searchQuery && (
-              <button className="btn btn-cancel" onClick={() => setSearchQuery('')} style={{ padding: '10px 16px' }}>
-                ✕ Clear
-              </button>
-            )}
-          </div>
-
-          <div style={{ 
-            marginTop: 16, 
-            padding: '12px 16px', 
-            background: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', 
-            borderRadius: '10px',
-            fontSize: '0.85rem', 
-            color: '#0c4a6e', 
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{fontSize:'1.2rem'}}>📚</span>
-            Showing <strong>{filteredBatches.length}</strong> of <strong>{batches.length}</strong> batches
-          </div>
-        </div>
-
-        {/* Table */}
         <div style={{ 
           border: '1px solid #e5e7eb', 
           borderRadius: '12px', 
@@ -197,25 +161,53 @@ export default function Batches() {
           background: '#fff',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
         }}>
+          {/* Search Bar */}
           <div style={{
             background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-            color: '#fff',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            padding: '20px',
+            borderBottom: '1px solid #e5e7eb'
           }}>
-            <span style={{ fontSize: '1.1rem' }}>📚</span>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Batch Records</h3>
-            <span style={{ 
-              marginLeft: 'auto', 
-              background: 'rgba(255, 255, 255, 0.2)', 
-              padding: '4px 12px', 
-              borderRadius: '16px', 
-              fontSize: '0.875rem' 
-            }}>
-              {filteredBatches.length} batches
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>📚</span> Batches List
+              </h3>
+              <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                {filteredBatches.length} batches
+              </span>
+            </div>
+            <div style={{ position: 'relative', maxWidth: '400px' }}>
+              <span style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.1rem'
+              }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search batches..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px 10px 42px',
+                  fontSize: '0.95rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
           </div>
 
           {/* Entries per page selector */}

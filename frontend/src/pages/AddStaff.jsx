@@ -283,18 +283,18 @@ export default function AddStaff() {
     eng_name: '',
     khmer_name: '',
     phone: '',
-    positions: '',
     province_no: '',
     district_no: '',
     commune_no: '',
-    village_no: ''
+    village_no: '',
+    department_id: ''
   });
 
-  const [positions, setPositions] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
   const [villages, setVillages] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     loadInitialData();
@@ -302,12 +302,12 @@ export default function AddStaff() {
 
   const loadInitialData = async () => {
     try {
-      const [pos, provs] = await Promise.all([
-        api.getStaffPositions(),
-        api.getProvinces()
+      const [provs, depts] = await Promise.all([
+        api.getProvinces(),
+        api.getDepartments()
       ]);
-      setPositions(pos);
       setProvinces(provs);
+      setDepartments(depts);
     } catch (err) {
       showError('Failed to load form data');
     }
@@ -383,15 +383,15 @@ export default function AddStaff() {
         eng_name: form.eng_name,
         khmer_name: form.khmer_name,
         phone: form.phone,
-        positions: form.positions ? parseInt(form.positions, 10) : null,
         province_no: form.province_no ? parseInt(form.province_no, 10) : 0,
         district_no: form.district_no ? parseInt(form.district_no, 10) : 0,
         commune_no: form.commune_no ? parseInt(form.commune_no, 10) : 0,
-        village_no: form.village_no ? parseInt(form.village_no, 10) : 0
+        village_no: form.village_no ? parseInt(form.village_no, 10) : 0,
+        department_id: form.department_id ? parseInt(form.department_id, 10) : null
       };
 
       await api.createStaff(payload);
-      showSuccess('Staff created successfully!');
+      showSuccess('Dean created successfully!');
       navigate('/staff');
     } catch (err) {
       showError(err.message || 'Failed to create staff');
@@ -434,7 +434,7 @@ export default function AddStaff() {
               gap: '12px',
               margin: 0
             }}>
-              👔 Add New Staff
+              👔 Add New Dean
             </h1>
           </div>
           <p style={{ color: '#6b7280', fontSize: '1rem', marginLeft: '52px' }}>
@@ -513,6 +513,20 @@ export default function AddStaff() {
                       style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
                     />
                   </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                      Department
+                    </label>
+                    <SearchableSelect
+                      options={departments}
+                      value={form.department_id}
+                      onChange={(e) => setForm(f => ({ ...f, department_id: e.target.value }))}
+                      placeholder="Select Department"
+                      labelKey="department_name"
+                      valueKey="id"
+                      searchKeys={['department_name']}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -585,45 +599,6 @@ export default function AddStaff() {
             {/* RIGHT COLUMN */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* Professional Information */}
-              <div style={{ 
-                background: 'white', 
-                borderRadius: '12px', 
-                border: '1px solid #e5e7eb', 
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                padding: '20px'
-              }}>
-                <h3 style={{ 
-                  fontSize: '1rem', 
-                  fontWeight: '600', 
-                  color: '#1f2937', 
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <span>💼</span> Professional Information
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
-                      Position <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <select 
-                      name="positions" 
-                      value={form.positions} 
-                      onChange={handleChange} 
-                      required 
-                      className="form-select"
-                      style={{ width: '100%', padding: '8px 12px', fontSize: '0.875rem' }}
-                    >
-                      <option value="">Select Position</option>
-                      {positions.map(p => <option key={p.id} value={p.id}>{p.position}</option>)}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
               {/* Address Information */}
               <div style={{ 
                 background: 'white', 
@@ -762,7 +737,7 @@ export default function AddStaff() {
                 e.target.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
               }}
             >
-              ➕ Add Staff
+              ➜ Add Dean
             </button>
           </div>
         </form>

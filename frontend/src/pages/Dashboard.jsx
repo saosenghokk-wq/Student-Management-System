@@ -109,71 +109,96 @@ export default function Dashboard() {
       icon: '✅',
       gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
       path: '/students'
-    },
-    { 
-      label: 'PENDING APPROVALS', 
-      value: stats.pendingRegistrations, 
-      icon: '⏳',
-      gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-      path: '/students'
     }
   ];
 
   return (
     <DashboardLayout>
       <div style={{ 
-        padding: '24px', 
-        maxWidth: '1400px', 
+        padding: '32px 40px', 
+        maxWidth: '1600px', 
         margin: '0 auto',
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
         minHeight: '100vh'
       }}>
         {/* Enhanced Header */}
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '16px',
-          padding: '32px',
-          marginBottom: '32px',
+          borderRadius: '24px',
+          padding: '40px',
+          marginBottom: '40px',
           color: '#fff',
-          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
+          boxShadow: '0 10px 40px rgba(102, 126, 234, 0.25)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
+          {/* Background Pattern */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '400px',
+            height: '400px',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+            opacity: 0.3
+          }} />
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1, flexWrap: 'wrap', gap: '20px' }}>
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '12px',
+                background: 'rgba(255, 255, 255, 0.15)',
+                padding: '8px 20px',
+                borderRadius: '30px',
+                marginBottom: '16px',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <span style={{ fontSize: '1.3rem' }}>👋</span>
+                <span style={{ fontSize: '0.95rem', fontWeight: '600' }}>Welcome back, {user?.username || 'User'}!</span>
+              </div>
               <h1 style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: '800', 
-                marginBottom: '8px',
-                background: 'linear-gradient(45deg, #fff 0%, #f0f8ff 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                color: 'transparent'
+                fontSize: '2.8rem', 
+                fontWeight: '900', 
+                marginBottom: '12px',
+                textShadow: '0 2px 20px rgba(0,0,0,0.2)',
+                letterSpacing: '-0.5px'
               }}>
                 Dashboard Overview
               </h1>
               <p style={{ 
-                fontSize: '1.1rem', 
-                opacity: '0.9',
-                fontWeight: '400'
+                fontSize: '1.15rem', 
+                opacity: '0.95',
+                fontWeight: '400',
+                maxWidth: '600px',
+                lineHeight: '1.6'
               }}>
-                Welcome back! Here's what's happening in your institution today.
+                Monitor your institution's key metrics and performance at a glance
               </p>
             </div>
             <div style={{
               background: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: '12px',
-              padding: '16px',
-              backdropFilter: 'blur(10px)',
-              textAlign: 'center'
+              borderRadius: '20px',
+              padding: '24px 32px',
+              backdropFilter: 'blur(15px)',
+              textAlign: 'center',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
             }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>
+              <div style={{ fontSize: '0.85rem', opacity: '0.9', marginBottom: '8px', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                Today
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '4px' }}>
                 {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'short', 
                   month: 'short', 
                   day: 'numeric' 
                 })}
               </div>
-              <div style={{ fontSize: '0.9rem', opacity: '0.8' }}>
-                {new Date().toLocaleDateString('en-US', { year: 'numeric' })}
+              <div style={{ fontSize: '1rem', opacity: '0.85', fontWeight: '600' }}>
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long'
+                })}
               </div>
             </div>
           </div>
@@ -182,8 +207,8 @@ export default function Dashboard() {
         {/* Stats Cards Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '28px',
           marginBottom: '40px'
         }}>
           {statCards.map((card, index) => (
@@ -192,77 +217,103 @@ export default function Dashboard() {
               onClick={() => navigate(card.path)}
               style={{
                 background: '#fff',
-                borderRadius: '20px',
+                borderRadius: '24px',
                 padding: '0',
                 cursor: 'pointer',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
-                transition: 'all 0.4s ease',
-                minHeight: '160px',
-                border: '1px solid #f1f5f9'
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                minHeight: '140px',
+                border: '2px solid transparent',
+                backgroundImage: 'linear-gradient(white, white), ' + card.gradient,
+                backgroundOrigin: 'border-box',
+                backgroundClip: 'padding-box, border-box'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
+                e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.12)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
               }}
             >
+              {/* Decorative Background Element */}
+              <div style={{
+                position: 'absolute',
+                top: '-50px',
+                right: '-50px',
+                width: '150px',
+                height: '150px',
+                background: card.gradient,
+                borderRadius: '50%',
+                opacity: 0.08,
+                filter: 'blur(40px)'
+              }} />
+
               {/* Card Content */}
-              <div style={{ padding: '24px' }}>
+              <div style={{ padding: '28px', position: 'relative', zIndex: 1 }}>
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
-                  marginBottom: '16px'
+                  gap: '16px'
                 }}>
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div style={{
-                      fontSize: '0.75rem',
-                      fontWeight: '600',
-                      letterSpacing: '1px',
+                      fontSize: '0.8rem',
+                      fontWeight: '700',
+                      letterSpacing: '1.2px',
                       color: '#64748b',
                       textTransform: 'uppercase',
-                      marginBottom: '8px'
+                      marginBottom: '12px'
                     }}>
                       {card.label}
                     </div>
                     <div style={{
-                      fontSize: '3rem',
-                      fontWeight: '800',
-                      color: '#1e293b',
-                      lineHeight: '1'
+                      fontSize: '2.8rem',
+                      fontWeight: '900',
+                      background: card.gradient,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      lineHeight: '1',
+                      marginBottom: '8px'
                     }}>
                       {card.value.toLocaleString()}
+                    </div>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      color: '#94a3b8',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span style={{ 
+                        width: '6px', 
+                        height: '6px', 
+                        borderRadius: '50%', 
+                        background: card.gradient,
+                        display: 'inline-block'
+                      }} />
+                      Click to view details
                     </div>
                   </div>
                   <div style={{
                     background: card.gradient,
-                    borderRadius: '12px',
-                    padding: '12px',
-                    fontSize: '1.5rem'
+                    borderRadius: '16px',
+                    padding: '16px',
+                    fontSize: '2rem',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: '72px',
+                    minHeight: '72px'
                   }}>
                     {card.icon}
                   </div>
-                </div>
-                
-                {/* Progress Bar */}
-                <div style={{
-                  background: '#f1f5f9',
-                  borderRadius: '8px',
-                  height: '6px',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    background: card.gradient,
-                    height: '100%',
-                    width: `${Math.min(100, (card.value / Math.max(...statCards.map(c => c.value))) * 100)}%`,
-                    borderRadius: '8px',
-                    transition: 'width 1s ease'
-                  }}></div>
                 </div>
               </div>
             </div>

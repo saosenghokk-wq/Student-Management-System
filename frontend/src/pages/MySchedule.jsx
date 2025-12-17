@@ -268,25 +268,28 @@ export default function MySchedule() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000,
-            padding: '20px'
+            padding: '20px',
+            animation: 'fadeIn 0.2s ease-out'
           }}
           onClick={() => setShowModal(false)}
         >
           <div
             style={{
               background: 'white',
-              borderRadius: '16px',
-              maxWidth: '95vw',
-              maxHeight: '95vh',
+              borderRadius: '20px',
+              width: '90vw',
+              height: '90vh',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.6)',
+              animation: 'slideUp 0.3s ease-out'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -294,16 +297,18 @@ export default function MySchedule() {
             <div style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
-              padding: '20px 28px',
+              padding: '20px 32px',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }}>
               <div>
-                <h2 style={{ margin: '0 0 8px 0', fontSize: '1.5rem', fontWeight: '700' }}>
+                <h2 style={{ margin: '0 0 6px 0', fontSize: '1.5rem', fontWeight: '700', letterSpacing: '-0.5px' }}>
                   {selectedSchedule.semester}
                 </h2>
-                <div style={{ fontSize: '0.95rem', opacity: 0.95 }}>
+                <div style={{ fontSize: '0.9rem', opacity: 0.95, fontWeight: '500' }}>
                   {selectedSchedule.batch_code} - {selectedSchedule.academic_year}
                 </div>
               </div>
@@ -311,22 +316,28 @@ export default function MySchedule() {
                 onClick={() => setShowModal(false)}
                 style={{
                   background: 'rgba(255, 255, 255, 0.2)',
-                  border: 'none',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
                   color: 'white',
-                  fontSize: '1.8rem',
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '10px',
+                  fontSize: '1.5rem',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.2s',
-                  fontWeight: '300',
+                  transition: 'all 0.2s ease',
+                  fontWeight: '400',
                   lineHeight: '1'
                 }}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
-                onMouseLeave={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                  e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.target.style.transform = 'scale(1)';
+                }}
               >
                 ×
               </button>
@@ -334,54 +345,65 @@ export default function MySchedule() {
 
             {/* Modal Body - Image */}
             <div style={{
-              padding: '20px',
-              overflow: 'auto',
+              flex: 1,
+              overflow: 'hidden',
+              background: 'linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%)',
+              padding: '30px',
               display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center',
-              background: '#f9fafb'
+              alignItems: 'center'
             }}>
               <img
                 src={selectedSchedule.image}
                 alt={`Schedule for ${selectedSchedule.semester}`}
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '75vh',
+                  width: '685px',
+                  height: '600px',
                   objectFit: 'contain',
                   borderRadius: '12px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+                  border: '1px solid rgba(0,0,0,0.05)'
                 }}
               />
             </div>
 
             {/* Modal Footer */}
             <div style={{
-              padding: '16px 28px',
+              padding: '20px 32px',
               borderTop: '2px solid #e5e7eb',
               display: 'flex',
-              justifyContent: 'flex-end',
-              background: '#fafafa'
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#fafbfc'
             }}>
+              <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                📅 Uploaded: {new Date(selectedSchedule.upload_date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
               <button
                 onClick={() => setShowModal(false)}
                 style={{
-                  padding: '12px 32px',
-                  background: '#374151',
+                  padding: '12px 28px',
+                  background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '10px',
                   fontSize: '0.95rem',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = '#1f2937';
                   e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = '#374151';
                   e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
                 }}
               >
                 Close

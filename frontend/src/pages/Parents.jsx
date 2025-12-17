@@ -221,16 +221,198 @@ export default function Parents() {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div className="page-actions">
-            <input
-              className="search-input"
-              placeholder="Search parents..."
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-            />
+        <div style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '12px', 
+          overflow: 'hidden', 
+          background: '#fff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}>
+          {/* Search Bar */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+            padding: '20px',
+            borderBottom: '1px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>👨‍👩‍👧</span> Parents List
+              </h3>
+              <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                {filtered.length} parents
+              </span>
+            </div>
+            <div style={{ position: 'relative', maxWidth: '400px' }}>
+              <span style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.1rem'
+              }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search parents..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px 10px 42px',
+                  fontSize: '0.95rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
           </div>
+          
+          {/* Entries per page selector */}
+          <div style={{ 
+            padding: '16px 20px', 
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              Show
+            </label>
+            <select
+              value={entriesPerPage}
+              onChange={(e) => {
+                setEntriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: '6px 32px 6px 12px',
+                fontSize: '0.875rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+                color: '#1e293b',
+                fontWeight: 500,
+                outline: 'none'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              entries per page
+            </label>
+          </div>
+          
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', width: '60px', borderBottom: '2px solid #5a67d8' }}>No</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Parent Code</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Mother</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Father</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Contact</th>
+                <th style={{ textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>Loading...</td></tr>
+              ) : (() => {
+                const startIndex = (currentPage - 1) * entriesPerPage;
+                const endIndex = startIndex + entriesPerPage;
+                const paginatedParents = filtered.slice(startIndex, endIndex);
+                
+                return paginatedParents.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>
+                    {query ? 'No parents match your search.' : 'No parents found.'}
+                  </td></tr>
+                ) : (
+                  paginatedParents.map((p, index) => (
+                    <tr key={p.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
+                      <td style={{ padding: '14px 12px', fontSize: '0.9rem', fontWeight: '600', color: '#374151' }}>{startIndex + index + 1}</td>
+                      <td style={{ padding: '14px 12px', fontSize: '0.95rem', fontWeight: '600', color: '#1f2937' }}>{p.parent_code}</td>
+                      <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>{p.mother_name || '-'}</td>
+                      <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>{p.father_name || '-'}</td>
+                      <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>{p.mother_phone || p.father_phone || '-'}</td>
+                      <td style={{ padding: '14px 12px', fontSize: '0.9rem' }}>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                          <button 
+                            onClick={() => startEdit(p)}
+                            style={{ 
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
+                              color: '#fff', 
+                              border: 'none', 
+                              padding: '8px 16px', 
+                              borderRadius: '6px', 
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.2s',
+                              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                            }}
+                            onMouseEnter={e => {
+                              e.target.style.transform = 'translateY(-2px)';
+                              e.target.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
+                            }}
+                            onMouseLeave={e => {
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
+                            }}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button 
+                            onClick={() => deleteParent(p.id)}
+                            style={{ 
+                              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
+                              color: '#fff', 
+                              border: 'none', 
+                              padding: '8px 16px', 
+                              borderRadius: '6px', 
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.2s',
+                              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                            }}
+                            onMouseEnter={e => {
+                              e.target.style.transform = 'translateY(-2px)';
+                              e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                            }}
+                            onMouseLeave={e => {
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                            }}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                );
+              })()}
+            </tbody>
+          </table>
         </div>
 
       {showModal && (
@@ -437,7 +619,6 @@ export default function Parents() {
                 <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
                   <tr>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '50px' }}>No</th>
-                    <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>ID</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Code</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Mother Name</th>
                     <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Mother Phone</th>
@@ -456,7 +637,7 @@ export default function Parents() {
                   
                   return paginatedParents.length === 0 ? (
                     <tr>
-                      <td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '0.875rem' }}>
+                      <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#6b7280', fontSize: '0.875rem' }}>
                         No parents found.
                       </td>
                     </tr>
@@ -473,9 +654,6 @@ export default function Parents() {
                       >
                           <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#6b7280' }}>
                             {startIndex + index + 1}
-                          </td>
-                          <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
-                            {p.id}
                           </td>
                           <td style={{ padding: '16px 20px', fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>
                             {p.parent_code}

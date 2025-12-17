@@ -16,6 +16,14 @@ const feeService = {
 
   async createFeePayment(paymentData) {
     return await feeRepository.createPayment(paymentData);
+  },
+
+  async updateFeePayment(paymentId, paymentData) {
+    return await feeRepository.updatePayment(paymentId, paymentData);
+  },
+
+  async deleteFeePayment(paymentId) {
+    return await feeRepository.deletePayment(paymentId);
   }
 };
 

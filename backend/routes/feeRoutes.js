@@ -15,6 +15,12 @@ router.get('/students', feeController.getAllStudents);
 // Admin/Accountant role - Create fee payment
 router.post('/payments', feeController.createFeePayment);
 
+// Admin/Accountant role - Update fee payment
+router.put('/payments/:paymentId', feeController.updateFeePayment);
+
+// Admin/Accountant role - Delete fee payment
+router.delete('/payments/:paymentId', feeController.deleteFeePayment);
+
 // Admin/Accountant role - Get student fee details
 router.get('/student/:studentId', feeController.getStudentFeeDetails);
 

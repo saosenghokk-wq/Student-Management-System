@@ -183,303 +183,197 @@ const Admissions = () => {
           </button>
         </div>
 
-        {/* Search and Stats Card */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          marginBottom: '24px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          border: '2px solid #f3f4f6'
+        <div style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '12px', 
+          overflow: 'hidden', 
+          background: '#fff',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
         }}>
+          {/* Search Bar */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '20px'
+            background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
+            padding: '20px',
+            borderBottom: '1px solid #e5e7eb'
           }}>
-            <div style={{ flex: 1, display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>🎓</span> Admissions List
+              </h3>
+              <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                {filteredAdmissions.length} admissions
+              </span>
+            </div>
+            <div style={{ position: 'relative', maxWidth: '400px' }}>
+              <span style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.1rem'
+              }}>🔍</span>
               <input
                 type="text"
-                placeholder="🔍 Search admissions..."
+                placeholder="Search admissions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  flex: 1,
-                  padding: '12px 20px',
+                  width: '100%',
+                  padding: '10px 14px 10px 42px',
+                  fontSize: '0.95rem',
                   border: '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '15px',
+                  borderRadius: '8px',
                   outline: 'none',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
               />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  style={{
-                    padding: '12px 20px',
-                    background: '#f3f4f6',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#6b7280',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '16px 24px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '16px',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-            }}>
-              <span style={{ fontSize: '32px' }}>🎓</span>
-              <div>
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', fontWeight: '600', letterSpacing: '0.5px' }}>
-                  TOTAL ADMISSIONS
-                </div>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: 'white' }}>
-                  {filteredAdmissions.length}
-                </div>
-              </div>
             </div>
           </div>
-        </div>
-
-        {/* Table Card */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          border: '2px solid #f3f4f6'
-        }}>
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                border: '4px solid #f3f4f6',
-                borderTop: '4px solid #667eea',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 16px'
-              }} />
-              Loading admissions...
-              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-            </div>
-          ) : filteredAdmissions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px' }}>
-              <div style={{ fontSize: '64px', marginBottom: '16px' }}>📭</div>
-              <h3 style={{ color: '#1f2937', marginBottom: '8px' }}>No admissions found</h3>
-              <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-                {searchQuery ? 'Try adjusting your search terms' : 'Get started by adding your first admission period'}
-              </p>
-              {!searchQuery && (
-                <button
-                  onClick={handleAdd}
-                  style={{
-                    padding: '12px 24px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  + Add First Admission
-                </button>
+          
+          {/* Entries per page selector */}
+          <div style={{ 
+            padding: '16px 20px', 
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              Show
+            </label>
+            <select
+              value={entriesPerPage}
+              onChange={(e) => {
+                setEntriesPerPage(Number(e.target.value));
+              }}
+              style={{
+                padding: '6px 32px 6px 12px',
+                fontSize: '0.875rem',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+                color: '#1e293b',
+                fontWeight: 500,
+                outline: 'none'
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
+              entries per page
+            </label>
+          </div>
+          
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', width: '60px', borderBottom: '2px solid #5a67d8' }}>No</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Admission Year</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Start Date</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>End Date</th>
+                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Created By</th>
+                <th style={{ textAlign: 'center', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>Loading...</td></tr>
+              ) : filteredAdmissions.length === 0 ? (
+                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>
+                  {searchQuery ? 'No admissions match your search.' : 'No admissions found.'}
+                </td></tr>
+              ) : (
+                filteredAdmissions.slice(0, entriesPerPage).map((admission, index) => (
+                  <tr key={admission.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
+                    <td style={{ padding: '14px 12px', fontSize: '0.9rem', fontWeight: '600', color: '#374151' }}>{index + 1}</td>
+                    <td style={{ padding: '14px 12px', fontSize: '0.95rem', fontWeight: '600', color: '#1f2937' }}>{admission.admission_year}</td>
+                    <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>
+                      {admission.start_date ? new Date(admission.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
+                    </td>
+                    <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>
+                      {admission.end_date ? new Date(admission.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
+                    </td>
+                    <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>
+                      {admission.created_by_name || '-'}
+                    </td>
+                    <td style={{ padding: '14px 12px', fontSize: '0.9rem' }}>
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                        <button 
+                          onClick={() => handleEdit(admission)}
+                          style={{ 
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', 
+                            color: '#fff', 
+                            border: 'none', 
+                            padding: '8px 16px', 
+                            borderRadius: '6px', 
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                          }}
+                          onMouseEnter={e => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.4)';
+                          }}
+                          onMouseLeave={e => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.3)';
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(admission.id)}
+                          style={{ 
+                            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
+                            color: '#fff', 
+                            border: 'none', 
+                            padding: '8px 16px', 
+                            borderRadius: '6px', 
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                          }}
+                          onMouseEnter={e => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.4)';
+                          }}
+                          onMouseLeave={e => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
-            </div>
-          ) : (
-            <div style={{ 
-              border: '1px solid #e5e7eb', 
-              borderRadius: '12px', 
-              overflow: 'hidden', 
-              background: '#fff',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-            }}>
-              <div style={{
-                background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-                color: '#fff',
-                padding: '16px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <span style={{ fontSize: '1.1rem' }}>🎓</span>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Admission Periods</h3>
-                <span style={{ 
-                  marginLeft: 'auto', 
-                  background: 'rgba(255, 255, 255, 0.2)', 
-                  padding: '4px 12px', 
-                  borderRadius: '16px', 
-                  fontSize: '0.875rem' 
-                }}>
-                  {filteredAdmissions.length} periods
-                </span>
-              </div>
-
-              {/* Entries per page selector */}
-              <div style={{ 
-                padding: '16px 20px', 
-                borderBottom: '1px solid #e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px'
-              }}>
-                <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
-                  Show
-                </label>
-                <select
-                  value={entriesPerPage}
-                  onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                  style={{
-                    padding: '6px 32px 6px 12px',
-                    fontSize: '0.875rem',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '6px',
-                    backgroundColor: '#fff',
-                    cursor: 'pointer',
-                    color: '#1e293b',
-                    fontWeight: 500,
-                    outline: 'none'
-                  }}
-                >
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-                <label style={{ fontSize: '0.875rem', color: '#475569', fontWeight: 500 }}>
-                  entries per page
-                </label>
-              </div>
-
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-                    <tr>
-                      <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>No.</th>
-                      <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Admission Year</th>
-                      <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Start Date</th>
-                      <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>End Date</th>
-                      <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Created By</th>
-                      <th style={{ textAlign: 'center', padding: '16px 20px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAdmissions.slice(0, entriesPerPage).map((admission, index) => (
-                      <tr key={admission.id} style={{
-                        borderBottom: index < filteredAdmissions.length - 1 ? '1px solid #f3f4f6' : 'none',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                        <td style={{ 
-                          padding: '16px 20px', 
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          color: '#6b7280'
-                        }}>
-                          {index + 1}
-                        </td>
-                        <td style={{ padding: '16px 20px', fontSize: '0.875rem' }}>
-                          <span style={{
-                            padding: '6px 16px',
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            color: 'white',
-                            borderRadius: '8px',
-                            fontSize: '0.875rem',
-                            fontWeight: '600'
-                          }}>
-                            {admission.admission_year}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#1f2937' }}>
-                          {admission.start_date ? new Date(admission.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
-                        </td>
-                        <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#1f2937' }}>
-                          {admission.end_date ? new Date(admission.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
-                        </td>
-                        <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
-                          {admission.created_by_name || '-'}
-                        </td>
-                        <td style={{ padding: '16px 20px', textAlign: 'center' }}>
-                          <button
-                            onClick={() => handleEdit(admission)}
-                            style={{
-                              padding: '8px 16px',
-                              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              marginRight: '8px',
-                              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.4)',
-                              transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 4px 8px rgba(59, 130, 246, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'translateY(0)';
-                              e.currentTarget.style.boxShadow = '0 2px 4px rgba(59, 130, 246, 0.4)';
-                            }}
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(admission.id)}
-                            style={{
-                              padding: '8px 16px',
-                              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
-                              transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'translateY(0)';
-                              e.currentTarget.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.4)';
-                            }}
-                          >
-                            🗑️ Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+            </tbody>
+          </table>
         </div>
 
         {showModal && (
@@ -508,7 +402,7 @@ const Admissions = () => {
               {/* Modal Header */}
               <div style={{
                 padding: '24px',
-                borderBottom: '2px solid #f3f4f6',
+                borderBottom: '2px solid #0a1223ff',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'

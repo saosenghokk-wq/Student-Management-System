@@ -4,7 +4,7 @@ import { api } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 
 export default function Subjects() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess } = useAlert();
   const [subjects, setSubjects] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,6 +20,8 @@ export default function Subjects() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProgram, setSelectedProgram] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -115,6 +117,20 @@ export default function Subjects() {
     } catch (e) { setError(e.message); }
   };
 
+  // Filter subjects based on search term and program
+  const filteredSubjects = subjects.filter(s => {
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = !searchTerm || (
+      s.subject_code?.toLowerCase().includes(searchLower) ||
+      s.subject_name?.toLowerCase().includes(searchLower) ||
+      s.program_name?.toLowerCase().includes(searchLower) ||
+      s.program_code?.toLowerCase().includes(searchLower) ||
+      s.credit?.toString().includes(searchLower)
+    );
+    const matchesProgram = !selectedProgram || s.program_id === selectedProgram;
+    return matchesSearch && matchesProgram;
+  });
+
   return (
     <DashboardLayout>
       <div className="page-container" style={{ padding: '24px' }}>
@@ -164,25 +180,96 @@ export default function Subjects() {
           background: '#fff',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
         }}>
+          {/* Search Bar and Program Filter */}
           <div style={{
             background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-            color: '#fff',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
+            padding: '20px',
+            borderBottom: '1px solid #e5e7eb'
           }}>
-            <span style={{ fontSize: '1.1rem' }}>📚</span>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Subjects List</h3>
-            <span style={{ 
-              marginLeft: 'auto', 
-              background: 'rgba(255, 255, 255, 0.2)', 
-              padding: '4px 12px', 
-              borderRadius: '16px', 
-              fontSize: '0.875rem' 
-            }}>
-              {subjects.length} subjects
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>📖</span> Subjects List
+              </h3>
+              <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+                {filteredSubjects.length} subjects
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Search Box */}
+              <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
+                <span style={{
+                  position: 'absolute',
+                  left: '14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  fontSize: '1.1rem'
+                }}>🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search subjects..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px 10px 42px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#667eea';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
+              {/* Program Filter */}
+              <div style={{ minWidth: '250px' }}>
+                <select
+                  value={selectedProgram}
+                  onChange={(e) => {
+                    setSelectedProgram(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box',
+                    background: 'white'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#667eea';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                >
+                  <option value="">📚 All Programs</option>
+                  {programs.map(prog => (
+                    <option key={prog.id} value={prog.id}>
+                      {prog.name} ({prog.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
           
           {/* Entries per page selector */}
@@ -228,7 +315,6 @@ export default function Subjects() {
             <thead style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
               <tr>
                 <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8', width: '60px' }}>No</th>
-                <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>ID</th>
                 <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Code</th>
                 <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Name</th>
                 <th style={{ textAlign: 'left', padding: '16px 12px', fontSize: '0.875rem', fontWeight: '700', color: '#fff', borderBottom: '2px solid #5a67d8' }}>Program</th>
@@ -238,19 +324,20 @@ export default function Subjects() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>Loading...</td></tr>
+                <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>Loading...</td></tr>
               ) : (() => {
                 const startIndex = (currentPage - 1) * entriesPerPage;
                 const endIndex = startIndex + entriesPerPage;
-                const paginatedSubjects = subjects.slice(startIndex, endIndex);
+                const paginatedSubjects = filteredSubjects.slice(startIndex, endIndex);
                 
                 return paginatedSubjects.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>No subjects found.</td></tr>
+                  <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', fontSize: '0.95rem', color: '#6b7280', fontWeight: '500' }}>
+                    {searchTerm ? 'No subjects match your search.' : 'No subjects found.'}
+                  </td></tr>
                 ) : (
                   paginatedSubjects.map((s, index) => (
                     <tr key={s.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background 0.2s' }}>
                       <td style={{ padding: '14px 12px', fontSize: '0.9rem', fontWeight: '600', color: '#374151' }}>{startIndex + index + 1}</td>
-                      <td style={{ padding: '14px 12px', fontSize: '0.9rem', fontWeight: '600', color: '#374151' }}>{s.id}</td>
                       <td style={{ padding: '14px 12px', fontSize: '0.9rem', fontWeight: '600', color: '#1f2937' }}>{s.subject_code}</td>
                       <td style={{ padding: '14px 12px', fontSize: '0.95rem', fontWeight: '600', color: '#1f2937' }}>{s.subject_name}</td>
                       <td style={{ padding: '14px 12px', fontSize: '0.9rem', color: '#4b5563' }}>

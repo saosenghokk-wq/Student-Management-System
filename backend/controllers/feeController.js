@@ -99,6 +99,71 @@ const feeController = {
       console.error('Error fetching student fee details:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch student fee details' });
     }
+  },
+
+  // Update fee payment (for admin/accountant)
+  async updateFeePayment(req, res) {
+    try {
+      const { paymentId } = req.params;
+      const { amount, payment_method, pay_date, description } = req.body;
+      
+      if (!paymentId) {
+        return res.status(400).json({ success: false, message: 'Payment ID is required' });
+      }
+
+      if (!amount || !payment_method || !pay_date) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: amount, payment_method, pay_date' 
+        });
+      }
+
+      const paymentData = {
+        amount,
+        payment_method,
+        pay_date,
+        description: description || null
+      };
+
+      const updated = await feeService.updateFeePayment(paymentId, paymentData);
+      
+      if (!updated) {
+        return res.status(404).json({ success: false, message: 'Payment not found' });
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Fee payment updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating fee payment:', error);
+      res.status(500).json({ success: false, message: 'Failed to update fee payment' });
+    }
+  },
+
+  // Delete fee payment (for admin/accountant)
+  async deleteFeePayment(req, res) {
+    try {
+      const { paymentId } = req.params;
+      
+      if (!paymentId) {
+        return res.status(400).json({ success: false, message: 'Payment ID is required' });
+      }
+
+      const deleted = await feeService.deleteFeePayment(paymentId);
+      
+      if (!deleted) {
+        return res.status(404).json({ success: false, message: 'Payment not found' });
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Fee payment deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting fee payment:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete fee payment' });
+    }
   }
 };
 

@@ -14,6 +14,25 @@ export default function DashboardLayout({ children }) {
     system_logo: '/Picture1.jpg'
   });
 
+  // Dropdown state management with localStorage persistence
+  const [expandedSections, setExpandedSections] = useState(() => {
+    const saved = localStorage.getItem('expandedSections');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Save expanded sections to localStorage
+  useEffect(() => {
+    localStorage.setItem('expandedSections', JSON.stringify(expandedSections));
+  }, [expandedSections]);
+
+  // Toggle section expand/collapse
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   // Fetch fresh profile (Image) if missing (run once)
   useEffect(() => {
     let mounted = true;
@@ -93,21 +112,25 @@ export default function DashboardLayout({ children }) {
   const getMenuItems = () => {
     const adminItems = [
       { path: '/dashboard', label: 'Dashboard', icon: '🏠', section: 'main' },
+      // Academic section
       { path: '/departments', label: 'Departments', icon: '🏢', section: 'academic' },
       { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
       { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
-      { path: '/subject-enrollment', label: 'Subject Enrollment', icon: '📝', section: 'academic' },
       { path: '/admissions', label: 'Admissions', icon: '🎓', section: 'academic' },
       { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
+      { path: '/subject-enrollment', label: 'Subject Assign', icon: '📝', section: 'academic' },
       { path: '/schedule', label: 'Schedule', icon: '📅', section: 'academic' },
-      { path: '/users', label: 'Users', icon: '👤', section: 'management' },
-      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'management' },
-      { path: '/students', label: 'Students', icon: '👥', section: 'management' },
-      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'management' },
-      { path: '/staff', label: 'Staff', icon: '👔', section: 'management' },
+      // Top management section
+      { path: '/users', label: 'Users', icon: '👤', section: 'top management' },
+      { path: '/staff', label: 'Dean', icon: '👔', section: 'top management' },
+      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'top management' },
+      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'top management' },
+      { path: '/students', label: 'Students', icon: '👥', section: 'top management' },
+      // Operations
       { path: '/attendance', label: 'Attendance', icon: '📋', section: 'operations' },
       { path: '/grades', label: 'Grades', icon: '📊', section: 'operations' },
       { path: '/fees', label: 'Fees', icon: '💰', section: 'operations' },
+      { path: '/generate-card', label: 'Generate Card', icon: '🎴', section: 'operations' },
       { path: '/reports', label: 'Reports', icon: '📈', section: 'operations' },
       { path: '/settings', label: 'Settings', icon: '⚙️', section: 'system' },
     ];
@@ -118,25 +141,26 @@ export default function DashboardLayout({ children }) {
     ];
 
     const deanItems = [
-  { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'management' },
-  { path: '/students', label: 'Students', icon: '👥', section: 'management' },
-  { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
-  { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
-  { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
-  { path: '/subject-enrollment', label: 'Subject Enrollment', icon: '📝', section: 'academic' },
+      { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
+      { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
+      { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
+      { path: '/subject-enrollment', label: 'Subject Assign', icon: '📝', section: 'academic' },
+      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'top management' },
+      { path: '/students', label: 'Students', icon: '👥', section: 'top management' },
     ];
 
     const registrarItems = [
-      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'management' },
-      { path: '/students', label: 'Students', icon: '👥', section: 'management' },
-      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'management' },
-      { path: '/staff', label: 'Staff', icon: '👔', section: 'management' },
       { path: '/departments', label: 'Departments', icon: '🏢', section: 'academic' },
       { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
       { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
-      { path: '/subject-enrollment', label: 'Subject Enrollment', icon: '📝', section: 'academic' },
       { path: '/admissions', label: 'Admissions', icon: '🎓', section: 'academic' },
       { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
+      { path: '/subject-enrollment', label: 'Subject Assign', icon: '📝', section: 'academic' },
+      { path: '/staff', label: 'Dean', icon: '👔', section: 'top management' },
+      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'top management' },
+      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'top management' },
+      { path: '/students', label: 'Students', icon: '👥', section: 'top management' },
+      { path: '/generate-card', label: 'Generate Card', icon: '🎴', section: 'operations' },
     ];
 
     const studentItems = [
@@ -166,6 +190,18 @@ export default function DashboardLayout({ children }) {
 
   const menuItems = getMenuItems();
   const sections = [...new Set(menuItems.map(item => item.section))];
+
+  // Section display names
+  const sectionLabels = {
+    'main': 'Dashboard',
+    'academic': 'Academic Management',
+    'top management': 'User Management',
+    'operations': 'Operations',
+    'teaching': 'Teaching Tools',
+    'personal': 'My Information',
+    'children': 'Children Info',
+    'system': 'System Settings'
+  };
 
   const getRoleName = (roleId) => {
     const roles = { 
@@ -260,23 +296,71 @@ export default function DashboardLayout({ children }) {
           }}
         >
           <nav className="sidebar-nav">
-            {sections.map(section => (
-              <div key={section} className="nav-section">
-                <div className="nav-label">{section}</div>
-                {menuItems
-                  .filter(item => item.section === section)
-                  .map(item => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+            {user.role_id === 1 ? (
+              // Admin - Dropdown menu with collapsible sections
+              sections.map(section => {
+                const sectionItems = menuItems.filter(item => item.section === section);
+                const isExpanded = expandedSections[section] !== false; // Default to expanded
+                
+                return (
+                  <div key={section} className="nav-section">
+                    <div 
+                      className="nav-section-header" 
+                      onClick={() => toggleSection(section)}
                     >
-                      <span className="nav-icon">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-              </div>
-            ))}
+                      <span>{sectionLabels[section] || section}</span>
+                      <span style={{
+                        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+                      }}>
+                        ▼
+                      </span>
+                    </div>
+                    
+                    <div 
+                      className="nav-section-content"
+                      style={{
+                        maxHeight: isExpanded ? `${sectionItems.length * 52}px` : '0',
+                        overflow: 'hidden',
+                        transition: 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        opacity: isExpanded ? 1 : 0,
+                        transform: isExpanded ? 'translateY(0)' : 'translateY(-10px)',
+                        transitionProperty: 'max-height, opacity, transform'
+                      }}
+                    >
+                      {sectionItems.map(item => (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                        >
+                          <span className="nav-icon">{item.icon}</span>
+                          <span>{item.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              // Other roles - Flat menu list
+              sections.map(section => (
+                <div key={section} className="nav-section">
+                  <div className="nav-label">{section}</div>
+                  {menuItems
+                    .filter(item => item.section === section)
+                    .map(item => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                      >
+                        <span className="nav-icon">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                </div>
+              ))
+            )}
           </nav>
 
           <div className="sidebar-footer">

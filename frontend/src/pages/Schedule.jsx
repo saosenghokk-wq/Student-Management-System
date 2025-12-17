@@ -9,6 +9,8 @@ export default function Schedule() {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState(null);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   
@@ -135,6 +137,61 @@ export default function Schedule() {
     }
   };
 
+  const handleEdit = (schedule) => {
+    setEditingSchedule(schedule);
+    setForm({
+      batch_id: schedule.batch_id,
+      semester: schedule.semester,
+      image: schedule.image
+    });
+    setImagePreview(schedule.image);
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    
+    if (!form.batch_id || !form.semester || !form.image) {
+      setError('Please fill all required fields');
+      return;
+    }
+    
+    setUploading(true);
+    setError('');
+    
+    try {
+      const response = await fetch(`http://localhost:5000/api/schedules/${editingSchedule.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          batch_id: form.batch_id,
+          semester: form.semester,
+          image: form.image
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update schedule');
+      }
+      
+      showSuccess('Schedule updated successfully!');
+      setShowEditModal(false);
+      setEditingSchedule(null);
+      setForm({ batch_id: '', semester: '', image: null });
+      setImagePreview(null);
+      loadData();
+    } catch (err) {
+      setError('❌ ' + (err.message || 'Failed to update schedule'));
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div style={{ padding: '0 40px' }}>
@@ -232,9 +289,9 @@ export default function Schedule() {
                       width: '100%', 
                       height: 250, 
                       objectFit: 'cover',
-                      background: '#f3f4f6'
+                      background: '#f3f4f6',
+                      pointerEvents: 'none'
                     }}
-                    onClick={() => window.open(schedule.image, '_blank')}
                   />
                   <div style={{ padding: 16 }}>
                     <div style={{ marginBottom: 8 }}>
@@ -264,22 +321,58 @@ export default function Schedule() {
                     }}>
                       Uploaded: {new Date(schedule.upload_date).toLocaleDateString()}
                     </div>
-                    <button
-                      onClick={() => handleDelete(schedule.id)}
-                      style={{
-                        background: '#dc2626',
-                        color: 'white',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        width: '100%'
-                      }}
-                    >
-                      🗑️ Delete
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => handleEdit(schedule)}
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(schedule.id)}
+                        style={{
+                          flex: 1,
+                          background: '#dc2626',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 16px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'translateY(-2px)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -460,6 +553,184 @@ export default function Schedule() {
                     }}
                   >
                     {uploading ? 'Uploading...' : '✓ Upload'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {showEditModal && editingSchedule && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: 16,
+              width: '90%',
+              maxWidth: 500,
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: 24,
+                color: 'white'
+              }}>
+                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>
+                  ✏️ Edit Schedule
+                </h2>
+              </div>
+              
+              <form onSubmit={handleUpdate} style={{ padding: 24 }}>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: 8, 
+                    fontWeight: 600,
+                    color: '#1f2937'
+                  }}>
+                    Batch <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <select
+                    value={form.batch_id}
+                    onChange={(e) => setForm({ ...form, batch_id: e.target.value })}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: 8,
+                      fontSize: '0.95rem',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="">Select Batch</option>
+                    {batches.map(batch => (
+                      <option key={batch.Id} value={batch.Id}>
+                        {batch.batch_code} - {batch.academic_year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: 8, 
+                    fontWeight: 600,
+                    color: '#1f2937'
+                  }}>
+                    Semester <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.semester}
+                    onChange={(e) => setForm({ ...form, semester: e.target.value })}
+                    placeholder="e.g., 1, 2, 3"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: 8,
+                      fontSize: '0.95rem',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ 
+                    display: 'block', 
+                    marginBottom: 8, 
+                    fontWeight: 600,
+                    color: '#1f2937'
+                  }}>
+                    Schedule Image <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ 
+                      width: '100%',
+                      padding: 10,
+                      border: '2px dashed #d1d5db',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 8 }}>
+                    JPG, PNG or GIF (max 5MB)
+                  </p>
+                  {imagePreview && (
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      style={{ 
+                        width: '100%', 
+                        marginTop: 12,
+                        borderRadius: 8,
+                        border: '2px solid #e5e7eb'
+                      }}
+                    />
+                  )}
+                </div>
+                
+                <div style={{ 
+                  display: 'flex', 
+                  gap: 12, 
+                  justifyContent: 'flex-end',
+                  marginTop: 24
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingSchedule(null);
+                      setForm({ batch_id: '', semester: '', image: null });
+                      setImagePreview(null);
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      background: '#f3f4f6',
+                      color: '#374151',
+                      border: '2px solid #d1d5db',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploading}
+                    style={{
+                      padding: '10px 20px',
+                      background: uploading ? '#9ca3af' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 8,
+                      cursor: uploading ? 'not-allowed' : 'pointer',
+                      fontSize: '0.95rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    {uploading ? 'Updating...' : '✓ Update'}
                   </button>
                 </div>
               </form>

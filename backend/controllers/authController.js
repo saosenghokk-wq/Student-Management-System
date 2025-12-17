@@ -27,8 +27,17 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Compare password (supports both plain and hashed)
-    const passwordMatches = user.password === password || (await bcrypt.compare(password, user.password));
+    // Compare password (supports both plain and hashed for backwards compatibility)
+    let passwordMatches = false;
+    
+    // Check if password is hashed (bcrypt hashes start with $2a$, $2b$, or $2y$)
+    if (user.password.startsWith('$2')) {
+      passwordMatches = await bcrypt.compare(password, user.password);
+    } else {
+      // Plain password comparison (for existing non-hashed passwords)
+      passwordMatches = user.password === password;
+    }
+    
     if (!passwordMatches) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -74,7 +83,7 @@ exports.login = async (req, res) => {
     // Set token expiration based on rememberMe
     // If rememberMe: 7 days, else: 15 minutes
     const expiresIn = rememberMe ? '7d' : '15m';
-    const token = jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', { expiresIn });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
     
     res.json({ token, user: payload, expiresIn: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 15 * 60 * 1000 });
   } catch (error) {

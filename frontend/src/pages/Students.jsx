@@ -680,199 +680,6 @@ export default function Students() {
         </div>
       )}
 
-      {/* Search and Filter Section */}
-      <div style={{ 
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '12px',
-        marginBottom: '24px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #e5e7eb'
-      }}>
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
-          alignItems: 'stretch'
-        }}>
-          {/* Search Box */}
-          <div style={{ flex: '1 1 280px', minWidth: '220px' }}>
-            <div style={{ position: 'relative' }}>
-              <span style={{
-                position: 'absolute',
-                left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: '1.1rem',
-                color: '#9ca3af'
-              }}>🔍</span>
-              <input
-                type="text"
-                placeholder="Search by name, code, department..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px 10px 40px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  outline: 'none',
-                  transition: 'all 0.2s',
-                  backgroundColor: '#f9fafb',
-                  height: '42px',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#3b82f6';
-                  e.target.style.backgroundColor = '#fff';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e5e7eb';
-                  e.target.style.backgroundColor = '#f9fafb';
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Department Filter */}
-          <div style={{ flex: '0 1 240px', minWidth: '200px' }}>
-            <select
-              value={filterDepartment}
-              onChange={(e) => onChangeFilterDepartment(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '11px 36px 11px 12px',
-                border: '2px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                backgroundColor: '#f9fafb',
-                cursor: 'pointer',
-                outline: 'none',
-                fontWeight: '500',
-                color: '#374151',
-                transition: 'all 0.2s',
-                height: '42px',
-                appearance: 'none',
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 12px center'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#3b82f6';
-                e.target.style.backgroundColor = '#fff';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.backgroundColor = '#f9fafb';
-              }}
-            >
-              <option value="">📚 All Departments</option>
-              {allDepartments.map(dept => (
-                <option key={dept.id} value={dept.id}>{dept.department_name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Batch Filter */}
-          <div style={{ flex: '0 1 240px', minWidth: '200px' }}>
-            <select
-              value={filterBatch}
-              onChange={(e) => setFilterBatch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '11px 36px 11px 12px',
-                border: '2px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                backgroundColor: '#f9fafb',
-                cursor: 'pointer',
-                outline: 'none',
-                fontWeight: '500',
-                color: '#374151',
-                transition: 'all 0.2s',
-                height: '42px',
-                appearance: 'none',
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%236b7280\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 12px center'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#3b82f6';
-                e.target.style.backgroundColor = '#fff';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = '#e5e7eb';
-                e.target.style.backgroundColor = '#f9fafb';
-              }}
-            >
-            <option value="">🎓 All Batches</option>
-            {filteredBatches.map(batch => (
-              <option key={batch.Id} value={batch.Id}>{batch.batch_code} ({batch.academic_year})</option>
-              ))}
-          </select>
-          </div>
-
-          {/* Clear Filters Button */}
-          {(searchQuery || filterDepartment || filterBatch) && (
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setFilterDepartment('');
-                setFilterBatch('');
-              }}
-              style={{
-                padding: '0 20px',
-                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                height: '42px',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 4px 6px rgba(239, 68, 68, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.3)';
-              }}
-            >
-              ✕ Clear All
-            </button>
-          )}
-        </div>
-
-        {/* Results Count */}
-        {(searchQuery || filterDepartment || filterBatch) && (
-          <div style={{ 
-            marginTop: 16, 
-            padding: '14px 18px', 
-            background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', 
-            borderRadius: '10px',
-            fontSize: '0.875rem', 
-            color: '#065f46', 
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            border: '1px solid #a7f3d0'
-          }}>
-            <span style={{fontSize:'1.3rem'}}>📊</span>
-            <span>Found <strong style={{ color: '#047857', fontSize: '1rem' }}>{filteredStudents.length}</strong> of <strong>{students.length}</strong> students</span>
-          </div>
-        )}
-      </div>
-
       <div style={{ 
         border: '1px solid #e5e7eb', 
         borderRadius: '12px', 
@@ -880,25 +687,122 @@ export default function Students() {
         background: '#fff',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
       }}>
+        {/* Search and Filter Bar */}
         <div style={{
           background: 'linear-gradient(135deg, #1f2937 0%, #374151 100%)',
-          color: '#fff',
-          padding: '16px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
+          padding: '20px',
+          borderBottom: '1px solid #e5e7eb'
         }}>
-          <span style={{ fontSize: '1.1rem' }}>📋</span>
-          <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>Students List</h3>
-          <span style={{ 
-            marginLeft: 'auto', 
-            background: 'rgba(255, 255, 255, 0.2)', 
-            padding: '4px 12px', 
-            borderRadius: '16px', 
-            fontSize: '0.875rem' 
-          }}>
-            {filteredStudents.length} students
-          </span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.2rem' }}>👨‍🎓</span> Students List
+            </h3>
+            <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
+              {filteredStudents.length} students
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Search Box */}
+            <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
+              <span style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.1rem'
+              }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px 10px 42px',
+                  fontSize: '0.95rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+            
+            {/* Department Filter */}
+            <div style={{ minWidth: '200px' }}>
+              <select
+                value={filterDepartment}
+                onChange={(e) => onChangeFilterDepartment(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  fontSize: '0.95rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  cursor: 'pointer',
+                  boxSizing: 'border-box',
+                  background: 'white'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <option value="">🏛️ All Departments</option>
+                {allDepartments.map(dept => (
+                  <option key={dept.id} value={dept.id}>{dept.department_name}</option>
+                ))}
+              </select>
+            </div>
+            
+            {/* Batch Filter */}
+            <div style={{ minWidth: '200px' }}>
+              <select
+                value={filterBatch}
+                onChange={(e) => setFilterBatch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  fontSize: '0.95rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  cursor: 'pointer',
+                  boxSizing: 'border-box',
+                  background: 'white'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <option value="">🎓 All Batches</option>
+                {filteredBatches.map(batch => (
+                  <option key={batch.Id} value={batch.Id}>{batch.batch_code} ({batch.academic_year})</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
         
         {/* Entries per page selector */}
