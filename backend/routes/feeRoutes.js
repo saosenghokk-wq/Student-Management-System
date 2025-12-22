@@ -24,4 +24,7 @@ router.delete('/payments/:paymentId', feeController.deleteFeePayment);
 // Admin/Accountant role - Get student fee details
 router.get('/student/:studentId', feeController.getStudentFeeDetails);
 
+// Parent/Admin role - Get student fee payments
+router.get('/student/:studentId/payments', feeController.getStudentFeePayments);
+
 module.exports = router;

@@ -55,6 +55,17 @@ const scheduleRepository = {
     return result.insertId;
   },
 
+  async update(id, scheduleData) {
+    const { batch_id, image, semester } = scheduleData;
+    const query = `
+      UPDATE image_schedule 
+      SET batch_id = ?, image = ?, semester = ?
+      WHERE id = ?
+    `;
+    const [result] = await pool.query(query, [batch_id, image, semester, id]);
+    return result.affectedRows > 0;
+  },
+
   async delete(id) {
     const query = 'DELETE FROM image_schedule WHERE id = ?';
     const [result] = await pool.query(query, [id]);

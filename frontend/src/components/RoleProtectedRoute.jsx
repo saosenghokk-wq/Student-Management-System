@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { api } from '../api/api';
 
 // Define which roles can access which routes
 const ROUTE_PERMISSIONS = {
@@ -54,11 +53,7 @@ function RoleProtectedRoute({ children, allowedRoles }) {
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
 
-  useEffect(() => {
-    checkAccess();
-  }, [location.pathname]);
-
-  const checkAccess = async () => {
+  const checkAccess = useCallback(async () => {
     try {
       // Check both sessionStorage and localStorage for token
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -104,7 +99,7 @@ function RoleProtectedRoute({ children, allowedRoles }) {
         // Special case: Students can view their own profile
         if (user.role_id === 4 && user.student_id) {
           const studentId = currentPath.split('/students/')[1];
-          if (studentId == user.student_id) {
+          if (studentId === String(user.student_id)) {
             // Student viewing their own profile - allow
             setIsAuthorized(true);
             setIsLoading(false);
@@ -138,7 +133,11 @@ function RoleProtectedRoute({ children, allowedRoles }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [location.pathname]);
+
+  useEffect(() => {
+    checkAccess();
+  }, [checkAccess]);
 
   // Show loading while checking
   if (isLoading) {

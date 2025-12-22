@@ -127,7 +127,7 @@ export default function Subjects() {
       s.program_code?.toLowerCase().includes(searchLower) ||
       s.credit?.toString().includes(searchLower)
     );
-    const matchesProgram = !selectedProgram || s.program_id === selectedProgram;
+    const matchesProgram = !selectedProgram || s.program_id?.toString() === selectedProgram;
     return matchesSearch && matchesProgram;
   });
 

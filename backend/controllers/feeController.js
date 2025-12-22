@@ -164,6 +164,31 @@ const feeController = {
       console.error('Error deleting fee payment:', error);
       res.status(500).json({ success: false, message: 'Failed to delete fee payment' });
     }
+  },
+
+  // Get student fee payments (for parent/admin viewing specific student)
+  async getStudentFeePayments(req, res) {
+    try {
+      const { studentId } = req.params;
+      
+      if (!studentId) {
+        return res.status(400).json({ success: false, message: 'Student ID is required' });
+      }
+
+      const payments = await feeService.getMyFeePayments(studentId);
+      const stats = await feeService.getMyFeeStats(studentId);
+      
+      res.json({ 
+        success: true, 
+        data: {
+          payments,
+          stats
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching student fee payments:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch student fee payments' });
+    }
   }
 };
 

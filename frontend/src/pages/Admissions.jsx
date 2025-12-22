@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
@@ -19,11 +19,7 @@ const Admissions = () => {
     end_date: ''
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const admissionsData = await api.getAllAdmissions();
@@ -35,7 +31,11 @@ const Admissions = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleAdd = () => {
     setEditingId(null);
@@ -92,12 +92,11 @@ const Admissions = () => {
         await api.updateAdmission(editingId, payload);
         showSuccess('Admission updated successfully');
       } else {
-        const newAdmission = await api.createAdmission(payload);
-        setAdmissions(prev => [newAdmission, ...prev]);
+        await api.createAdmission(payload);
         showSuccess('Admission created successfully');
       }
       setShowModal(false);
-      if (editingId) loadData();
+      loadData();
     } catch (err) {
       console.error('Error saving admission:', err);
       showError('Failed to save admission: ' + err.message);
@@ -118,10 +117,6 @@ const Admissions = () => {
       (admission.created_by_name && admission.created_by_name.toLowerCase().includes(q))
     );
   });
-
-  const clearSearch = () => {
-    setSearchQuery('');
-  };
 
   return (
     <DashboardLayout>

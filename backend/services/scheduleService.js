@@ -17,6 +17,14 @@ const scheduleService = {
     return await scheduleRepository.create(scheduleData);
   },
 
+  async updateSchedule(id, scheduleData) {
+    const schedule = await scheduleRepository.getById(id);
+    if (!schedule) {
+      throw new Error('Schedule not found');
+    }
+    return await scheduleRepository.update(id, scheduleData);
+  },
+
   async deleteSchedule(id) {
     const schedule = await scheduleRepository.getById(id);
     if (!schedule) {

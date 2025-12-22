@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAlert } from '../contexts/AlertContext';
@@ -6,9 +6,8 @@ import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Students() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess, showError } = useAlert();
   const [students, setStudents] = useState([]);
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -68,11 +67,7 @@ export default function Students() {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [showModal]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const studentsData = await api.getStudents();
       setStudents(studentsData);
@@ -127,11 +122,14 @@ export default function Students() {
       }
     } catch (err) {
       console.error('Error loading data:', err);
-      setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [showModal]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Relationship: when department filter changes, filter batches to only those belonging to that department (via programs)
   const onChangeFilterDepartment = async (deptId) => {
@@ -189,7 +187,6 @@ export default function Students() {
         setPrograms(programData);
       } catch (err) {
         console.error('Error loading programs:', err);
-        setError(err.message);
       }
     }
   };
@@ -207,7 +204,6 @@ export default function Students() {
         setBatches(batchData);
       } catch (err) {
         console.error('Error loading batches:', err);
-        setError(err.message);
       }
     }
   };
@@ -229,7 +225,6 @@ export default function Students() {
         setDistricts(districtData);
       } catch (err) {
         console.error('Error loading districts:', err);
-        setError(err.message);
       }
     }
   };
@@ -250,7 +245,6 @@ export default function Students() {
         setCommunes(communeData);
       } catch (err) {
         console.error('Error loading communes:', err);
-        setError(err.message);
       }
     }
   };
@@ -270,7 +264,6 @@ export default function Students() {
         setVillages(villageData);
       } catch (err) {
         console.error('Error loading villages:', err);
-        setError(err.message);
       }
     }
   };
@@ -288,24 +281,23 @@ export default function Students() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     
     try {
       // Validate required fields
       if (!form.username || !form.email || !form.password) {
-        setError('❌ Username, email, and password are required');
+        showError('Username, email, and password are required');
         return;
       }
       if (!form.student_code || !form.std_eng_name) {
-        setError('❌ Student code and English name are required');
+        showError('Student code and English name are required');
         return;
       }
       if (!form.from_high_school) {
-        setError('❌ High school name is required');
+        showError('High school name is required');
         return;
       }
       if (!form.department_id) {
-        setError('❌ Department is required');
+        showError('Department is required');
         return;
       }
       
@@ -360,20 +352,20 @@ export default function Students() {
       showSuccess('Student created successfully!');
     } catch (err) {
       console.error('Error creating student:', err);
-      setError('❌ ' + (err.message || 'Failed to create student'));
+      showError(err.message || 'Failed to create student');
     }
   };
 
   // Helpers to map IDs to display names
   const getDepartmentName = (deptId, fallbackName) => {
-    return allDepartments.find(d => d.id == deptId)?.department_name || fallbackName || 'N/A';
+    return allDepartments.find(d => d.id === deptId)?.department_name || fallbackName || 'N/A';
   };
   const getBatchCode = (batchId, fallbackCode) => {
-    return allBatches.find(b => b.Id == batchId)?.batch_code || fallbackCode || 'N/A';
+    return allBatches.find(b => b.Id === batchId)?.batch_code || fallbackCode || 'N/A';
   };
   const getScholarshipName = (scholarshipId) => {
     if (!scholarshipId) return 'No Scholarship';
-    return allScholarships.find(s => s.id == scholarshipId)?.scholarship || 'No Scholarship';
+    return allScholarships.find(s => s.id === scholarshipId)?.scholarship || 'No Scholarship';
   };
 
   // Filter students based on search query, department, and batch
@@ -391,8 +383,8 @@ export default function Students() {
       batchCode.toLowerCase().includes(q) ||
       scholarshipName.toLowerCase().includes(q);
     
-    const matchesDepartment = !filterDepartment || student.department_id == filterDepartment;
-    const matchesBatch = !filterBatch || student.batch_id == filterBatch;
+    const matchesDepartment = !filterDepartment || student.department_id === filterDepartment;
+    const matchesBatch = !filterBatch || student.batch_id === filterBatch;
     
     return matchesSearch && matchesDepartment && matchesBatch;
   });

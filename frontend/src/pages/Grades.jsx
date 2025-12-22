@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
@@ -8,7 +7,6 @@ import '../styles/modal.css';
 
 export default function Grades() {
   const { showSuccess, showError, showWarning } = useAlert();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [subjectEnrollments, setSubjectEnrollments] = useState([]);
   const [gradeTypes, setGradeTypes] = useState([]);
@@ -24,24 +22,12 @@ export default function Grades() {
   // Sub-view mode when class is selected: 'add' or 'history'
   const [subView, setSubView] = useState('add');
   const [gradeHistory, setGradeHistory] = useState([]);
-  const [filterDateFrom, setFilterDateFrom] = useState('');
-  const [filterDateTo, setFilterDateTo] = useState('');
   
   // Student detail modal
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedStudentDetails, setSelectedStudentDetails] = useState(null);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (selectedEnrollment && selectedGradeType) {
-      loadClassStudents();
-    }
-  }, [selectedEnrollment, selectedGradeType]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
@@ -84,9 +70,13 @@ export default function Grades() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showWarning, showError]);
 
-  const loadClassStudents = async () => {
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  const loadClassStudents = useCallback(async () => {
     if (!selectedEnrollment || !selectedGradeType) return;
     
     try {
@@ -123,17 +113,17 @@ export default function Grades() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEnrollment, selectedGradeType, showError]);
 
   const handleEnrollmentChange = (enrollmentId) => {
-    const enrollment = subjectEnrollments.find(e => e.id == enrollmentId);
+    const enrollment = subjectEnrollments.find(e => e.id === enrollmentId);
     setSelectedEnrollment(enrollment || null);
     setClassStudents([]);
     setStudentGrades({});
   };
 
   const handleGradeTypeChange = (gradeTypeId) => {
-    const gradeType = gradeTypes.find(gt => gt.id == gradeTypeId);
+    const gradeType = gradeTypes.find(gt => gt.id === gradeTypeId);
     setSelectedGradeType(gradeType || null);
   };
 
@@ -242,15 +232,6 @@ export default function Grades() {
       });
       setShowDetailModal(true);
     }
-  };
-
-  const getStatusBadgeClass = (statusName) => {
-    const status = statusName?.toLowerCase();
-    if (status === 'present') return 'badge-success';
-    if (status === 'absent') return 'badge-danger';
-    if (status === 'late') return 'badge-warning';
-    if (status === 'excused') return 'badge-info';
-    return 'badge-secondary';
   };
 
   const getCurrentStats = () => {

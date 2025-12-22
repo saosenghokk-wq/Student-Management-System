@@ -31,6 +31,8 @@ import MyAttendance from './pages/MyAttendance.jsx';
 import MyFees from './pages/MyFees.jsx';
 import ParentAttendance from './pages/ParentAttendance.jsx';
 import ParentGrades from './pages/ParentGrades.jsx';
+import ParentFees from './pages/ParentFees.jsx';
+import ParentStudentFees from './pages/ParentStudentFees.jsx';
 import StudentClasses from './pages/StudentClasses.jsx';
 import StudentGrades from './pages/StudentGrades.jsx';
 import Fees from './pages/Fees.jsx';
@@ -83,8 +85,8 @@ function App() {
         <Route path="/parent-attendance" element={<RoleProtectedRoute><ParentAttendance /></RoleProtectedRoute>} />
         <Route path="/parent-attendance/student/:studentId/classes" element={<RoleProtectedRoute><StudentClasses /></RoleProtectedRoute>} />
   <Route path="/parent-grades" element={<RoleProtectedRoute><ParentGrades /></RoleProtectedRoute>} />
-  <Route path="/parent-grades/student/:studentId/grades" element={<RoleProtectedRoute><StudentGrades /></RoleProtectedRoute>} />
-        <Route path="/fees" element={<RoleProtectedRoute><Fees /></RoleProtectedRoute>} />
+  <Route path="/parent-grades/student/:studentId/grades" element={<RoleProtectedRoute><StudentGrades /></RoleProtectedRoute>} />        <Route path="/parent-fees" element={<RoleProtectedRoute><ParentFees /></RoleProtectedRoute>} />
+        <Route path="/parent-fees/student/:studentId" element={<RoleProtectedRoute><ParentStudentFees /></RoleProtectedRoute>} />        <Route path="/fees" element={<RoleProtectedRoute><Fees /></RoleProtectedRoute>} />
         <Route path="/reports" element={<RoleProtectedRoute><Reports /></RoleProtectedRoute>} />
         <Route path="/generate-card" element={<RoleProtectedRoute><GenerateCard /></RoleProtectedRoute>} />
         <Route path="/settings" element={<RoleProtectedRoute><Settings /></RoleProtectedRoute>} />

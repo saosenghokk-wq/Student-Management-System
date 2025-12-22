@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 
 export default function Schedule() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess, showError } = useAlert();
   const [schedules, setSchedules] = useState([]);
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,11 +22,7 @@ export default function Schedule() {
   
   const [imagePreview, setImagePreview] = useState(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [schedulesRes, batchesRes] = await Promise.all([
@@ -36,16 +32,26 @@ export default function Schedule() {
         api.getAllBatches()
       ]);
       
+      if (!schedulesRes.ok) {
+        throw new Error(`Failed to load schedules: ${schedulesRes.status}`);
+      }
+      
       const schedulesData = await schedulesRes.json();
       setSchedules(schedulesData.data || []);
       setBatches(batchesRes || []);
+      setError('');
     } catch (err) {
       console.error('Error loading data:', err);
-      setError('Failed to load schedules');
+      showError('Failed to load schedules: ' + err.message);
+      setSchedules([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -145,13 +151,14 @@ export default function Schedule() {
       image: schedule.image
     });
     setImagePreview(schedule.image);
+    setError('');
     setShowEditModal(true);
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     
-    if (!form.batch_id || !form.semester || !form.image) {
+    if (!form.batch_id || !form.semester) {
       setError('Please fill all required fields');
       return;
     }
@@ -593,6 +600,20 @@ export default function Schedule() {
               </div>
               
               <form onSubmit={handleUpdate} style={{ padding: 24 }}>
+                {error && (
+                  <div style={{ 
+                    background: '#fee2e2', 
+                    border: '1px solid #fca5a5', 
+                    color: '#dc2626', 
+                    padding: 12, 
+                    borderRadius: 8, 
+                    marginBottom: 20,
+                    fontSize: '0.9rem'
+                  }}>
+                    {error}
+                  </div>
+                )}
+                
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ 
                     display: 'block', 

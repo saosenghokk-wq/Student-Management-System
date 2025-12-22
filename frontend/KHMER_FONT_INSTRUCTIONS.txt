@@ -1,0 +1,32 @@
+/**
+ * SETUP INSTRUCTIONS FOR KHMER FONT IN PDF
+ * 
+ * Step 1: Download Khmer Font
+ * - Go to: https://www.khmeros.info/download.php
+ * - Download "Khmer OS Battambang" or "Khmer OS Siemreap"
+ * - Save the .ttf file to: frontend/public/fonts/
+ * 
+ * Step 2: Convert Font to Base64
+ * Option A - Online Tool:
+ *   - Go to: https://products.aspose.app/font/base64
+ *   - Upload your .ttf file
+ *   - Copy the base64 output
+ * 
+ * Option B - Command Line:
+ *   - Install: npm install -g base64-font
+ *   - Run: base64-font path/to/font.ttf
+ * 
+ * Step 3: Add to khmerFontBase64.js
+ * - Open: frontend/src/utils/khmerFontBase64.js
+ * - Paste base64 string into the 'data' field
+ * 
+ * Step 4: Test
+ * - Generate a Student List Report
+ * - Khmer text should now display correctly
+ * 
+ * QUICK START (Recommended):
+ * I'll provide you with a pre-converted Khmer OS Battambang font.
+ * Just copy the base64 string into khmerFontBase64.js
+ */
+
+// After setup, the Reports.jsx will automatically use Khmer font for PDF generation

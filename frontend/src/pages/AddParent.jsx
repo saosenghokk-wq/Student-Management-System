@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
@@ -9,7 +9,7 @@ import '../styles/table.css';
 function SearchableSelect({ options, value, onChange, placeholder, disabled, labelKey, valueKey, searchKeys }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const selectedOption = options.find(opt => opt[valueKey] == value);
+  const selectedOption = options.find(opt => opt[valueKey] === value);
   
   const filteredOptions = searchTerm
     ? options.filter(opt => 
@@ -212,29 +212,29 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled, lab
                       cursor: 'pointer',
                       fontSize: '0.875rem',
                       borderRadius: '8px',
-                      background: opt[valueKey] == value ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' : 'transparent',
-                      color: opt[valueKey] == value ? '#1e40af' : '#374151',
-                      fontWeight: opt[valueKey] == value ? '600' : '400',
+                      background: opt[valueKey] === value ? 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' : 'transparent',
+                      color: opt[valueKey] === value ? '#1e40af' : '#374151',
+                      fontWeight: opt[valueKey] === value ? '600' : '400',
                       transition: 'all 0.15s',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between'
                     }}
                     onMouseEnter={(e) => {
-                      if (opt[valueKey] != value) {
+                      if (opt[valueKey] !== value) {
                         e.target.style.background = '#f9fafb';
                         e.target.style.paddingLeft = '18px';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (opt[valueKey] != value) {
+                      if (opt[valueKey] !== value) {
                         e.target.style.background = 'transparent';
                         e.target.style.paddingLeft = '14px';
                       }
                     }}
                   >
                     <span>{opt[labelKey]}</span>
-                    {opt[valueKey] == value && (
+                    {opt[valueKey] === value && (
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M3 8L6.5 11.5L13 5" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
@@ -300,11 +300,7 @@ export default function AddParent() {
   const [communes, setCommunes] = useState([]);
   const [villages, setVillages] = useState([]);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       const [provs, parents] = await Promise.all([
         api.getProvinces(),
@@ -319,7 +315,11 @@ export default function AddParent() {
     } catch (err) {
       showError('Failed to load initial data');
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

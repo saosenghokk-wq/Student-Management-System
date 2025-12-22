@@ -148,7 +148,7 @@ export default function Programs() {
       p.department_name?.toLowerCase().includes(searchLower) ||
       p.degree_name?.toLowerCase().includes(searchLower)
     );
-    const matchesDepartment = !selectedDepartment || p.department_id === selectedDepartment;
+    const matchesDepartment = !selectedDepartment || p.department_id?.toString() === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
 

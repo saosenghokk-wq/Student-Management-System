@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAlert } from '../contexts/AlertContext';
@@ -6,7 +6,7 @@ import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Teachers() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess, showError } = useAlert();
   const [teachers, setTeachers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [teacherTypes, setTeacherTypes] = useState([]);
@@ -40,11 +40,7 @@ export default function Teachers() {
     village_no: ''
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const results = await Promise.all([
         api.getTeachers().catch(err => { console.error('❌ Teachers error:', err); return []; }),
@@ -69,7 +65,11 @@ export default function Teachers() {
       console.error('Error loading data:', err);
       alert('Failed to load data');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
@@ -180,29 +180,6 @@ export default function Teachers() {
     } catch (err) {
       showError(err.message || 'Delete failed');
     }
-  };
-
-  const openModal = () => {
-    setEditingId(null);
-    setForm({
-      username: '',
-      email: '',
-      password: '',
-      eng_name: '',
-      khmer_name: '',
-      phone: '',
-      teacher_types_id: '',
-      position: '',
-      department_id: '',
-      province_no: '',
-      district_no: '',
-      commune_no: '',
-      village_no: ''
-    });
-    setDistricts([]);
-    setCommunes([]);
-    setVillages([]);
-    setShowModal(true);
   };
 
   const closeModal = () => {

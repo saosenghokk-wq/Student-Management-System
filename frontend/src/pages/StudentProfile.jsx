@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
@@ -67,11 +67,7 @@ function StudentProfile() {
   const [communes, setCommunes] = useState([]);
   const [villages, setVillages] = useState([]);
 
-  useEffect(() => {
-    loadStudentDetails();
-  }, [id]);
-
-  const loadStudentDetails = async () => {
+  const loadStudentDetails = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.getStudent(id);
@@ -118,7 +114,11 @@ function StudentProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadStudentDetails();
+  }, [loadStudentDetails]);
 
   const loadAcademicData = async () => {
     try {

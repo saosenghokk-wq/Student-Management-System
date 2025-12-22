@@ -15,6 +15,9 @@ router.get('/', scheduleController.getSchedules);
 // Upload new schedule
 router.post('/', scheduleController.uploadSchedule);
 
+// Update schedule
+router.put('/:id', scheduleController.updateSchedule);
+
 // Delete schedule
 router.delete('/:id', scheduleController.deleteSchedule);
 

@@ -112,27 +112,28 @@ export default function DashboardLayout({ children }) {
   const getMenuItems = () => {
     const adminItems = [
       { path: '/dashboard', label: 'Dashboard', icon: '🏠', section: 'main' },
-      // Academic section
+      // Academic Management
+      { path: '/admissions', label: 'Admissions', icon: '🎓', section: 'academic' },
       { path: '/departments', label: 'Departments', icon: '🏢', section: 'academic' },
       { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
-      { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
-      { path: '/admissions', label: 'Admissions', icon: '🎓', section: 'academic' },
       { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
-      { path: '/subject-enrollment', label: 'Subject Assign', icon: '📝', section: 'academic' },
-      { path: '/schedule', label: 'Schedule', icon: '📅', section: 'academic' },
-      // Top management section
-      { path: '/users', label: 'Users', icon: '👤', section: 'top management' },
-      { path: '/staff', label: 'Dean', icon: '👔', section: 'top management' },
-      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'top management' },
-      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'top management' },
-      { path: '/students', label: 'Students', icon: '👥', section: 'top management' },
-      // Operations
+      { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
+      { path: '/subject-enrollment', label: 'Subject Enrollment', icon: '📝', section: 'academic' },
+      { path: '/schedule', label: 'Class Schedule', icon: '📅', section: 'academic' },
+      // Personnel Management
+      { path: '/users', label: 'System Users', icon: '👤', section: 'personnel' },
+      { path: '/staff', label: 'Deans', icon: '👔', section: 'personnel' },
+      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'personnel' },
+      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'personnel' },
+      { path: '/students', label: 'Students', icon: '👥', section: 'personnel' },
+      // Operations & Reports
       { path: '/attendance', label: 'Attendance', icon: '📋', section: 'operations' },
       { path: '/grades', label: 'Grades', icon: '📊', section: 'operations' },
-      { path: '/fees', label: 'Fees', icon: '💰', section: 'operations' },
-      { path: '/generate-card', label: 'Generate Card', icon: '🎴', section: 'operations' },
+      { path: '/fees', label: 'Fees Management', icon: '💰', section: 'operations' },
       { path: '/reports', label: 'Reports', icon: '📈', section: 'operations' },
-      { path: '/settings', label: 'Settings', icon: '⚙️', section: 'system' },
+      { path: '/generate-card', label: 'Student ID Cards', icon: '🎴', section: 'operations' },
+      // System Configuration
+      { path: '/settings', label: 'System Settings', icon: '⚙️', section: 'system' },
     ];
 
     const teacherItems = [
@@ -142,25 +143,25 @@ export default function DashboardLayout({ children }) {
 
     const deanItems = [
       { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
-      { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
       { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
-      { path: '/subject-enrollment', label: 'Subject Assign', icon: '📝', section: 'academic' },
-      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'top management' },
-      { path: '/students', label: 'Students', icon: '👥', section: 'top management' },
+      { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
+      { path: '/subject-enrollment', label: 'Subject Enrollment', icon: '📝', section: 'academic' },
+      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'personnel' },
+      { path: '/students', label: 'Students', icon: '👥', section: 'personnel' },
     ];
 
     const registrarItems = [
+      { path: '/admissions', label: 'Admissions', icon: '🎓', section: 'academic' },
       { path: '/departments', label: 'Departments', icon: '🏢', section: 'academic' },
       { path: '/programs', label: 'Programs', icon: '📚', section: 'academic' },
-      { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
-      { path: '/admissions', label: 'Admissions', icon: '🎓', section: 'academic' },
       { path: '/batches', label: 'Batches', icon: '📚', section: 'academic' },
-      { path: '/subject-enrollment', label: 'Subject Assign', icon: '📝', section: 'academic' },
-      { path: '/staff', label: 'Dean', icon: '👔', section: 'top management' },
-      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'top management' },
-      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'top management' },
-      { path: '/students', label: 'Students', icon: '👥', section: 'top management' },
-      { path: '/generate-card', label: 'Generate Card', icon: '🎴', section: 'operations' },
+      { path: '/subjects', label: 'Subjects', icon: '📖', section: 'academic' },
+      { path: '/subject-enrollment', label: 'Subject Enrollment', icon: '📝', section: 'academic' },
+      { path: '/staff', label: 'Deans', icon: '👔', section: 'personnel' },
+      { path: '/teachers', label: 'Teachers', icon: '👨‍🏫', section: 'personnel' },
+      { path: '/parents', label: 'Parents', icon: '👨‍👩‍👧', section: 'personnel' },
+      { path: '/students', label: 'Students', icon: '👥', section: 'personnel' },
+      { path: '/generate-card', label: 'Student ID Cards', icon: '🎴', section: 'operations' },
     ];
 
     const studentItems = [
@@ -173,6 +174,7 @@ export default function DashboardLayout({ children }) {
     const parentItems = [
       { path: '/parent-attendance', label: 'Attendance', icon: '📋', section: 'children' },
       { path: '/parent-grades', label: 'Grades', icon: '📊', section: 'children' },
+      { path: '/parent-fees', label: 'Fees', icon: '💰', section: 'children' },
     ];
 
     const accountantItems = [
@@ -195,12 +197,12 @@ export default function DashboardLayout({ children }) {
   const sectionLabels = {
     'main': 'Dashboard',
     'academic': 'Academic Management',
-    'top management': 'User Management',
-    'operations': 'Operations',
+    'personnel': 'Personnel Management',
+    'operations': 'Operations & Reports',
     'teaching': 'Teaching Tools',
     'personal': 'My Information',
-    'children': 'Children Info',
-    'system': 'System Settings'
+    'children': 'Children Information',
+    'system': 'System Configuration'
   };
 
   const getRoleName = (roleId) => {

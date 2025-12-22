@@ -40,13 +40,16 @@ class StudentRepository {
         s.phone,
         s.batch_id,
         s.department_id,
+        s.schoolarship_id,
         b.batch_code as batch_name,
         d.department_name,
-        p.name as program_name
+        p.name as program_name,
+        st.scholarship as scholarship_name
       FROM student s
       LEFT JOIN batch b ON s.batch_id = b.Id
       LEFT JOIN department d ON s.department_id = d.id
       LEFT JOIN programs p ON s.program_id = p.id
+      LEFT JOIN scholarship_type st ON s.schoolarship_id = st.id
     `;
     
     const params = [];

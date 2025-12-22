@@ -5,11 +5,6 @@ function getToken() {
   return sessionStorage.getItem('token') || localStorage.getItem('token');
 }
 
-function getUser() {
-  const userStr = sessionStorage.getItem('user') || localStorage.getItem('user');
-  return userStr ? JSON.parse(userStr) : null;
-}
-
 function isSessionExpired() {
   const expiresAt = sessionStorage.getItem('session_expires') || localStorage.getItem('session_expires');
   if (!expiresAt) return false;
@@ -205,6 +200,7 @@ export const api = {
   updateFeePayment: (paymentId, paymentData) => request(`/api/fees/payments/${paymentId}`, { method: 'PUT', body: paymentData }),
   deleteFeePayment: (paymentId) => request(`/api/fees/payments/${paymentId}`, { method: 'DELETE' }),
   getStudentFeeDetails: (studentId) => request(`/api/fees/student/${studentId}`),
+  getStudentFeePayments: (studentId) => request(`/api/fees/student/${studentId}/payments`),
   // Grades (Admin/Teacher)
   getAllGrades: () => request('/api/grades'),
   getGradeTypes: () => request('/api/grades/types'),
@@ -219,18 +215,21 @@ export const api = {
   
   // Reports
   getReportFilters: () => request('/api/reports/filters'),
-  getStudentPerformanceReport: (params) => request(`/api/reports/student-performance?${new URLSearchParams(params).toString()}`),
-  getGradeDistributionReport: (params) => request(`/api/reports/grade-distribution?${new URLSearchParams(params).toString()}`),
-  getStudentAttendanceReport: (params) => request(`/api/reports/student-attendance?${new URLSearchParams(params).toString()}`),
-  getAttendanceSummaryReport: (params) => request(`/api/reports/attendance-summary?${new URLSearchParams(params).toString()}`),
+  
+  // Student Reports
+  getStudentProfileReport: (params) => request(`/api/reports/student-profile?${new URLSearchParams(params).toString()}`),
+  getStudentListReport: (params) => request(`/api/reports/student-list?${new URLSearchParams(params).toString()}`),
   getStudentEnrollmentReport: (params) => request(`/api/reports/student-enrollment?${new URLSearchParams(params).toString()}`),
-  getTeacherWorkloadReport: (params) => request(`/api/reports/teacher-workload?${new URLSearchParams(params).toString()}`),
-  getDepartmentStatisticsReport: () => request('/api/reports/department-statistics'),
-  getAdmissionReport: (params) => request(`/api/reports/admission?${new URLSearchParams(params).toString()}`),
-  getFeeCollectionReport: (params) => request(`/api/reports/fee-collection?${new URLSearchParams(params).toString()}`),
-  getOutstandingFeesReport: (params) => request(`/api/reports/outstanding-fees?${new URLSearchParams(params).toString()}`),
-  getStudentDemographicsReport: () => request('/api/reports/student-demographics'),
-  getPassFailRateReport: (params) => request(`/api/reports/pass-fail-rate?${new URLSearchParams(params).toString()}`),
+  getStudentPromotionReport: (params) => request(`/api/reports/student-promotion?${new URLSearchParams(params).toString()}`),
+  getStudentStatusReport: (params) => request(`/api/reports/student-status?${new URLSearchParams(params).toString()}`),
+
+  // Academic Reports
+  getGradeReport: (params) => request(`/api/reports/grade-report?${new URLSearchParams(params).toString()}`),
+  getAttendanceReport: (params) => request(`/api/reports/attendance-report?${new URLSearchParams(params).toString()}`),
+  getAttendanceSummaryReport: (params) => request(`/api/reports/attendance-summary?${new URLSearchParams(params).toString()}`),
+  
+  // Financial Reports
+  getFeeReport: (params) => request(`/api/reports/fee-report?${new URLSearchParams(params).toString()}`)
 };
 
 export default api;

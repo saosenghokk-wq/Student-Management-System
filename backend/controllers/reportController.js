@@ -1,35 +1,41 @@
 const { pool } = require('../config/db');
 
-// ==================== ACADEMIC REPORTS ====================
+// ==================== STUDENT REPORTS ====================
 
-// Student Performance Report
-exports.getStudentPerformanceReport = async (req, res, next) => {
+// Student Profile Report - Detailed student information
+exports.getStudentProfileReport = async (req, res, next) => {
   try {
-    const { department_id, program_id, batch_id, subject_id, student_id, semester } = req.query;
+    const { department_id, program_id, batch_id } = req.query;
     
     let query = `
       SELECT 
+        s.id,
         s.student_code,
-        s.std_eng_name as eng_name,
         s.std_khmer_name as khmer_name,
-        d.department_name,
-        p.name as program_name,
-        b.batch_code,
-        b.academic_year,
-        se.semester,
-        sub.subject_name,
-        sub.subject_code,
-        gt.grade_type,
-        g.score,
-        gt.max_score
-      FROM grade g
-      JOIN student s ON g.student_id = s.id
-      JOIN subject_enrollment se ON g.subject_enroll_id = se.id
-      JOIN subject sub ON se.subject_id = sub.id
-      JOIN programs p ON se.program_id = p.id
-      JOIN department d ON p.department_id = d.id
+        s.std_eng_name as english_name,
+        CASE 
+          WHEN s.gender = 1 OR s.gender = '1' OR LOWER(s.gender) = 'male' THEN 'Male'
+          WHEN s.gender = 0 OR s.gender = '0' OR LOWER(s.gender) = 'female' THEN 'Female'
+          ELSE COALESCE(s.gender, 'N/A')
+        END as gender,
+        DATE_FORMAT(s.dob, '%d/%m/%Y') as dob,
+        COALESCE(s.phone, 'N/A') as phone,
+        COALESCE(pr.name, 'N/A') as province,
+        COALESCE(di.name, 'N/A') as district,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(p.name, 'N/A') as program,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COALESCE(b.academic_year, 'N/A') as academic_year,
+        COALESCE(st.scholarship, 'None') as scholarship_type,
+        COALESCE(ss.std_status, 'N/A') as status
+      FROM student s
       LEFT JOIN batch b ON s.batch_id = b.Id
-      LEFT JOIN grade_type gt ON g.grade_type_id = gt.id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      LEFT JOIN provinces pr ON s.province_no = pr.no
+      LEFT JOIN districts di ON s.district_no = di.no
+      LEFT JOIN scholarship_type st ON s.schoolarship_id = st.id
+      LEFT JOIN student_status ss ON s.std_status_id = ss.Id
       WHERE 1=1
     `;
     
@@ -46,20 +52,8 @@ exports.getStudentPerformanceReport = async (req, res, next) => {
       query += ' AND b.Id = ?';
       params.push(batch_id);
     }
-    if (subject_id) {
-      query += ' AND sub.id = ?';
-      params.push(subject_id);
-    }
-    if (student_id) {
-      query += ' AND s.id = ?';
-      params.push(student_id);
-    }
-    if (semester) {
-      query += ' AND se.semester = ?';
-      params.push(semester);
-    }
     
-    query += ' ORDER BY s.std_eng_name, se.semester, sub.subject_name';
+    query += ' ORDER BY s.std_eng_name';
     
     const [rows] = await pool.query(query, params);
     res.json(rows);
@@ -68,154 +62,40 @@ exports.getStudentPerformanceReport = async (req, res, next) => {
   }
 };
 
-// Grade Distribution Report
-exports.getGradeDistributionReport = async (req, res, next) => {
+// Student List Report - Simple list by various filters
+exports.getStudentListReport = async (req, res, next) => {
   try {
-    const { department_id, program_id, batch_id, subject_id } = req.query;
+    const { department_id, program_id, batch_id, subject_id, status } = req.query;
     
     let query = `
-      SELECT 
-        d.department_name,
-        p.name as program_name,
-        b.batch_code,
-        b.academic_year,
-        sub.subject_name,
-        gt.grade_type,
-        FLOOR(g.score / 10) * 10 as score_range,
-        COUNT(*) as count
-      FROM grade g
-      JOIN subject_enrollment se ON g.subject_enroll_id = se.id
-      JOIN subject sub ON se.subject_id = sub.id
-      JOIN programs p ON se.program_id = p.id
-      JOIN department d ON p.department_id = d.id
-      LEFT JOIN batch b ON se.batch_id = b.Id
-      LEFT JOIN grade_type gt ON g.grade_type_id = gt.id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    if (department_id) {
-      query += ' AND d.id = ?';
-      params.push(department_id);
-    }
-    if (program_id) {
-      query += ' AND p.id = ?';
-      params.push(program_id);
-    }
-    if (batch_id) {
-      query += ' AND b.Id = ?';
-      params.push(batch_id);
-    }
-    if (subject_id) {
-      query += ' AND sub.id = ?';
-      params.push(subject_id);
-    }
-    
-    query += ' GROUP BY d.department_name, p.name, b.batch_code, b.academic_year, sub.subject_name, gt.grade_type, score_range ORDER BY score_range';
-    
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// ==================== ATTENDANCE REPORTS ====================
-
-// Student Attendance Report
-exports.getStudentAttendanceReport = async (req, res, next) => {
-  try {
-    const { student_id, subject_id, program_id, batch_id, department_id, start_date, end_date } = req.query;
-    
-    let query = `
-      SELECT 
-        d.department_name,
-        p.name as program_name,
-        b.batch_code,
+      SELECT DISTINCT
         s.student_code,
-        s.std_eng_name as eng_name,
         s.std_khmer_name as khmer_name,
-        sub.subject_name,
-        a.attendance_date as date,
-        ast.typs as status,
-        a.remake as remarks
-      FROM attendance a
-      JOIN student s ON a.student_id = s.id
-      JOIN subject_enrollment se ON a.subject_enroll_id = se.id
-      JOIN subject sub ON se.subject_id = sub.id
-      JOIN programs p ON se.program_id = p.id
-      JOIN department d ON p.department_id = d.id
-      LEFT JOIN batch b ON se.batch_id = b.Id
-      LEFT JOIN attendance_status_type ast ON a.status_type = ast.id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    if (department_id) {
-      query += ' AND d.id = ?';
-      params.push(department_id);
-    }
-    if (program_id) {
-      query += ' AND p.id = ?';
-      params.push(program_id);
-    }
-    if (batch_id) {
-      query += ' AND b.Id = ?';
-      params.push(batch_id);
-    }
-    if (student_id) {
-      query += ' AND s.id = ?';
-      params.push(student_id);
-    }
-    if (subject_id) {
-      query += ' AND sub.id = ?';
-      params.push(subject_id);
-    }
-    if (start_date) {
-      query += ' AND a.attendance_date >= ?';
-      params.push(start_date);
-    }
-    if (end_date) {
-      query += ' AND a.attendance_date <= ?';
-      params.push(end_date);
-    }
-    
-    query += ' ORDER BY a.attendance_date DESC, s.std_eng_name';
-    
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Attendance Summary Report
-exports.getAttendanceSummaryReport = async (req, res, next) => {
-  try {
-    const { department_id, program_id, batch_id, start_date, end_date } = req.query;
-    
-    let query = `
-      SELECT 
-        d.department_name,
-        p.name as program_name,
-        b.batch_code,
-        s.student_code,
-        s.std_eng_name as eng_name,
-        s.std_khmer_name as khmer_name,
-        COUNT(CASE WHEN ast.typs = 'present' THEN 1 END) as present_count,
-        COUNT(CASE WHEN ast.typs = 'absent' THEN 1 END) as absent_count,
-        COUNT(CASE WHEN ast.typs = 'late' THEN 1 END) as late_count,
-        COUNT(*) as total_classes,
-        ROUND((COUNT(CASE WHEN ast.typs = 'present' THEN 1 END) * 100.0 / COUNT(*)), 2) as attendance_rate
-      FROM attendance a
-      JOIN student s ON a.student_id = s.id
-      JOIN subject_enrollment se ON a.subject_enroll_id = se.id
-      JOIN programs p ON se.program_id = p.id
-      JOIN department d ON p.department_id = d.id
+        s.std_eng_name as english_name,
+        CASE 
+          WHEN s.gender = 1 OR s.gender = '1' OR LOWER(s.gender) = 'male' THEN 'Male'
+          WHEN s.gender = 0 OR s.gender = '0' OR LOWER(s.gender) = 'female' THEN 'Female'
+          ELSE COALESCE(s.gender, 'N/A')
+        END as gender,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COALESCE(b.academic_year, 'N/A') as academic_year
+      FROM student s
       LEFT JOIN batch b ON s.batch_id = b.Id
-      LEFT JOIN attendance_status_type ast ON a.status_type = ast.id
-      WHERE 1=1
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      LEFT JOIN student_status ss ON s.std_status_id = ss.Id
     `;
+    
+    // If filtering by subject, join with subject_enrollment
+    if (subject_id) {
+      query += `
+        JOIN subject_enrollment se ON se.batch_id = b.Id
+        JOIN subject sub ON se.subject_id = sub.id
+      `;
+    }
+    
+    query += ' WHERE 1=1';
     
     const params = [];
     if (department_id) {
@@ -230,16 +110,16 @@ exports.getAttendanceSummaryReport = async (req, res, next) => {
       query += ' AND b.Id = ?';
       params.push(batch_id);
     }
-    if (start_date) {
-      query += ' AND a.attendance_date >= ?';
-      params.push(start_date);
+    if (subject_id) {
+      query += ' AND sub.id = ?';
+      params.push(subject_id);
     }
-    if (end_date) {
-      query += ' AND a.attendance_date <= ?';
-      params.push(end_date);
+    if (status) {
+      query += ' AND ss.std_status = ?';
+      params.push(status);
     }
     
-    query += ' GROUP BY s.id ORDER BY attendance_rate ASC';
+    query += ' ORDER BY b.batch_code, s.std_eng_name';
     
     const [rows] = await pool.query(query, params);
     res.json(rows);
@@ -248,9 +128,7 @@ exports.getAttendanceSummaryReport = async (req, res, next) => {
   }
 };
 
-// ==================== MANAGEMENT REPORTS ====================
-
-// Student Enrollment Report
+// Student Enrollment Report - Students enrollment statistics
 exports.getStudentEnrollmentReport = async (req, res, next) => {
   try {
     const { department_id, program_id, batch_id } = req.query;
@@ -263,11 +141,15 @@ exports.getStudentEnrollmentReport = async (req, res, next) => {
         b.academic_year,
         COUNT(s.id) as total_students,
         COUNT(CASE WHEN s.gender = 'Male' THEN 1 END) as male_count,
-        COUNT(CASE WHEN s.gender = 'Female' THEN 1 END) as female_count
+        COUNT(CASE WHEN s.gender = 'Female' THEN 1 END) as female_count,
+        COUNT(CASE WHEN ss.std_status = 'Active' THEN 1 END) as active_students,
+        COUNT(CASE WHEN st.id IS NOT NULL THEN 1 END) as scholarship_students
       FROM student s
       LEFT JOIN batch b ON s.batch_id = b.Id
       LEFT JOIN programs p ON b.program_id = p.id
       LEFT JOIN department d ON p.department_id = d.id
+      LEFT JOIN scholarship_type st ON s.schoolarship_id = st.id
+      LEFT JOIN student_status ss ON s.std_status_id = ss.Id
       WHERE 1=1
     `;
     
@@ -285,345 +167,146 @@ exports.getStudentEnrollmentReport = async (req, res, next) => {
       params.push(batch_id);
     }
     
-    query += ' GROUP BY d.department_name, p.name, b.batch_code, b.academic_year';
-    
     const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
+    console.error('Student Enrollment Report Error:', err.message);
+    console.error('Query params:', req.query);
     next(err);
   }
 };
 
-// Teacher Workload Report
-exports.getTeacherWorkloadReport = async (req, res, next) => {
-  try {
-    const { department_id, teacher_id } = req.query;
-    
-    let query = `
-      SELECT 
-        t.eng_name as teacher_name,
-        d.department_name,
-        COUNT(DISTINCT se.id) as total_subjects,
-        COUNT(DISTINCT se.program_id) as programs_count,
-        GROUP_CONCAT(DISTINCT sub.subject_name SEPARATOR ', ') as subjects_taught,
-        se.semester,
-        b.academic_year
-      FROM subject_enrollment se
-      JOIN teacher t ON se.teacher_id = t.id
-      LEFT JOIN department dt ON t.department_id = dt.id
-      JOIN subject sub ON se.subject_id = sub.id
-      JOIN programs p ON se.program_id = p.id
-      JOIN department d ON p.department_id = d.id
-      LEFT JOIN batch b ON se.batch_id = b.Id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    if (department_id) {
-      query += ' AND d.id = ?';
-      params.push(department_id);
-    }
-    if (teacher_id) {
-      query += ' AND t.id = ?';
-      params.push(teacher_id);
-    }
-    
-    query += ' GROUP BY t.id, se.semester, b.academic_year ORDER BY t.eng_name';
-    
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Department Statistics Report
-exports.getDepartmentStatisticsReport = async (req, res, next) => {
-  try {
-    const query = `
-      SELECT 
-        d.department_name,
-        COUNT(DISTINCT p.id) as total_programs,
-        COUNT(DISTINCT t.id) as total_teachers,
-        COUNT(DISTINCT s.id) as total_students,
-        COUNT(DISTINCT sub.id) as total_subjects,
-        st.eng_name as head_staff
-      FROM department d
-      LEFT JOIN programs p ON d.id = p.department_id
-      LEFT JOIN teacher t ON d.id = t.department_id
-      LEFT JOIN batch b ON p.id = b.program_id
-      LEFT JOIN student s ON b.Id = s.batch_id
-      LEFT JOIN subject sub ON p.id = sub.program_id
-      LEFT JOIN staff st ON d.staff_id = st.Id
-      GROUP BY d.id
-      ORDER BY d.department_name
-    `;
-    
-    const [rows] = await pool.query(query);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Admission Report
-exports.getAdmissionReport = async (req, res, next) => {
-  try {
-    const { department_id, admission_year, program_id, batch_id } = req.query;
-    
-    let query = `
-      SELECT 
-        d.department_name,
-        p.name as program_name,
-        b.batch_code,
-        a.admission_year,
-        a.start_date,
-        a.end_date,
-        COUNT(s.id) as total_admitted
-      FROM admission a
-      LEFT JOIN batch b ON a.id = b.admission_id
-      LEFT JOIN programs p ON b.program_id = p.id
-      LEFT JOIN department d ON p.department_id = d.id
-      LEFT JOIN student s ON b.Id = s.batch_id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    if (department_id) {
-      query += ' AND d.id = ?';
-      params.push(department_id);
-    }
-    if (program_id) {
-      query += ' AND p.id = ?';
-      params.push(program_id);
-    }
-    if (batch_id) {
-      query += ' AND b.Id = ?';
-      params.push(batch_id);
-    }
-    if (admission_year) {
-      query += ' AND a.admission_year = ?';
-      params.push(admission_year);
-    }
-    
-    query += ' GROUP BY a.id, p.id ORDER BY a.admission_year DESC, p.name';
-    
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// ==================== FINANCIAL REPORTS ====================
-
-// Fee Collection Report
-exports.getFeeCollectionReport = async (req, res, next) => {
-  try {
-    const { department_id, program_id, batch_id, start_date, end_date } = req.query;
-    
-    let query = `
-      SELECT 
-        d.department_name,
-        p.name as program_name,
-        b.batch_code,
-        s.student_code,
-        s.std_eng_name as eng_name,
-        s.std_khmer_name as khmer_name,
-        f.amount,
-        f.pay_date as payment_date,
-        f.payment_method,
-        f.description,
-        st.eng_name as processed_by
-      FROM fee_payment f
-      JOIN student s ON f.student_id = s.id
-      LEFT JOIN batch b ON s.batch_id = b.Id
-      LEFT JOIN programs p ON b.program_id = p.id
-      LEFT JOIN department d ON p.department_id = d.id
-      LEFT JOIN staff st ON f.make_by = st.Id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    if (department_id) {
-      query += ' AND d.id = ?';
-      params.push(department_id);
-    }
-    if (program_id) {
-      query += ' AND p.id = ?';
-      params.push(program_id);
-    }
-    if (batch_id) {
-      query += ' AND b.Id = ?';
-      params.push(batch_id);
-    }
-    if (start_date) {
-      query += ' AND f.pay_date >= ?';
-      params.push(start_date);
-    }
-    if (end_date) {
-      query += ' AND f.pay_date <= ?';
-      params.push(end_date);
-    }
-    
-    query += ' ORDER BY f.pay_date DESC';
-    
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Outstanding Fees Report
-exports.getOutstandingFeesReport = async (req, res, next) => {
+// Student Promotion Report - Track student progression
+exports.getStudentPromotionReport = async (req, res, next) => {
   try {
     const { department_id, program_id, batch_id } = req.query;
     
     let query = `
       SELECT 
-        d.department_name,
-        p.name as program_name,
-        b.batch_code,
         s.student_code,
-        s.std_eng_name as eng_name,
-        s.std_khmer_name as khmer_name,
-        COALESCE(SUM(f.amount), 0) as total_paid,
-        COUNT(f.id) as payment_count,
-        COALESCE(MAX(f.pay_date), 'No payments') as last_payment_date
-      FROM student s
-      LEFT JOIN batch b ON s.batch_id = b.Id
-      LEFT JOIN programs p ON b.program_id = p.id
-      LEFT JOIN department d ON p.department_id = d.id
-      LEFT JOIN fee_payment f ON s.id = f.student_id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    if (department_id) {
-      query += ' AND d.id = ?';
-      params.push(department_id);
-    }
-    if (program_id) {
-      query += ' AND p.id = ?';
-      params.push(program_id);
-    }
-    if (batch_id) {
-      query += ' AND b.Id = ?';
-      params.push(batch_id);
-    }
-    
-    query += ' GROUP BY s.id ORDER BY total_paid ASC';
-    
-    const [rows] = await pool.query(query, params);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// ==================== ANALYTICS REPORTS ====================
-
-// Student Demographics Report
-exports.getStudentDemographicsReport = async (req, res, next) => {
-  try {
-    const { department_id, program_id, batch_id } = req.query;
-    
-    let whereClause = '';
-    const params = [];
-    
-    if (department_id || program_id || batch_id) {
-      const conditions = [];
-      if (department_id) {
-        conditions.push('d.id = ?');
-        params.push(department_id);
-      }
-      if (program_id) {
-        conditions.push('p.id = ?');
-        params.push(program_id);
-      }
-      if (batch_id) {
-        conditions.push('b.Id = ?');
-        params.push(batch_id);
-      }
-      whereClause = ' WHERE ' + conditions.join(' AND ');
-    }
-    
-    const query = `
-      SELECT 
-        'Gender Distribution' as category,
-        s.gender as subcategory,
-        COUNT(*) as count
-      FROM student s
-      LEFT JOIN batch b ON s.batch_id = b.Id
-      LEFT JOIN programs p ON b.program_id = p.id
-      LEFT JOIN department d ON p.department_id = d.id
-      ${whereClause}
-      GROUP BY s.gender
-      
-      UNION ALL
-      
-      SELECT 
-        'By Province' as category,
-        pr.name as subcategory,
-        COUNT(*) as count
-      FROM student s
-      LEFT JOIN provinces pr ON s.province_no = pr.no
-      LEFT JOIN batch b ON s.batch_id = b.Id
-      LEFT JOIN programs p ON b.program_id = p.id
-      LEFT JOIN department d ON p.department_id = d.id
-      ${whereClause}
-      GROUP BY pr.name
-      
-      UNION ALL
-      
-      SELECT 
-        'By Program' as category,
-        p.name as subcategory,
-        COUNT(*) as count
-      FROM student s
-      LEFT JOIN batch b ON s.batch_id = b.Id
-      LEFT JOIN programs p ON b.program_id = p.id
-      LEFT JOIN department d ON p.department_id = d.id
-      ${whereClause}
-      GROUP BY p.name
-      
-      ORDER BY category, count DESC
-    `;
-    
-    const allParams = [...params, ...params, ...params];
-    const [rows] = await pool.query(query, allParams);
-    res.json(rows);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Pass/Fail Rate Report
-exports.getPassFailRateReport = async (req, res, next) => {
-  try {
-    const { department_id, program_id, batch_id, subject_id, academic_year } = req.query;
-    
-    let query = `
-      SELECT 
+        s.std_eng_name as name,
         d.department_name,
         p.name as program_name,
         b.batch_code,
-        sub.subject_name,
         b.academic_year,
-        gt.grade_type,
-        COUNT(*) as total_students,
-        COUNT(CASE WHEN g.score >= 50 THEN 1 END) as passed,
-        COUNT(CASE WHEN g.score < 50 THEN 1 END) as failed,
-        ROUND((COUNT(CASE WHEN g.score >= 50 THEN 1 END) * 100.0 / COUNT(*)), 2) as pass_rate,
-        ROUND(AVG(g.score), 2) as average_score
+        COUNT(DISTINCT se.semester) as completed_semesters,
+        ROUND(AVG(g.score), 2) as average_score,
+        COUNT(DISTINCT se.subject_id) as subjects_taken,
+        CASE 
+          WHEN COUNT(DISTINCT se.semester) >= 8 THEN 'Ready for Graduation'
+          WHEN COUNT(DISTINCT se.semester) >= 4 THEN 'Mid-Program'
+          ELSE 'Early Stage'
+        END as promotion_status
+      FROM student s
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      LEFT JOIN subject_enrollment se ON b.Id = se.batch_id
+      LEFT JOIN grade g ON se.id = g.subject_enroll_id AND g.student_id = s.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (department_id) {
+      query += ' AND d.id = ?';
+      params.push(department_id);
+    }
+    if (program_id) {
+      query += ' AND p.id = ?';
+      params.push(program_id);
+    }
+    if (batch_id) {
+      query += ' AND b.Id = ?';
+      params.push(batch_id);
+    }
+    
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Student Promotion Report Error:', err.message);
+    console.error('Query params:', req.query);
+    next(err);
+  }
+};
+
+// Student Status Report - Filter by student status
+exports.getStudentStatusReport = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    
+    let query = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name as khmer_name,
+        s.std_eng_name as english_name,
+        CASE 
+          WHEN s.gender = 1 OR s.gender = '1' OR LOWER(s.gender) = 'male' THEN 'Male'
+          WHEN s.gender = 0 OR s.gender = '0' OR LOWER(s.gender) = 'female' THEN 'Female'
+          ELSE COALESCE(s.gender, 'N/A')
+        END as gender,
+        DATE_FORMAT(s.dob, '%d/%m/%Y') as dob,
+        COALESCE(s.phone, 'N/A') as phone,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COALESCE(b.academic_year, 'N/A') as academic_year,
+        COALESCE(ss.std_status, 'N/A') as status
+      FROM student s
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      LEFT JOIN student_status ss ON s.std_status_id = ss.Id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (status) {
+      query += ' AND ss.std_status = ?';
+      params.push(status);
+    }
+    
+    query += ' ORDER BY ss.std_status, d.department_name, s.std_eng_name';
+    
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Student Status Report Error:', err.message);
+    console.error('Query params:', req.query);
+    next(err);
+  }
+};
+
+// ==================== ACADEMIC REPORTS ====================
+
+// Grade Report - Student grades by subject and semester (with pivoted grade types)
+exports.getGradeReport = async (req, res, next) => {
+  try {
+    const { department_id, program_id, batch_id, subject_id } = req.query;
+    
+    let query = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name as khmer_name,
+        s.std_eng_name as english_name,
+        CASE 
+          WHEN s.gender = 'M' OR s.gender = '1' OR s.gender = 1 THEN 'Male'
+          WHEN s.gender = 'F' OR s.gender = '0' OR s.gender = 0 THEN 'Female'
+          ELSE s.gender
+        END as gender,
+        COALESCE(subj.subject_name, 'N/A') as subject,
+        COALESCE(se.semester, 'N/A') as semester,
+        COALESCE(gt.grade_type, 'N/A') as grade_type,
+        COALESCE(g.score, 0) as score,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COALESCE(b.academic_year, 'N/A') as academic_year
       FROM grade g
-      JOIN subject_enrollment se ON g.subject_enroll_id = se.id
-      JOIN subject sub ON se.subject_id = sub.id
-      JOIN programs p ON se.program_id = p.id
-      JOIN department d ON p.department_id = d.id
-      LEFT JOIN batch b ON se.batch_id = b.Id
+      INNER JOIN student s ON g.student_id = s.id
+      LEFT JOIN subject_enrollment se ON g.subject_enroll_id = se.id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
       LEFT JOIN grade_type gt ON g.grade_type_id = gt.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
       WHERE 1=1
     `;
     
@@ -641,7 +324,231 @@ exports.getPassFailRateReport = async (req, res, next) => {
       params.push(batch_id);
     }
     if (subject_id) {
-      query += ' AND sub.id = ?';
+      query += ' AND subj.id = ?';
+      params.push(subject_id);
+    }
+    
+    query += ' ORDER BY d.department_name, b.batch_code, subj.subject_name, se.semester, s.std_eng_name';
+    
+    const [rows] = await pool.query(query, params);
+    
+    // Transform data: pivot grade types into columns
+    const pivotedData = {};
+    
+    rows.forEach(row => {
+      const key = `${row.student_code}-${row.subject}-${row.semester}`;
+      
+      if (!pivotedData[key]) {
+        pivotedData[key] = {
+          student_code: row.student_code,
+          khmer_name: row.khmer_name,
+          english_name: row.english_name,
+          gender: row.gender,
+          subject: row.subject,
+          semester: row.semester,
+          department: row.department,
+          batch_code: row.batch_code,
+          academic_year: row.academic_year
+        };
+      }
+      
+      // Add score for this grade type
+      pivotedData[key][row.grade_type] = row.score;
+    });
+    
+    const result = Object.values(pivotedData);
+    res.json(result);
+  } catch (err) {
+    console.error('Grade Report Error:', err.message);
+    next(err);
+  }
+};
+
+// Attendance Report - Student attendance tracking
+exports.getAttendanceReport = async (req, res, next) => {
+  try {
+    const { department_id, program_id, batch_id, subject_id, start_date, end_date } = req.query;
+    
+    let query = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name as khmer_name,
+        s.std_eng_name as english_name,
+        CASE 
+          WHEN s.gender = 1 OR s.gender = '1' OR LOWER(s.gender) = 'male' THEN 'Male'
+          WHEN s.gender = 0 OR s.gender = '0' OR LOWER(s.gender) = 'female' THEN 'Female'
+          ELSE COALESCE(s.gender, 'N/A')
+        END as gender,
+        COALESCE(subj.subject_name, 'N/A') as subject,
+        COALESCE(se.semester, 'N/A') as semester,
+        DATE_FORMAT(a.attendance_date, '%d/%m/%Y') as attendance_date,
+        COALESCE(ast.typs, 'N/A') as attendance_status,
+        COALESCE(a.remake, '-') as remarks,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code
+      FROM attendance a
+      INNER JOIN student s ON a.student_id = s.id
+      LEFT JOIN subject_enrollment se ON a.subject_enroll_id = se.id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN attendance_status_type ast ON a.status_type = ast.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (department_id) {
+      query += ' AND d.id = ?';
+      params.push(department_id);
+    }
+    if (program_id) {
+      query += ' AND p.id = ?';
+      params.push(program_id);
+    }
+    if (batch_id) {
+      query += ' AND b.Id = ?';
+      params.push(batch_id);
+    }
+    if (subject_id) {
+      query += ' AND subj.id = ?';
+      params.push(subject_id);
+    }
+    if (start_date) {
+      query += ' AND a.attendance_date >= ?';
+      params.push(start_date);
+    }
+    if (end_date) {
+      query += ' AND a.attendance_date <= ?';
+      params.push(end_date);
+    }
+    
+    query += ' ORDER BY d.department_name, b.batch_code, a.attendance_date DESC, s.std_eng_name';
+    
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Attendance Report Error:', err.message);
+    next(err);
+  }
+};
+
+// Attendance Summary Report - Count attendance types and calculate rates
+exports.getAttendanceSummaryReport = async (req, res, next) => {
+  try {
+    const { department_id, program_id, batch_id, subject_id, start_date, end_date } = req.query;
+    
+    let query = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name as khmer_name,
+        s.std_eng_name as english_name,
+        CASE 
+          WHEN s.gender = 1 OR s.gender = '1' OR LOWER(s.gender) = 'male' THEN 'Male'
+          WHEN s.gender = 0 OR s.gender = '0' OR LOWER(s.gender) = 'female' THEN 'Female'
+          ELSE COALESCE(s.gender, 'N/A')
+        END as gender,
+        COALESCE(subj.subject_name, 'N/A') as subject,
+        COALESCE(se.semester, 'N/A') as semester,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COUNT(*) as total_sessions,
+        SUM(CASE WHEN LOWER(ast.typs) = 'present' OR LOWER(ast.typs) = 'p' THEN 1 ELSE 0 END) as present_count,
+        SUM(CASE WHEN LOWER(ast.typs) = 'absent' OR LOWER(ast.typs) = 'a' THEN 1 ELSE 0 END) as absent_count,
+        SUM(CASE WHEN LOWER(ast.typs) = 'late' OR LOWER(ast.typs) = 'l' THEN 1 ELSE 0 END) as late_count,
+        SUM(CASE WHEN LOWER(ast.typs) = 'permission' OR LOWER(ast.typs) = 'per' THEN 1 ELSE 0 END) as permission_count,
+        ROUND((SUM(CASE WHEN LOWER(ast.typs) = 'present' OR LOWER(ast.typs) = 'p' THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2) as attendance_rate
+      FROM attendance a
+      INNER JOIN student s ON a.student_id = s.id
+      LEFT JOIN subject_enrollment se ON a.subject_enroll_id = se.id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN attendance_status_type ast ON a.status_type = ast.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (department_id) {
+      query += ' AND d.id = ?';
+      params.push(department_id);
+    }
+    if (program_id) {
+      query += ' AND p.id = ?';
+      params.push(program_id);
+    }
+    if (batch_id) {
+      query += ' AND b.Id = ?';
+      params.push(batch_id);
+    }
+    if (subject_id) {
+      query += ' AND subj.id = ?';
+      params.push(subject_id);
+    }
+    if (start_date) {
+      query += ' AND a.attendance_date >= ?';
+      params.push(start_date);
+    }
+    if (end_date) {
+      query += ' AND a.attendance_date <= ?';
+      params.push(end_date);
+    }
+    
+    query += ' GROUP BY s.id, subj.id, se.semester, d.id, b.Id';
+    query += ' ORDER BY d.department_name, b.batch_code, subj.subject_name, s.std_eng_name';
+    
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Attendance Summary Report Error:', err.message);
+    next(err);
+  }
+};
+
+
+// Class Performance Report - Academic performance statistics
+exports.getClassPerformanceReport = async (req, res, next) => {
+  try {
+    const { department_id, program_id, batch_id, subject_id, academic_year } = req.query;
+    
+    let query = `
+      SELECT 
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COALESCE(b.academic_year, 'N/A') as academic_year,
+        COALESCE(subj.subject_name, 'N/A') as subject,
+        COALESCE(gt.grade_type, 'N/A') as grade_type,
+        COUNT(DISTINCT g.student_id) as total_students,
+        ROUND(AVG(CAST(g.score AS DECIMAL(5,2))), 2) as average_score,
+        MAX(CAST(g.score AS DECIMAL(5,2))) as highest_score,
+        MIN(CAST(g.score AS DECIMAL(5,2))) as lowest_score
+      FROM grade g
+      INNER JOIN student s ON g.student_id = s.id
+      LEFT JOIN subject_enrollment se ON g.subject_enroll_id = se.id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN grade_type gt ON g.grade_type_id = gt.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (department_id) {
+      query += ' AND d.id = ?';
+      params.push(department_id);
+    }
+    if (program_id) {
+      query += ' AND p.id = ?';
+      params.push(program_id);
+    }
+    if (batch_id) {
+      query += ' AND b.Id = ?';
+      params.push(batch_id);
+    }
+    if (subject_id) {
+      query += ' AND subj.id = ?';
       params.push(subject_id);
     }
     if (academic_year) {
@@ -649,11 +556,139 @@ exports.getPassFailRateReport = async (req, res, next) => {
       params.push(academic_year);
     }
     
-    query += ' GROUP BY d.department_name, p.name, b.batch_code, sub.subject_name, b.academic_year, gt.grade_type ORDER BY pass_rate ASC';
+    query += ' GROUP BY d.department_name, b.batch_code, b.academic_year, subj.subject_name, gt.grade_type';
+    query += ' ORDER BY d.department_name, b.batch_code, subj.subject_name, gt.grade_type';
     
     const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
+    console.error('Class Performance Report Error:', err.message);
+    next(err);
+  }
+};
+
+// Subject Enrollment Summary - Student enrollment in subjects
+exports.getSubjectEnrollmentReport = async (req, res, next) => {
+  try {
+    const { department_id, program_id, batch_id, subject_id } = req.query;
+    
+    let query = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name as khmer_name,
+        s.std_eng_name as english_name,
+        COUNT(DISTINCT se.subject_id) as enrolled_subjects_count,
+        GROUP_CONCAT(DISTINCT subj.subject_name ORDER BY subj.subject_name SEPARATOR ', ') as subjects,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code
+      FROM student s
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN subject_enrollment se ON b.Id = se.batch_id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (department_id) {
+      query += ' AND d.id = ?';
+      params.push(department_id);
+    }
+    if (program_id) {
+      query += ' AND p.id = ?';
+      params.push(program_id);
+    }
+    if (batch_id) {
+      query += ' AND b.Id = ?';
+      params.push(batch_id);
+    }
+    if (subject_id) {
+      query += ' AND subj.id = ?';
+      params.push(subject_id);
+    }
+    
+    query += ' GROUP BY s.id, s.student_code, s.std_khmer_name, s.std_eng_name, d.department_name, b.batch_code';
+    query += ' ORDER BY d.department_name, b.batch_code, s.std_eng_name';
+    
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Subject Enrollment Report Error:', err.message);
+    next(err);
+  }
+};
+
+// Fee Report - Student fee payment tracking
+exports.getFeeReport = async (req, res, next) => {
+  try {
+    const { department_id, program_id, batch_id, start_date, end_date, payment_status } = req.query;
+    
+    let query = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name as khmer_name,
+        s.std_eng_name as english_name,
+        CASE 
+          WHEN s.gender = 1 OR s.gender = '1' OR LOWER(s.gender) = 'male' THEN 'Male'
+          WHEN s.gender = 0 OR s.gender = '0' OR LOWER(s.gender) = 'female' THEN 'Female'
+          ELSE COALESCE(s.gender, 'N/A')
+        END as gender,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COALESCE(p.name, 'N/A') as program,
+        COUNT(fp.id) as total_payments,
+        COALESCE(SUM(fp.amount), 0) as total_paid,
+        DATE_FORMAT(MIN(fp.pay_date), '%d/%m/%Y') as first_payment,
+        DATE_FORMAT(MAX(fp.pay_date), '%d/%m/%Y') as last_payment,
+        CASE 
+          WHEN COUNT(fp.id) = 0 THEN 'No Payment'
+          WHEN SUM(fp.amount) < 500 THEN 'Partial'
+          ELSE 'Paid'
+        END as payment_status
+      FROM student s
+      LEFT JOIN fee_payment fp ON s.id = fp.student_id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (department_id) {
+      query += ' AND d.id = ?';
+      params.push(department_id);
+    }
+    if (program_id) {
+      query += ' AND p.id = ?';
+      params.push(program_id);
+    }
+    if (batch_id) {
+      query += ' AND b.Id = ?';
+      params.push(batch_id);
+    }
+    if (start_date) {
+      query += ' AND fp.pay_date >= ?';
+      params.push(start_date);
+    }
+    if (end_date) {
+      query += ' AND fp.pay_date <= ?';
+      params.push(end_date);
+    }
+    
+    query += ' GROUP BY s.id, d.id, b.Id, p.id';
+    
+    if (payment_status) {
+      query += ' HAVING payment_status = ?';
+      params.push(payment_status);
+    }
+    
+    query += ' ORDER BY d.department_name, b.batch_code, s.std_eng_name';
+    
+    const [rows] = await pool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('Fee Report Error:', err.message);
     next(err);
   }
 };

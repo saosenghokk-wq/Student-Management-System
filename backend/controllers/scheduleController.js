@@ -63,6 +63,48 @@ const scheduleController = {
     }
   },
 
+  // Update schedule
+  async updateSchedule(req, res) {
+    try {
+      const { id } = req.params;
+      const { batch_id, semester, image } = req.body;
+      
+      if (!batch_id || !semester) {
+        return res.status(400).json({
+          success: false,
+          error: 'Batch ID and semester are required'
+        });
+      }
+
+      const schedule = await scheduleService.getScheduleById(id);
+      if (!schedule) {
+        return res.status(404).json({
+          success: false,
+          error: 'Schedule not found'
+        });
+      }
+
+      const scheduleData = {
+        batch_id,
+        semester,
+        image: image || schedule.image // Keep existing image if not provided
+      };
+
+      await scheduleService.updateSchedule(id, scheduleData);
+      
+      res.json({
+        success: true,
+        message: 'Schedule updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating schedule:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update schedule'
+      });
+    }
+  },
+
   // Delete schedule
   async deleteSchedule(req, res) {
     try {

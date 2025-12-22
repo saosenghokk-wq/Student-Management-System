@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
@@ -27,17 +27,7 @@ export default function Attendance() {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (selectedEnrollment) {
-      loadClassStudents();
-    }
-  }, [selectedEnrollment, attendanceDate]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       const [enrollmentsRes, statusRes] = await Promise.all([
@@ -53,9 +43,13 @@ export default function Attendance() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const loadClassStudents = async () => {
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  const loadClassStudents = useCallback(async () => {
     if (!selectedEnrollment) return;
     
     try {
@@ -89,10 +83,10 @@ export default function Attendance() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEnrollment, attendanceDate, showError]);
 
   const handleEnrollmentChange = (enrollmentId) => {
-    const enrollment = subjectEnrollments.find(e => e.id == enrollmentId);
+    const enrollment = subjectEnrollments.find(e => e.id === enrollmentId);
     setSelectedEnrollment(enrollment || null);
     setClassStudents([]);
     setStudentAttendance({});
@@ -193,23 +187,14 @@ export default function Attendance() {
     navigate(`/attendance/student/${studentId}?subjectEnrollId=${selectedEnrollment?.id}`);
   };
 
-  const getStatusBadgeClass = (statusName) => {
-    const status = statusName?.toLowerCase();
-    if (status === 'present') return 'badge-success';
-    if (status === 'absent') return 'badge-danger';
-    if (status === 'late') return 'badge-warning';
-    if (status === 'excused') return 'badge-info';
-    return 'badge-secondary';
-  };
-
   const getCurrentStats = () => {
     const stats = {
       total: classStudents.length,
       marked: Object.values(studentAttendance).filter(a => a.status_type).length,
-      present: Object.values(studentAttendance).filter(a => a.status_type == 1).length,
-      absent: Object.values(studentAttendance).filter(a => a.status_type == 2).length,
-      late: Object.values(studentAttendance).filter(a => a.status_type == 3).length,
-      excused: Object.values(studentAttendance).filter(a => a.status_type == 4).length
+      present: Object.values(studentAttendance).filter(a => a.status_type === 1).length,
+      absent: Object.values(studentAttendance).filter(a => a.status_type === 2).length,
+      late: Object.values(studentAttendance).filter(a => a.status_type === 3).length,
+      excused: Object.values(studentAttendance).filter(a => a.status_type === 4).length
     };
     return stats;
   };
@@ -515,10 +500,10 @@ export default function Attendance() {
                         const statusId = studentAttendance[student.id]?.status_type;
                         let rowColor = 'transparent';
                         
-                        if (statusId == 1) rowColor = '#f0fdf4'; // Present - light green
-                        else if (statusId == 2) rowColor = '#fef2f2'; // Absent - light red
-                        else if (statusId == 3) rowColor = '#fefce8'; // Late - light yellow
-                        else if (statusId == 4) rowColor = '#eff6ff'; // Excused - light blue
+                        if (statusId === 1) rowColor = '#f0fdf4'; // Present - light green
+                        else if (statusId === 2) rowColor = '#fef2f2'; // Absent - light red
+                        else if (statusId === 3) rowColor = '#fefce8'; // Late - light yellow
+                        else if (statusId === 4) rowColor = '#eff6ff'; // Excused - light blue
 
                         return (
                           <tr key={student.id} style={{ background: rowColor, transition: 'background 0.2s', borderBottom: '1px solid #f3f4f6' }}>

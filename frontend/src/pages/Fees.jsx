@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import api from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
@@ -74,15 +74,23 @@ export default function Fees() {
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  const loadStudents = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.getAllStudentsForFees(searchTerm);
+      if (response.success) {
+        console.log('Students loaded, sample:', response.data[0]);
+        setStudents(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading students:', error);
+      showError('Failed to load students: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, showError]);
 
-  useEffect(() => {
-    loadStudents();
-  }, [searchTerm, selectedDepartment, selectedBatch]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       const [deptsRes, batchesRes, programsRes] = await Promise.all([
         api.getDepartments(),
@@ -96,22 +104,15 @@ export default function Fees() {
     } catch (error) {
       console.error('Error loading initial data:', error);
     }
-  };
+  }, [loadStudents]);
 
-  const loadStudents = async () => {
-    try {
-      setLoading(true);
-      const response = await api.getAllStudentsForFees(searchTerm);
-      if (response.success) {
-        setStudents(response.data);
-      }
-    } catch (error) {
-      console.error('Error loading students:', error);
-      showError('Failed to load students: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  useEffect(() => {
+    loadStudents();
+  }, [loadStudents]);
 
   // Filter batches by department through programs (same logic as Students and GenerateCard pages)
   const filteredBatches = selectedDepartment
@@ -602,8 +603,8 @@ export default function Fees() {
                 }}>{(() => {
                   // Client-side filtering (same as Students page)
                   const filtered = students.filter(student => {
-                    const matchesDepartment = !selectedDepartment || student.department_id == selectedDepartment;
-                    const matchesBatch = !selectedBatch || student.batch_id == selectedBatch;
+                    const matchesDepartment = !selectedDepartment || String(student.department_id) === String(selectedDepartment);
+                    const matchesBatch = !selectedBatch || String(student.batch_id) === String(selectedBatch);
                     return matchesDepartment && matchesBatch;
                   });
                   return filtered.length;
@@ -635,6 +636,7 @@ export default function Fees() {
                       <th style={{ padding: '18px 16px', textAlign: 'left', fontWeight: '700', fontSize: '0.95rem' }}>Gender</th>
                       <th style={{ padding: '18px 16px', textAlign: 'left', fontWeight: '700', fontSize: '0.95rem' }}>Batch</th>
                       <th style={{ padding: '18px 16px', textAlign: 'left', fontWeight: '700', fontSize: '0.95rem' }}>Department</th>
+                      <th style={{ padding: '18px 16px', textAlign: 'left', fontWeight: '700', fontSize: '0.95rem' }}>Scholarship</th>
                       <th style={{ padding: '18px 16px', textAlign: 'left', fontWeight: '700', fontSize: '0.95rem' }}>Phone</th>
                       <th style={{ padding: '18px 16px', textAlign: 'center', fontWeight: '700', fontSize: '0.95rem' }}>Action</th>
                     </tr>
@@ -643,8 +645,8 @@ export default function Fees() {
                     {(() => {
                       // Client-side filtering (same as Students page)
                       const filtered = students.filter(student => {
-                        const matchesDepartment = !selectedDepartment || student.department_id == selectedDepartment;
-                        const matchesBatch = !selectedBatch || student.batch_id == selectedBatch;
+                        const matchesDepartment = !selectedDepartment || String(student.department_id) === String(selectedDepartment);
+                        const matchesBatch = !selectedBatch || String(student.batch_id) === String(selectedBatch);
                         return matchesDepartment && matchesBatch;
                       });
                       return filtered
@@ -695,6 +697,9 @@ export default function Fees() {
                       </td>
                       <td style={{ padding: '16px', color: '#6b7280' }}>
                         {student.department_name || 'N/A'}
+                      </td>
+                      <td style={{ padding: '16px', color: '#6b7280' }}>
+                        {student.scholarship_name || 'None'}
                       </td>
                       <td style={{ padding: '16px', color: '#6b7280' }}>
                         {student.phone || 'N/A'}
@@ -774,8 +779,8 @@ export default function Fees() {
               <div style={{ fontSize: '0.9rem', color: '#6b7280', fontWeight: '500' }}>
                 {(() => {
                   const filtered = students.filter(student => {
-                    const matchesDepartment = !selectedDepartment || student.department_id == selectedDepartment;
-                    const matchesBatch = !selectedBatch || student.batch_id == selectedBatch;
+                    const matchesDepartment = !selectedDepartment || String(student.department_id) === String(selectedDepartment);
+                    const matchesBatch = !selectedBatch || String(student.batch_id) === String(selectedBatch);
                     return matchesDepartment && matchesBatch;
                   });
                   return `Showing ${((currentPage - 1) * entriesPerPage) + 1} to ${Math.min(currentPage * entriesPerPage, filtered.length)} of ${filtered.length} entries`;
@@ -975,7 +980,6 @@ export default function Fees() {
             <form onSubmit={handleSubmitPayment}>
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ 
-                  display: 'block', 
                   marginBottom: '10px', 
                   fontWeight: '700', 
                   color: '#1f2937',
@@ -1018,7 +1022,6 @@ export default function Fees() {
 
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ 
-                  display: 'block', 
                   marginBottom: '10px', 
                   fontWeight: '700', 
                   color: '#1f2937',
@@ -1066,7 +1069,6 @@ export default function Fees() {
 
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ 
-                  display: 'block', 
                   marginBottom: '10px', 
                   fontWeight: '700', 
                   color: '#1f2937',
@@ -1106,7 +1108,6 @@ export default function Fees() {
 
               <div style={{ marginBottom: '28px' }}>
                 <label style={{ 
-                  display: 'block', 
                   marginBottom: '10px', 
                   fontWeight: '700', 
                   color: '#1f2937',
@@ -1309,7 +1310,8 @@ export default function Fees() {
                 <br/>
                 <span style={{ fontSize: '0.9rem' }}>
                   🎓 Batch: <strong>{selectedStudent?.batch_name || 'N/A'}</strong> | 
-                  🏢 Department: <strong>{selectedStudent?.department_name || 'N/A'}</strong>
+                  🏢 Department: <strong>{selectedStudent?.department_name || 'N/A'}</strong> |
+                  🎖️ Scholarship: <strong>{selectedStudent?.scholarship_name || 'None'}</strong>
                 </span>
               </p>
             </div>

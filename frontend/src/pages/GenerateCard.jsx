@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 import html2canvas from 'html2canvas';
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, HeadingLevel, ImageRun, BorderStyle } from 'docx';
-import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import '../styles/table.css';
 
@@ -15,7 +13,7 @@ export default function GenerateCard() {
   const [departments, setDepartments] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [generationMode, setGenerationMode] = useState('all'); // 'all', 'batch', 'select'
+  const [generationMode] = useState('all'); // 'all', 'batch', 'select'
   const [selectedBatch, setSelectedBatch] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -24,7 +22,7 @@ export default function GenerateCard() {
   const [previewStudents, setPreviewStudents] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [paperSize, setPaperSize] = useState('a4');
+  const [paperSize] = useState('a4');
 
   // Generate filename for exports
   const generateFileName = (exportType) => {
@@ -49,16 +47,7 @@ export default function GenerateCard() {
     return fileName;
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // Reset batch selection when department changes
-  useEffect(() => {
-    setSelectedBatch('');
-  }, [selectedDepartment]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [studentsData, batchesData, departmentsData, programsData] = await Promise.all([
@@ -67,9 +56,8 @@ export default function GenerateCard() {
         api.getDepartments(),
         api.getPrograms()
       ]);
-      console.log('Students data sample:', studentsData?.[0]);
-      console.log('Batches data sample:', batchesData?.[0]);
-      console.log('Programs data sample:', programsData?.[0]);
+      console.log('Sample batch data:', batchesData?.[0]);
+      console.log('Sample student data:', studentsData?.[0]);
       setStudents(studentsData || []);
       setBatches(batchesData || []);
       setDepartments(departmentsData || []);
@@ -80,7 +68,16 @@ export default function GenerateCard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Reset batch selection when department changes
+  useEffect(() => {
+    setSelectedBatch('');
+  }, [selectedDepartment]);
 
   // Filter batches by department through programs (same logic as Students page)
   // Relationship: Department → Programs (program.department_id) → Batches (batch.program_id)
@@ -100,8 +97,19 @@ export default function GenerateCard() {
         return [];
       })()
     : batches;
-  
-  console.log('Dept:', selectedDepartment, 'Total batches:', batches.length, 'Filtered batches:', filteredBatches.length, 'Programs:', programs.length);
+
+  // Debug logging
+  if (selectedBatch && students.length > 0) {
+    console.log('=== BATCH FILTER DEBUG ===');
+    console.log('Selected Batch:', selectedBatch, 'Type:', typeof selectedBatch);
+    console.log('Sample student batch_id:', students[0]?.batch_id, 'Type:', typeof students[0]?.batch_id);
+    console.log('Batches:', batches.map(b => ({ id: b.batch_id, code: b.batch_code })));
+    console.log('Students with batch_id:', students.slice(0, 3).map(s => ({ 
+      name: s.std_eng_name, 
+      batch_id: s.batch_id,
+      type: typeof s.batch_id 
+    })));
+  }
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = searchQuery === '' || 
@@ -109,8 +117,8 @@ export default function GenerateCard() {
       student.std_khmer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.std_id?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDepartment = !selectedDepartment || student.department_id == selectedDepartment;
-    const matchesBatch = !selectedBatch || student.batch_id == selectedBatch;
+    const matchesDepartment = !selectedDepartment || String(student.department_id) === String(selectedDepartment);
+    const matchesBatch = !selectedBatch || String(student.batch_id) === String(selectedBatch);
     
     return matchesSearch && matchesDepartment && matchesBatch;
   });
@@ -252,68 +260,6 @@ export default function GenerateCard() {
       showError(`Failed to export PDF: ${error.message || 'Unknown error'}`);
     }
   };
-
-  const handleExportImages = async (format = 'jpg') => {
-    if (!previewStudents || previewStudents.length === 0) {
-      showError('No cards to export');
-      return;
-    }
-
-    try {
-      const formatUpper = format.toUpperCase();
-      showSuccess(`Generating ${formatUpper} images...`);
-      
-      const cardElements = document.querySelectorAll('.student-card-export');
-      
-      if (cardElements.length === 0) {
-        showError('No card elements found');
-        return;
-      }
-
-      for (let i = 0; i < cardElements.length; i++) {
-        const cardElement = cardElements[i];
-        
-        // Using 3x scale for high quality output
-        const canvas = await html2canvas(cardElement, {
-          scale: 3,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#fef3e8',
-          logging: false,
-          windowWidth: 300,
-          windowHeight: 480
-        });
-        
-        // Convert to selected format and download
-        const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-        const quality = format === 'png' ? undefined : 0.95;
-        
-        canvas.toBlob((blob) => {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          const student = previewStudents[i];
-          const fileName = `card_${student?.student_code || i + 1}.${format}`;
-          link.href = url;
-          link.download = fileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }, mimeType, quality);
-        
-        // Small delay between downloads
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      showSuccess(`${cardElements.length} cards exported as ${formatUpper}`);
-    } catch (error) {
-      console.error(`Error exporting ${format.toUpperCase()}:`, error);
-      showError(`Failed to export cards as ${format.toUpperCase()}`);
-    }
-  };
-
-  const handleExportJPG = () => handleExportImages('jpg');
-  const handleExportPNG = () => handleExportImages('png');
 
   // Card Component to avoid duplication
   const StudentCard = ({ student }) => {
@@ -518,158 +464,6 @@ export default function GenerateCard() {
       </div>
     );
   };
-
-  const handleExportWord = async () => {
-    if (!previewStudents || previewStudents.length === 0) {
-      showError('No cards to export');
-      return;
-    }
-
-    try {
-      showSuccess('Generating Word document...');
-      
-      // Wait for DOM to be ready
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const cardElements = document.querySelectorAll('.student-card-export');
-      console.log('Found card elements for Word:', cardElements.length);
-      
-      if (cardElements.length === 0) {
-        showError('No card elements found. Please ensure cards are displayed.');
-        return;
-      }
-
-      // Capture all cards as images first
-      const cardImages = [];
-      for (let i = 0; i < cardElements.length; i++) {
-        const cardElement = cardElements[i];
-        const canvas = await html2canvas(cardElement, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#fef3e8',
-          logging: false,
-          windowWidth: 300,
-          windowHeight: 480
-        });
-        
-        const imageBlob = await new Promise(resolve => {
-          canvas.toBlob(resolve, 'image/png');
-        });
-        
-        cardImages.push(await imageBlob.arrayBuffer());
-      }
-
-      // Create Word document with cards in table layout (2 rows x 3 columns per page)
-      const rows = [];
-      const cardsPerPage = 6;
-      const numPages = Math.ceil(previewStudents.length / cardsPerPage);
-      
-      for (let page = 0; page < numPages; page++) {
-        const pageStart = page * cardsPerPage;
-        
-        // Row 1: Cards 0, 1, 2
-        const row1Cells = [];
-        for (let col = 0; col < 3; col++) {
-          const cardIndex = pageStart + col;
-          if (cardIndex < previewStudents.length && cardImages[cardIndex]) {
-            row1Cells.push(
-              new TableCell({
-                children: [
-                  new Paragraph({
-                    children: [
-                      new ImageRun({
-                        data: cardImages[cardIndex],
-                        transformation: {
-                          width: 354,
-                          height: 369
-                        }
-                      })
-                    ],
-                    alignment: AlignmentType.CENTER
-                  })
-                ],
-                width: { size: 33, type: WidthType.PERCENTAGE },
-                margins: { top: 50, bottom: 50, left: 50, right: 50 }
-              })
-            );
-          } else {
-            row1Cells.push(new TableCell({ children: [new Paragraph('')], width: { size: 33, type: WidthType.PERCENTAGE } }));
-          }
-        }
-        rows.push(new TableRow({ children: row1Cells, height: { value: 369, rule: 'atLeast' } }));
-        
-        // Row 2: Cards 3, 4, 5
-        const row2Cells = [];
-        for (let col = 0; col < 3; col++) {
-          const cardIndex = pageStart + 3 + col;
-          if (cardIndex < previewStudents.length && cardImages[cardIndex]) {
-            row2Cells.push(
-              new TableCell({
-                children: [
-                  new Paragraph({
-                    children: [
-                      new ImageRun({
-                        data: cardImages[cardIndex],
-                        transformation: {
-                          width: 354,
-                          height: 369
-                        }
-                      })
-                    ],
-                    alignment: AlignmentType.CENTER
-                  })
-                ],
-                width: { size: 33, type: WidthType.PERCENTAGE },
-                margins: { top: 50, bottom: 50, left: 50, right: 50 }
-              })
-            );
-          } else {
-            row2Cells.push(new TableCell({ children: [new Paragraph('')], width: { size: 33, type: WidthType.PERCENTAGE } }));
-          }
-        }
-        rows.push(new TableRow({ children: row2Cells, height: { value: 369, rule: 'atLeast' } }));
-      }
-
-      const doc = new Document({
-        sections: [{
-          properties: {
-            page: {
-              margin: { top: 567, right: 567, bottom: 567, left: 567 },
-              size: { orientation: 'landscape', width: 16838, height: 11906 }
-            }
-          },
-          children: [
-            new Table({
-              rows: rows,
-              width: { size: 100, type: WidthType.PERCENTAGE },
-              borders: {
-                top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-                bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-                left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-                right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-                insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-                insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }
-              }
-            })
-          ]
-        }]
-      });
-
-      const blob = await Packer.toBlob(doc);
-      
-      // Save Word document locally with formatted filename
-      const fileName = generateFileName('StudentCards_Word');
-      saveAs(blob, `${fileName}.docx`);
-      
-      showSuccess('Word document saved successfully');
-    } catch (error) {
-      console.error('Error exporting Word:', error);
-      showError('Failed to export cards as Word document');
-    }
-  };
-
-
 
   return (
     <DashboardLayout>
@@ -1072,8 +866,8 @@ export default function GenerateCard() {
               >
                 <option value="">{selectedDepartment ? 'All Batches in Department' : 'All Batches'}</option>
                 {filteredBatches.map(batch => (
-                  <option key={batch.batch_id} value={batch.batch_id}>
-                    {batch.batch_code || batch.batch_name}
+                  <option key={batch.Id || batch.batch_id} value={batch.Id || batch.batch_id}>
+                    {batch.batch_code || batch.batch_name} {batch.academic_year ? `(${batch.academic_year})` : ''}
                   </option>
                 ))}
               </select>
@@ -1203,28 +997,6 @@ export default function GenerateCard() {
                 <h3 style={{ fontSize: '1rem', fontWeight: '600', margin: 0, color: '#1f2937' }}>
                   Card Preview ({previewStudents.length} cards)
                 </h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>
-                    📄 Paper Size:
-                  </label>
-                  <select
-                    value={paperSize}
-                    onChange={(e) => setPaperSize(e.target.value)}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      background: 'white',
-                      cursor: 'pointer',
-                      fontWeight: '500'
-                    }}
-                  >
-                    <option value="a4">A4 (297×210mm)</option>
-                    <option value="letter">Letter (279×216mm)</option>
-                    <option value="a3">A3 (420×297mm)</option>
-                  </select>
-                </div>
               </div>
               <div className="button-group" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <button
@@ -1352,7 +1124,7 @@ export default function GenerateCard() {
                           {student.std_khmer_name}
                         </td>
                         <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
-                          {student.gender == 0 || student.gender === '0' ? 'Male' : student.gender == 1 || student.gender === '1' ? 'Female' : '-'}
+                          {student.gender === 0 || student.gender === '0' ? 'Male' : student.gender === 1 || student.gender === '1' ? 'Female' : '-'}
                         </td>
                         <td style={{ padding: '16px 20px', fontSize: '0.875rem', color: '#4b5563' }}>
                           {student.phone || '-'}
