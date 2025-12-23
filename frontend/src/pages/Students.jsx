@@ -193,7 +193,7 @@ export default function Students() {
 
   const handleProgramChange = async (e) => {
     const programId = e.target.value;
-    setForm({ ...form, program_id: programId, batch_id: '' });
+    setForm({ ...form, program_id: programId, batch_id: '', student_code: '' });
     setBatches([]);
     
     if (programId) {
@@ -205,6 +205,46 @@ export default function Students() {
       } catch (err) {
         console.error('Error loading batches:', err);
       }
+    }
+  };
+
+  const handleBatchChange = async (e) => {
+    const batchId = e.target.value;
+    
+    if (batchId) {
+      try {
+        // Get the selected batch info
+        const selectedBatch = batches.find(b => String(b.Id) === String(batchId) || String(b.id) === String(batchId));
+        
+        if (!selectedBatch) {
+          showError('Batch not found');
+          setForm({ ...form, batch_id: batchId, student_code: '' });
+          return;
+        }
+        
+        // Get students in this batch to count them
+        const studentsInBatch = await api.getStudentsByBatch(batchId);
+        
+        // Handle different response formats
+        let studentCount = 0;
+        if (Array.isArray(studentsInBatch)) {
+          studentCount = studentsInBatch.length;
+        } else if (studentsInBatch && Array.isArray(studentsInBatch.data)) {
+          studentCount = studentsInBatch.data.length;
+        }
+        
+        // Generate student code: batch_code + (count + 1)
+        const nextNumber = studentCount + 1;
+        const newStudentCode = `${selectedBatch.batch_code}${String(nextNumber).padStart(3, '0')}`;
+        
+        setForm({ ...form, batch_id: batchId, student_code: newStudentCode });
+      } catch (err) {
+        console.error('Error generating student code:', err);
+        showError('Failed to generate student code');
+        setForm({ ...form, batch_id: batchId, student_code: '' });
+      }
+    } else {
+      setForm({ ...form, batch_id: '', student_code: '' });
     }
   };
 
@@ -574,7 +614,7 @@ export default function Students() {
                     </div>
                     <div className="form-field">
                       <label className="form-label">Batch</label>
-                      <select name="batch_id" value={form.batch_id} onChange={handleChange} disabled={!form.program_id} className="form-select">
+                      <select name="batch_id" value={form.batch_id} onChange={handleBatchChange} disabled={!form.program_id} className="form-select">
                         <option value="">Select Batch</option>
                         {batches.map(b => <option key={b.Id} value={b.Id}>{b.batch_code} ({b.academic_year})</option>)}
                       </select>

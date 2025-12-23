@@ -379,7 +379,7 @@ export default function AddStudent() {
     if (batchId) {
       try {
         // Get the selected batch info
-        const selectedBatch = batches.find(b => b.Id === batchId);
+        const selectedBatch = batches.find(b => String(b.Id) === String(batchId) || String(b.id) === String(batchId));
         
         if (!selectedBatch) {
           showError('Batch not found');
