@@ -170,7 +170,21 @@ class StaffRepository {
 
   // Delete staff
   async delete(id) {
-    await pool.query('DELETE FROM staff WHERE Id = ?', [id]);
+    // First, get the user_id associated with this staff
+    const [staffRows] = await pool.query('SELECT user_id FROM staff WHERE Id = ?', [id]);
+    
+    if (staffRows.length > 0 && staffRows[0].user_id) {
+      const userId = staffRows[0].user_id;
+      
+      // Delete staff record first
+      await pool.query('DELETE FROM staff WHERE Id = ?', [id]);
+      
+      // Then delete the associated user account
+      await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+    } else {
+      // If no user_id found, just delete the staff record
+      await pool.query('DELETE FROM staff WHERE Id = ?', [id]);
+    }
   }
 }
 
