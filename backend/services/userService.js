@@ -29,6 +29,10 @@ class UserService {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
+    // Add created_at if not provided
+    if (!data.created_at) {
+      data.created_at = new Date();
+    }
     const created = await userRepository.create(data);
     delete created.password;
     return created;
