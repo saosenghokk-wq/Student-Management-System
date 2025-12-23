@@ -109,7 +109,22 @@ class TeacherRepository {
 
   // Delete teacher
   async delete(id) {
-    await pool.query('DELETE FROM teacher WHERE id = ?', [id]);
+    // First, get the user_id associated with this teacher
+    const [teacherRows] = await pool.query('SELECT user_id FROM teacher WHERE id = ?', [id]);
+    
+    if (teacherRows.length > 0 && teacherRows[0].user_id) {
+      const userId = teacherRows[0].user_id;
+      
+      // Delete teacher record first
+      await pool.query('DELETE FROM teacher WHERE id = ?', [id]);
+      
+      // Then delete the associated user account
+      await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+    } else {
+      // If no user_id found, just delete the teacher record
+      await pool.query('DELETE FROM teacher WHERE id = ?', [id]);
+    }
+    
     return true;
   }
 
