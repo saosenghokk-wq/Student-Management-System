@@ -383,8 +383,8 @@ export default function Students() {
       batchCode.toLowerCase().includes(q) ||
       scholarshipName.toLowerCase().includes(q);
     
-    const matchesDepartment = !filterDepartment || student.department_id === filterDepartment;
-    const matchesBatch = !filterBatch || student.batch_id === filterBatch;
+    const matchesDepartment = !filterDepartment || Number(student.department_id) === Number(filterDepartment);
+    const matchesBatch = !filterBatch || Number(student.batch_id) === Number(filterBatch);
     
     return matchesSearch && matchesDepartment && matchesBatch;
   });
