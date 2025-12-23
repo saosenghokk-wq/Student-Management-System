@@ -10,6 +10,7 @@ const Staff = () => {
   const [staff, setStaff] = useState([]);
   // eslint-disable-next-line no-unused-vars
   const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [communes, setCommunes] = useState([]);
@@ -30,6 +31,7 @@ const Staff = () => {
     eng_name: '',
     khmer_name: '',
     phone: '',
+    department_id: '',
     province_no: '',
     district_no: '',
     commune_no: '',
@@ -47,16 +49,19 @@ const Staff = () => {
       const results = await Promise.all([
         api.getAllStaff().catch(err => { console.error('Staff load error:', err); return []; }),
         api.getUsers().catch(err => { console.error('Users load error:', err); return []; }),
+        api.getDepartments().catch(err => { console.error('Departments load error:', err); return []; }),
         api.getProvinces().catch(err => { console.error('Provinces load error:', err); return []; })
       ]);
       
       console.log('Staff loaded:', results[0]);
       console.log('Users loaded:', results[1]);
-      console.log('Provinces loaded:', results[2]);
+      console.log('Departments loaded:', results[2]);
+      console.log('Provinces loaded:', results[3]);
       
       setStaff(results[0] || []);
       setUsers(results[1] || []);
-      setProvinces(results[2] || []);
+      setDepartments(results[2] || []);
+      setProvinces(results[3] || []);
     } catch (err) {
       console.error('Error loading data:', err);
       showError('Failed to load data: ' + err.message);
@@ -95,6 +100,7 @@ const Staff = () => {
       eng_name: staffMember.eng_name || '',
       khmer_name: staffMember.khmer_name || '',
       phone: staffMember.phone || '',
+      department_id: staffMember.department_id || '',
       province_no: staffMember.province_no || '',
       district_no: staffMember.district_no || '',
       commune_no: staffMember.commune_no || '',
@@ -146,6 +152,7 @@ const Staff = () => {
       eng_name: form.eng_name.trim(),
       khmer_name: form.khmer_name.trim(),
       phone: String(form.phone).trim(),
+      department_id: parseInt(form.department_id) || null,
       province_no: parseInt(form.province_no) || 0,
       district_no: parseInt(form.district_no) || 0,
       commune_no: parseInt(form.commune_no) || 0,
@@ -575,6 +582,22 @@ const Staff = () => {
                           onChange={(e) => handleChange('password', e.target.value)}
                           required={!editingId}
                         />
+                      </div>
+                    </div>
+                    
+                    <div className="form-grid" style={{gridTemplateColumns:'1fr'}}>
+                      <div className="form-field">
+                        <label className="form-label">Department</label>
+                        <select
+                          className="form-input"
+                          value={form.department_id}
+                          onChange={(e) => handleChange('department_id', e.target.value)}
+                        >
+                          <option value="">Select Department (Optional)</option>
+                          {departments.map(dept => (
+                            <option key={dept.id} value={dept.id}>{dept.department_name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>

@@ -119,7 +119,7 @@ class StaffRepository {
 
   // Update staff
   async update(id, staffData) {
-    const { eng_name, khmer_name, phone, province_no, district_no, commune_no, village_no, username, email, password } = staffData;
+    const { eng_name, khmer_name, phone, province_no, district_no, commune_no, village_no, username, email, password, department_id } = staffData;
     
     // Update staff table
     await pool.query(
@@ -130,8 +130,8 @@ class StaffRepository {
       [eng_name, khmer_name, phone, province_no, district_no, commune_no, village_no, id]
     );
     
-    // If username, email, or password provided, update users table
-    if (username || email || password) {
+    // If username, email, password, or department_id provided, update users table
+    if (username || email || password || department_id !== undefined) {
       // Get the user_id for this staff member
       const [staffRows] = await pool.query('SELECT user_id FROM staff WHERE Id = ?', [id]);
       if (staffRows.length > 0 && staffRows[0].user_id) {
@@ -151,6 +151,10 @@ class StaffRepository {
           const hashedPassword = await bcrypt.hash(password, 10);
           updates.push('password = ?');
           values.push(hashedPassword);
+        }
+        if (department_id !== undefined) {
+          updates.push('department_id = ?');
+          values.push(department_id);
         }
         
         if (updates.length > 0) {
