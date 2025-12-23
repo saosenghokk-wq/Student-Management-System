@@ -137,8 +137,8 @@ class StudentService {
     console.log('Step 6: Hash password and create user in users table');
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const [userResult] = await pool.query(
-      `INSERT INTO users (username, email, password, role_id, status, created_at) 
-       VALUES (?, ?, ?, 4, '1', NOW())`,
+      `INSERT INTO users (username, email, password, role_id, status, created_at, update_by)
+       VALUES (?, ?, ?, 4, '1', NOW(), 1)`,
       [data.username, data.email, hashedPassword]
     );
     

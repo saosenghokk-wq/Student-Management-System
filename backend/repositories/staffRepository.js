@@ -89,8 +89,8 @@ class StaffRepository {
       
       // Create user account first (role_id 2 = Dean, status 1 = active)
       const [userResult] = await connection.query(
-        `INSERT INTO users (username, email, password, role_id, status, department_id, created_at)
-         VALUES (?, ?, ?, 2, 1, ?, NOW())`,
+        `INSERT INTO users (username, email, password, role_id, status, department_id, created_at, update_by)
+         VALUES (?, ?, ?, 2, 1, ?, NOW(), 1)`,
         [username, email, hashedPassword, department_id || null]
       );
       

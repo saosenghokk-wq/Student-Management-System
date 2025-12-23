@@ -127,7 +127,7 @@ exports.register = async (req, res) => {
       role_id: studentRoleId,
       status: '0', // Inactive by default
       created_at: new Date(),
-      update_by: 0
+      update_by: 1
     };
 
     const [userResult] = await pool.query('INSERT INTO users SET ?', newUser);

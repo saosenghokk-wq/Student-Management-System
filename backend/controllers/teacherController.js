@@ -62,7 +62,7 @@ exports.createTeacher = async (req, res, next) => {
 
     // Create user account with role_id = 3 (Teacher)
     const [userResult] = await pool.query(
-      'INSERT INTO users (username, email, password, role_id, status, created_at) VALUES (?, ?, ?, 3, "1", NOW())',
+      'INSERT INTO users (username, email, password, role_id, status, created_at, update_by) VALUES (?, ?, ?, 3, "1", NOW(), 1)',
       [username, email, hashedPassword]
     );
 

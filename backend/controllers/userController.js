@@ -12,10 +12,11 @@ exports.getUserById = asyncHandler(async (req, res) => {
 });
 
 exports.createUser = asyncHandler(async (req, res) => {
-  // Add create_by field from authenticated user
+  // Add create_by and update_by fields from authenticated user
   const userData = {
     ...req.body,
-    create_by: req.user.id // Get current logged-in user ID from JWT token
+    create_by: req.user.id, // Get current logged-in user ID from JWT token
+    update_by: req.user.id
   };
   const created = await userService.createUser(userData);
   res.status(201).json(created);

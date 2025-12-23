@@ -90,8 +90,8 @@ exports.create = async (req, res, next) => {
     // Step 1: Create user account with role_id=5 (parent role)
     const hashedPassword = await bcrypt.hash(password, 10);
     const [userResult] = await pool.query(
-      `INSERT INTO users (username, email, password, role_id, status, created_at) 
-       VALUES (?, ?, ?, 5, '1', NOW())`,
+      `INSERT INTO users (username, email, password, role_id, status, created_at, update_by)
+       VALUES (?, ?, ?, 5, '1', NOW(), 1)`,
       [username, email, hashedPassword]
     );
 
