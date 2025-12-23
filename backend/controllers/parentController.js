@@ -174,10 +174,19 @@ exports.update = async (req, res, next) => {
 exports.remove = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [exists] = await pool.query('SELECT id FROM parent WHERE id = ?', [id]);
+    const [exists] = await pool.query('SELECT id, user_id FROM parent WHERE id = ?', [id]);
     if (!exists.length) return res.status(404).json({ error: 'Parent not found' });
     
+    const userId = exists[0].user_id;
+    
+    // Delete parent record first
     await pool.query('DELETE FROM parent WHERE id = ?', [id]);
+    
+    // Then delete the associated user account
+    if (userId) {
+      await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+    }
+    
     res.json({ message: 'Parent deleted' });
   } catch (err) {
     next(err);
