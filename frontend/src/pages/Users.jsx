@@ -8,6 +8,7 @@ export default function Users() {
   const { showSuccess, showError, showWarning } = useAlert();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [editUser, setEditUser] = useState(null);
@@ -36,7 +37,7 @@ export default function Users() {
     let mounted = true;
     const load = async () => {
       setLoading(true);
-      setError('');
+      // setError('');
       try {
         const [usersData, rolesData, departmentsData] = await Promise.all([
           api.getUsers(),
@@ -47,12 +48,14 @@ export default function Users() {
           setUsers(usersData);
           setRoles(rolesData || []);
           setDepartments(departmentsData || []);
-          if (rolesData && rolesData.length && !showAdd) {
+          if (rolesData && rolesData.length) {
             setAddForm(prev => ({ ...prev, role_id: String(rolesData[0].id) }));
           }
         }
       } catch (e) {
-        if (mounted) setError(e.message);
+        if (mounted) {
+          setError(e.message);
+        }
       } finally {
         if (mounted) setLoading(false);
       }

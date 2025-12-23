@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
-import { useAlert } from '../contexts/AlertContext';
+// import { useAlert } from '../contexts/AlertContext';
 
 export default function MyGrades() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  // const { showSuccess, showError, showWarning } = useAlert();
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedClass, setSelectedClass] = useState(null);

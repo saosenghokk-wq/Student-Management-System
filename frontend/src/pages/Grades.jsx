@@ -115,15 +115,21 @@ export default function Grades() {
     }
   }, [selectedEnrollment, selectedGradeType, showError]);
 
+  useEffect(() => {
+    if (selectedEnrollment && selectedGradeType) {
+      loadClassStudents();
+    }
+  }, [selectedEnrollment, selectedGradeType, loadClassStudents]);
+
   const handleEnrollmentChange = (enrollmentId) => {
-    const enrollment = subjectEnrollments.find(e => e.id === enrollmentId);
+    const enrollment = subjectEnrollments.find(e => e.id === parseInt(enrollmentId));
     setSelectedEnrollment(enrollment || null);
     setClassStudents([]);
     setStudentGrades({});
   };
 
   const handleGradeTypeChange = (gradeTypeId) => {
-    const gradeType = gradeTypes.find(gt => gt.id === gradeTypeId);
+    const gradeType = gradeTypes.find(gt => gt.id === parseInt(gradeTypeId));
     setSelectedGradeType(gradeType || null);
   };
 

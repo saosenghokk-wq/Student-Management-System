@@ -85,8 +85,14 @@ export default function Attendance() {
     }
   }, [selectedEnrollment, attendanceDate, showError]);
 
+  useEffect(() => {
+    if (selectedEnrollment) {
+      loadClassStudents();
+    }
+  }, [selectedEnrollment, attendanceDate, loadClassStudents]);
+
   const handleEnrollmentChange = (enrollmentId) => {
-    const enrollment = subjectEnrollments.find(e => e.id === enrollmentId);
+    const enrollment = subjectEnrollments.find(e => e.id === parseInt(enrollmentId));
     setSelectedEnrollment(enrollment || null);
     setClassStudents([]);
     setStudentAttendance({});

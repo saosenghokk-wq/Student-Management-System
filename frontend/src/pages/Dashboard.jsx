@@ -15,9 +15,13 @@ export default function Dashboard() {
     totalPrograms: 0,
     totalMajors: 0
   });
+  // eslint-disable-next-line no-unused-vars
   const [recentStudents, setRecentStudents] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [recentActivity, setRecentActivity] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [topDepartments, setTopDepartments] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [monthlyRegistrations, setMonthlyRegistrations] = useState([]);
   const navigate = useNavigate();
 
@@ -38,16 +42,16 @@ export default function Dashboard() {
       setStats(statsResponse.stats);
 
       // Fetch recent students
-      const studentsResponse = await api.getRecentStudents(5);
-      setRecentStudents(studentsResponse.students);
+      // const studentsResponse = await api.getRecentStudents(5);
+      // setRecentStudents(studentsResponse.students);
 
       // Fetch recent activity
-      const activityResponse = await api.getRecentActivity(10);
-      setRecentActivity(activityResponse.activities);
+      // const activityResponse = await api.getRecentActivity(10);
+      // setRecentActivity(activityResponse.activities);
 
       // Fetch top departments
-      const departmentsResponse = await api.getTopDepartments();
-      setTopDepartments(departmentsResponse.departments);
+      // const departmentsResponse = await api.getTopDepartments();
+      // setTopDepartments(departmentsResponse.departments);
 
       // Fetch monthly registrations
       const registrationsResponse = await api.getMonthlyRegistrations();

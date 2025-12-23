@@ -8,6 +8,7 @@ import '../styles/modal.css';
 const Staff = () => {
   const { showSuccess, showError, showWarning } = useAlert();
   const [staff, setStaff] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [users, setUsers] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -37,6 +38,7 @@ const Staff = () => {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadData = async () => {
@@ -63,6 +65,7 @@ const Staff = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleAdd = () => {
     setEditingId(null);
     setForm({
@@ -258,6 +261,7 @@ const Staff = () => {
     );
   });
 
+  // eslint-disable-next-line no-unused-vars
   const clearSearch = () => {
     setSearchQuery('');
   };

@@ -66,7 +66,7 @@ export default function ParentStudentFees() {
     }).format(amount);
   };
 
-  const balance = stats.total_payments - stats.total_paid;
+  // const balance = stats.total_payments - stats.total_paid;
 
   if (loading) {
     return (

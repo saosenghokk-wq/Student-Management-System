@@ -66,7 +66,8 @@ function AttendanceDetail() {
 
   useEffect(() => {
     loadStudentAttendance();
-  }, [studentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentId, subjectEnrollId]);
 
   const loadStudentAttendance = async () => {
     try {
@@ -127,38 +128,38 @@ function AttendanceDetail() {
     setStats(stats);
   };
 
-  const getStatusBadgeClass = (statusName) => {
-    switch(statusName) {
-      case 'Present': return 'badge-success';
-      case 'Absent': return 'badge-danger';
-      case 'Late': return 'badge-warning';
-      case 'Excused': return 'badge-info';
-      default: return 'badge-secondary';
-    }
-  };
+  // const getStatusBadgeClass = (statusName) => {
+  //   switch(statusName) {
+  //     case 'Present': return 'badge-success';
+  //     case 'Absent': return 'badge-danger';
+  //     case 'Late': return 'badge-warning';
+  //     case 'Excused': return 'badge-info';
+  //     default: return 'badge-secondary';
+  //   }
+  // };
 
-  const exportToCSV = () => {
-    const headers = ['Date', 'Status', 'Remark', 'Modified By', 'Modified Date'];
-    const rows = attendanceRecords.map(record => [
-      new Date(record.attendance_date).toLocaleDateString(),
-      record.status_name,
-      record.remake || '',
-      record.modified_by_name || '',
-      record.marked_at ? new Date(record.marked_at).toLocaleString() : ''
-    ]);
+  // const exportToCSV = () => {
+  //   const headers = ['Date', 'Status', 'Remark', 'Modified By', 'Modified Date'];
+  //   const rows = attendanceRecords.map(record => [
+  //     new Date(record.attendance_date).toLocaleDateString(),
+  //     record.status_name,
+  //     record.remake || '',
+  //     record.modified_by_name || '',
+  //     record.marked_at ? new Date(record.marked_at).toLocaleString() : ''
+  //   ]);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+  //   const csvContent = [
+  //     headers.join(','),
+  //     ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  //   ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${studentInfo?.code}_attendance_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-  };
+  //   const blob = new Blob([csvContent], { type: 'text/csv' });
+  //   const url = window.URL.createObjectURL(blob);
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = `${studentInfo?.code}_attendance_${new Date().toISOString().split('T')[0]}.csv`;
+  //   a.click();
+  // };
 
   if (loading) {
     return (

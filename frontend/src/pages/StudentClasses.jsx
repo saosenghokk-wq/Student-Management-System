@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
-import { useAlert } from '../contexts/AlertContext';
+// import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function StudentClasses() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  // const { showSuccess, showError, showWarning } = useAlert();
   const { studentId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -19,6 +19,7 @@ export default function StudentClasses() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
   const loadData = async () => {

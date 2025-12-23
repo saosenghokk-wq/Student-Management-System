@@ -6,9 +6,9 @@ import '../styles/table.css';
 import '../styles/modal.css';
 
 export default function Batches() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess, showError } = useAlert();
   const [batches, setBatches] = useState([]);
-  const [user, setUser] = useState(() => {
+  const [user] = useState(() => {
     const u = localStorage.getItem('user') || sessionStorage.getItem('user');
     return u ? JSON.parse(u) : null;
   });
@@ -27,12 +27,13 @@ export default function Batches() {
   });
 
   // Permission check: only admin (role_id 1) and dean (role_id 2) can view
-  let forbidden = !user || (user.role_id !== 1 && user.role_id !== 2);
+  // let forbidden = !user || (user.role_id !== 1 && user.role_id !== 2);
   // ...existing code...
   // Place permission check and return here, just before main return
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadData = async () => {

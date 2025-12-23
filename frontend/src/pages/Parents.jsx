@@ -5,10 +5,11 @@ import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function Parents() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess } = useAlert();
   // State declarations
   const [parents, setParents] = useState([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);

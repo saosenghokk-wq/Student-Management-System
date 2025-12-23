@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { api } from '../api/api';
-import { useAlert } from '../contexts/AlertContext';
+// import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function ParentGrades() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  // const { showSuccess, showError, showWarning } = useAlert();
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
   const [user, setUser] = useState(null);
   const [children, setChildren] = useState([]);
   const [error, setError] = useState('');

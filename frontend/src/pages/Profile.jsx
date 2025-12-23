@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
 import DashboardLayout from '../components/DashboardLayout';
-import { useAlert } from '../contexts/AlertContext';
+// import { useAlert } from '../contexts/AlertContext';
 import '../styles/profile.css';
 
 export default function Profile() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  // const { showSuccess, showError, showWarning } = useAlert();
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',

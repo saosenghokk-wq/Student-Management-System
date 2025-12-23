@@ -5,13 +5,14 @@ import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 
 export default function SubjectEnrollment() {
-  const { showSuccess, showError, showWarning } = useAlert();
+  const { showSuccess } = useAlert();
   const [enrollments, setEnrollments] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [batches, setBatches] = useState([]);
   const [statuses, setStatuses] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
