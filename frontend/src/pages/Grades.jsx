@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import { api } from '../api/api';
+import { api, API_BASE } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 import '../styles/table.css';
 import '../styles/modal.css';
@@ -45,7 +45,7 @@ export default function Grades() {
       
       // Then load grade types
       console.log('Loading grade types...');
-      const response = await fetch('http://localhost:5000/api/grades/types', {
+      const response = await fetch(`${API_BASE}/api/grades/types`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -88,7 +88,7 @@ export default function Grades() {
       
       // Load existing grades for this class and grade type
       const gradesRes = await fetch(
-        `http://localhost:5000/api/grades/class/${selectedEnrollment.id}?gradeTypeId=${selectedGradeType.id}`,
+        `${API_BASE}/api/grades/class/${selectedEnrollment.id}?gradeTypeId=${selectedGradeType.id}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       const gradesData = await gradesRes.json();
@@ -182,7 +182,7 @@ export default function Grades() {
 
     try {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/grades/bulk', {
+      const response = await fetch(`${API_BASE}/api/grades/bulk`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,7 +212,7 @@ export default function Grades() {
       const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       
       const response = await fetch(
-        `http://localhost:5000/api/grades/class/${selectedEnrollment.id}`,
+        `${API_BASE}/api/grades/class/${selectedEnrollment.id}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       const result = await response.json();

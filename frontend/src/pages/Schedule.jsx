@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import { api } from '../api/api';
+import { api, API_BASE } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 
 export default function Schedule() {
@@ -26,7 +26,7 @@ export default function Schedule() {
     try {
       setLoading(true);
       const [schedulesRes, batchesRes] = await Promise.all([
-        fetch('http://localhost:5000/api/schedules', {
+        fetch(`${API_BASE}/api/schedules`, {
           headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}` }
         }),
         api.getAllBatches()
@@ -88,7 +88,7 @@ export default function Schedule() {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:5000/api/schedules', {
+      const response = await fetch(`${API_BASE}/api/schedules`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
@@ -125,7 +125,7 @@ export default function Schedule() {
     }
     
     try {
-      const response = await fetch(`http://localhost:5000/api/schedules/${id}`, {
+      const response = await fetch(`${API_BASE}/api/schedules/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
@@ -167,7 +167,7 @@ export default function Schedule() {
     setError('');
     
     try {
-      const response = await fetch(`http://localhost:5000/api/schedules/${editingSchedule.id}`, {
+      const response = await fetch(`${API_BASE}/api/schedules/${editingSchedule.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,

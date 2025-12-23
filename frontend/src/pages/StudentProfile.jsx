@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
-import api from '../api/api';
+import api, { API_BASE } from '../api/api';
 import { useAlert } from '../contexts/AlertContext';
 import '../styles/modal.css';
 
@@ -196,7 +196,7 @@ function StudentProfile() {
       // If department changed, record in department_change table
       if (oldDepartmentId && newDepartmentId && oldDepartmentId !== newDepartmentId) {
         const token = localStorage.getItem('token');
-        await fetch('http://localhost:5000/api/department-changes', {
+        await fetch(`${API_BASE}/api/department-changes`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -425,7 +425,7 @@ function StudentProfile() {
       const compressedBase64 = await compressImage(file, 800, 800, 0.8);
 
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/students/${id}/upload-image`, {
+      const res = await fetch(`${API_BASE}/api/students/${id}/upload-image`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1566,7 +1566,7 @@ function EditStudentModal({ student, onClose, onSuccess }) {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/students/${student.id}`, {
+      const res = await fetch(`${API_BASE}/api/students/${student.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

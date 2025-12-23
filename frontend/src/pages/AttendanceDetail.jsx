@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
+import { API_BASE } from '../api/api';
 import '../styles/table.css';
 
 // Direct fetch function for this page
 const fetchStudentAttendance = async (studentId, subjectEnrollId = null) => {
   try {
     const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-    let url = `http://localhost:5000/api/attendance/student/${studentId}`;
+    let url = `${API_BASE}/api/attendance/student/${studentId}`;
     if (subjectEnrollId) {
       url += `?subjectEnrollId=${subjectEnrollId}`;
     }
@@ -37,7 +38,7 @@ const fetchStudentAttendance = async (studentId, subjectEnrollId = null) => {
   } catch (error) {
     console.error('Fetch error:', error);
     if (error.message.includes('Failed to fetch')) {
-      throw new Error('Cannot connect to server. Is the backend running on http://localhost:5000?');
+      throw new Error('Cannot connect to server. Please check your connection.');
     }
     throw error;
   }

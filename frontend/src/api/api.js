@@ -1,5 +1,8 @@
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+// Export API_BASE for use in other files
+export { API_BASE };
+
 function getToken() {
   // Check sessionStorage first (non-persistent), then localStorage (persistent)
   return sessionStorage.getItem('token') || localStorage.getItem('token');
