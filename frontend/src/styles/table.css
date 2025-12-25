@@ -51,26 +51,155 @@
 
 /* Responsive styles */
 @media (max-width: 768px) {
-  .page { padding: 16px; }
-  .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .page { padding: 12px; }
+  .page-header { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 12px;
+    margin-bottom: 16px;
+  }
   .page-header h1 { font-size: 1.25rem; }
-  .page-actions { flex-direction: column; width: 100%; }
+  
+  .page-actions { 
+    flex-direction: column; 
+    width: 100%; 
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  
   .search-input { width: 100%; }
-  .table { font-size: 0.75rem; }
-  .table th, .table td { padding: 10px 12px; }
-  .modal { width: 95%; margin: 0 auto; }
-  .modal-body { max-height: 60vh; }
-  .form-grid { gap: 12px; }
-  .btn { width: 100%; justify-content: center; }
-  .modal-footer { flex-direction: column; }
-  .card { border-radius: 12px; }
+  
+  /* Table responsive */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table { 
+    font-size: 0.72rem;
+    min-width: 100%;
+  }
+  
+  .table th, .table td { 
+    padding: 10px 8px;
+    white-space: nowrap;
+  }
+  
+  /* Make action buttons stack vertically on very small screens */
+  .table td:last-child {
+    white-space: normal;
+  }
+  
+  .table .btn-sm {
+    font-size: 0.65rem;
+    padding: 6px 10px;
+    margin: 2px;
+    display: inline-block;
+  }
+  
+  /* Badge sizing */
+  .badge {
+    padding: 4px 10px;
+    font-size: 0.65rem;
+  }
+  
+  /* Modal adjustments */
+  .modal { 
+    width: 95%; 
+    max-width: 95%;
+    margin: 0 auto;
+    border-radius: 16px;
+  }
+  
+  .modal-overlay {
+    padding-top: 20px;
+  }
+  
+  .modal-header {
+    padding: 16px 20px;
+  }
+  
+  .modal-header h3 {
+    font-size: 1rem;
+  }
+  
+  .modal-body { 
+    max-height: 60vh; 
+    padding: 20px;
+  }
+  
+  .modal-footer {
+    padding: 14px 20px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  
+  .form-grid { gap: 14px; }
+  
+  .form-field label {
+    font-size: 0.7rem;
+  }
+  
+  .form-field input, 
+  .form-field select {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+  
+  /* Buttons in modal full width */
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .card { 
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  
+  /* Primary action button */
+  .btn:not(.btn-sm) {
+    padding: 10px 16px;
+    font-size: 0.75rem;
+  }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-  .page { padding: 20px; }
-  .page-header h1 { font-size: 1.4rem; }
+  .page { padding: 24px; }
+  .page-header h1 { font-size: 1.45rem; }
   .search-input { width: 200px; }
   .modal { width: 600px; }
+  .table { font-size: 0.8rem; }
 }
 
-@media (max-width:600px) { .modal { width:94%; } .page { padding:16px; } .search-input { width:100%; } }
+/* Extra small devices */
+@media (max-width: 480px) {
+  .page { padding: 8px; }
+  .page-header h1 { font-size: 1.1rem; }
+  
+  .table {
+    font-size: 0.7rem;
+  }
+  
+  .table th, .table td {
+    padding: 8px 6px;
+  }
+  
+  .table .btn-sm {
+    font-size: 0.6rem;
+    padding: 5px 8px;
+  }
+  
+  .modal {
+    width: 98%;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
+  .form-field input,
+  .form-field select {
+    padding: 9px 10px;
+  }
+}

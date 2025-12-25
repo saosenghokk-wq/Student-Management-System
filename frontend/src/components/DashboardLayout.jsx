@@ -9,10 +9,34 @@ export default function DashboardLayout({ children }) {
   const sidebarRef = useRef(null);
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || 'null'));
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [systemSettings, setSystemSettings] = useState({
     system_title: 'Student Management System',
     system_logo: '/Picture1.jpg'
   });
+
+  // Detect mobile on resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setIsSidebarVisible(true);
+      } else {
+        setIsSidebarVisible(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Auto-close sidebar on mobile after navigation
+  useEffect(() => {
+    if (isMobile) {
+      setIsSidebarVisible(false);
+    }
+  }, [location.pathname, isMobile]);
 
   // Dropdown state management with localStorage persistence
   const [expandedSections, setExpandedSections] = useState(() => {
@@ -221,38 +245,51 @@ export default function DashboardLayout({ children }) {
     <div className="dashboard-layout">
       {/* Top Header */}
       <header className="top-header">
-        <button 
-          onClick={() => setIsSidebarVisible(!isSidebarVisible)}
-          style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            color: '#fff',
-            fontSize: '1.3rem',
-            cursor: 'pointer',
-            padding: '10px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '10px',
-            transition: 'all 0.2s',
-            marginRight: '12px',
-            boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-            fontWeight: '600',
-            width: '44px',
-            height: '44px'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
-          }}
-          title={isSidebarVisible ? 'Hide Menu' : 'Show Menu'}
-        >
-          ☰
-        </button>
+        {isMobile && (
+          <button 
+            className="hamburger-btn" 
+            onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        )}
+        {!isMobile && (
+          <button 
+            onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              color: '#fff',
+              fontSize: '1.3rem',
+              cursor: 'pointer',
+              padding: '10px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '10px',
+              transition: 'all 0.2s',
+              marginRight: '12px',
+              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+              fontWeight: '600',
+              width: '44px',
+              height: '44px'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+            }}
+            title={isSidebarVisible ? 'Hide Menu' : 'Show Menu'}
+          >
+            ☰
+          </button>
+        )}
         <Link 
           to={
             user.role_id === 1 ? "/dashboard" : 
@@ -289,13 +326,15 @@ export default function DashboardLayout({ children }) {
       </header>
 
       <div className="dashboard-body">
+        {isMobile && isSidebarVisible && (
+          <div 
+            className="sidebar-overlay" 
+            onClick={() => setIsSidebarVisible(false)}
+          />
+        )}
         <aside 
-          className="sidebar" 
+          className={`sidebar ${!isSidebarVisible ? 'sidebar-hidden' : ''} ${isMobile ? 'sidebar-mobile' : ''}`}
           ref={sidebarRef}
-          style={{
-            transform: isSidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.3s ease-in-out'
-          }}
         >
           <nav className="sidebar-nav">
             {user.role_id === 1 ? (
