@@ -11,9 +11,6 @@ export default function Grades() {
   const [subjectEnrollments, setSubjectEnrollments] = useState([]);
   const [gradeTypes, setGradeTypes] = useState([]);
   
-  // Filters
-  const [selectedSemester, setSelectedSemester] = useState('');
-  
   // Selected class
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [selectedGradeType, setSelectedGradeType] = useState(null);
@@ -299,43 +296,10 @@ export default function Grades() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: 'minmax(0, 200px) minmax(0, 1fr) minmax(0, 280px)', 
+              gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 280px)', 
               gap: '20px', 
               width: '100%'
             }}>
-              <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                <label style={{ fontSize: '0.9rem', color: '#374151', marginBottom: '10px', display: 'block', fontWeight: '600' }}>
-                  Semester Filter
-                </label>
-                <select
-                  value={selectedSemester}
-                  onChange={(e) => setSelectedSemester(e.target.value)}
-                  style={{ 
-                    width: '100%', 
-                    padding: '12px 14px', 
-                    border: '2px solid #e5e7eb', 
-                    borderRadius: '10px', 
-                    fontSize: '0.95rem',
-                    boxSizing: 'border-box',
-                    background: '#f9fafb',
-                    transition: 'all 0.2s',
-                    cursor: 'pointer'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                >
-                  <option value="">All Semesters</option>
-                  <option value="1">Semester 1</option>
-                  <option value="2">Semester 2</option>
-                  <option value="3">Semester 3</option>
-                  <option value="4">Semester 4</option>
-                  <option value="5">Semester 5</option>
-                  <option value="6">Semester 6</option>
-                  <option value="7">Semester 7</option>
-                  <option value="8">Semester 8</option>
-                </select>
-              </div>
-
               <div style={{ minWidth: 0, overflow: 'hidden' }}>
                 <label style={{ fontSize: '0.9rem', color: '#374151', marginBottom: '10px', display: 'block', fontWeight: '600' }}>
                   Subject Enrollment <span style={{ color: '#ef4444' }}>*</span>
@@ -358,9 +322,7 @@ export default function Grades() {
                   onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                 >
                   <option value="">Select a class...</option>
-                  {subjectEnrollments
-                    .filter(enroll => !selectedSemester || enroll.semester === parseInt(selectedSemester))
-                    .map(enroll => (
+                  {subjectEnrollments.map(enroll => (
                     <option key={enroll.id} value={enroll.id}>
                       {enroll.subject_name} - {enroll.batch_code} (Sem {enroll.semester}) - Teacher: {enroll.teacher_name}
                     </option>
