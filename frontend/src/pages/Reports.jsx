@@ -25,6 +25,7 @@ const Reports = () => {
   const [allSubjects, setAllSubjects] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [studentSearch, setStudentSearch] = useState('');
 
   useEffect(() => {
     loadFilterOptions();
@@ -204,6 +205,16 @@ const Reports = () => {
     
     if (filters.batch_id) {
       filtered = filtered.filter(s => String(s.batch_id) === String(filters.batch_id));
+    }
+    
+    // Filter by search text
+    if (studentSearch.trim()) {
+      const searchLower = studentSearch.toLowerCase().trim();
+      filtered = filtered.filter(s => 
+        s.student_code?.toLowerCase().includes(searchLower) ||
+        s.std_khmer_name?.toLowerCase().includes(searchLower) ||
+        s.std_eng_name?.toLowerCase().includes(searchLower)
+      );
     }
     
     return filtered;
@@ -1909,6 +1920,15 @@ const Reports = () => {
               <option key={b.id} value={b.id}>{b.batch_code}</option>
             ))}
           </select>
+        )}
+        {activeReport === 'student-performance' && (
+          <input
+            type="text"
+            placeholder="🔍 Search students..."
+            value={studentSearch}
+            onChange={(e) => setStudentSearch(e.target.value)}
+            className="filter-input"
+          />
         )}
         {currentFilters.includes('subject_id') && (
           <select
