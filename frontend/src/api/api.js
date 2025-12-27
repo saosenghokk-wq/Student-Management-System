@@ -225,9 +225,11 @@ export const api = {
   getStudentEnrollmentReport: (params) => request(`/api/reports/student-enrollment?${new URLSearchParams(params).toString()}`),
   getStudentPromotionReport: (params) => request(`/api/reports/student-promotion?${new URLSearchParams(params).toString()}`),
   getStudentStatusReport: (params) => request(`/api/reports/student-status?${new URLSearchParams(params).toString()}`),
+  getStudentPerformanceReport: (params) => request(`/api/reports/student-performance?${new URLSearchParams(params).toString()}`),
 
   // Academic Reports
   getGradeReport: (params) => request(`/api/reports/grade-report?${new URLSearchParams(params).toString()}`),
+  getScoreExecutionReport: (params) => request(`/api/reports/score-execution?${new URLSearchParams(params).toString()}`),
   getAttendanceReport: (params) => request(`/api/reports/attendance-report?${new URLSearchParams(params).toString()}`),
   getAttendanceSummaryReport: (params) => request(`/api/reports/attendance-summary?${new URLSearchParams(params).toString()}`),
   

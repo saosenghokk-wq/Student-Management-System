@@ -15,9 +15,11 @@ router.get('/student-list', reportController.getStudentListReport);
 router.get('/student-enrollment', reportController.getStudentEnrollmentReport);
 router.get('/student-promotion', reportController.getStudentPromotionReport);
 router.get('/student-status', reportController.getStudentStatusReport);
+router.get('/student-performance', reportController.getStudentPerformanceReport);
 
 // Academic Reports
 router.get('/grade-report', reportController.getGradeReport);
+router.get('/score-execution', reportController.getScoreExecutionReport);
 router.get('/attendance-report', reportController.getAttendanceReport);
 router.get('/attendance-summary', reportController.getAttendanceSummaryReport);
 

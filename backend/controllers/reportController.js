@@ -229,10 +229,131 @@ exports.getStudentPromotionReport = async (req, res, next) => {
   }
 };
 
+// Student Performance Report - Detailed performance by semester with GPA
+exports.getStudentPerformanceReport = async (req, res, next) => {
+  try {
+    const { student_id } = req.query;
+    
+    if (!student_id) {
+      return res.status(400).json({ message: 'Student ID is required' });
+    }
+    
+    // Get student info
+    const studentQuery = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name,
+        s.std_eng_name,
+        d.department_name,
+        p.name as program_name,
+        b.batch_code,
+        b.academic_year
+      FROM student s
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      WHERE s.id = ?
+    `;
+    
+    const [studentInfo] = await pool.query(studentQuery, [student_id]);
+    
+    if (studentInfo.length === 0) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    
+    // Get grades by semester
+    const gradesQuery = `
+      SELECT 
+        se.semester,
+        subj.subject_name,
+        subj.credit,
+        AVG(g.score) as average_score
+      FROM grade g
+      INNER JOIN subject_enrollment se ON g.subject_enroll_id = se.id
+      INNER JOIN subject subj ON se.subject_id = subj.id
+      WHERE g.student_id = ?
+      GROUP BY se.semester, subj.id, subj.subject_name, subj.credit
+      ORDER BY se.semester, subj.subject_name
+    `;
+    
+    const [grades] = await pool.query(gradesQuery, [student_id]);
+    
+    // Group by semester and calculate semester averages
+    const semesterData = {};
+    let totalCredits = 0;
+    let weightedGradeSum = 0;
+    
+    grades.forEach(row => {
+      const semester = row.semester || 'N/A';
+      const credit = parseFloat(row.credit) || 3;
+      const score = parseFloat(row.average_score) || 0;
+      
+      if (!semesterData[semester]) {
+        semesterData[semester] = {
+          semester: semester,
+          subjects: [],
+          total_score: 0,
+          total_credits: 0,
+          semester_average: 0
+        };
+      }
+      
+      semesterData[semester].subjects.push({
+        subject_name: row.subject_name,
+        credit: credit,
+        score: Math.round(score * 100) / 100
+      });
+      
+      semesterData[semester].total_score += score * credit;
+      semesterData[semester].total_credits += credit;
+      
+      totalCredits += credit;
+      weightedGradeSum += score * credit;
+    });
+    
+    // Calculate semester averages
+    const semesters = Object.values(semesterData).map(sem => {
+      sem.semester_average = sem.total_credits > 0 
+        ? Math.round((sem.total_score / sem.total_credits) * 100) / 100 
+        : 0;
+      return sem;
+    });
+    
+    // Calculate overall average and GPA
+    const overall_average = totalCredits > 0 
+      ? Math.round((weightedGradeSum / totalCredits) * 100) / 100 
+      : 0;
+    
+    // GPA calculation (4.0 scale)
+    const calculateGPA = (avg) => {
+      if (avg >= 90) return 4.0;
+      if (avg >= 80) return 3.0 + ((avg - 80) / 10) * 1.0;
+      if (avg >= 70) return 2.0 + ((avg - 70) / 10) * 1.0;
+      if (avg >= 60) return 1.0 + ((avg - 60) / 10) * 1.0;
+      return 0;
+    };
+    
+    const gpa = Math.round(calculateGPA(overall_average) * 100) / 100;
+    
+    const result = {
+      student: studentInfo[0],
+      semesters: semesters,
+      overall_average: overall_average,
+      gpa: gpa,
+      total_credits: totalCredits
+    };
+    
+    res.json([result]);
+  } catch (err) {
+    console.error('Student Performance Report Error:', err.message);
+    next(err);
+  }
+};
+
 // Student Status Report - Filter by student status
 exports.getStudentStatusReport = async (req, res, next) => {
   try {
-    const { status } = req.query;
+    const { status} = req.query;
     
     let query = `
       SELECT 
@@ -280,7 +401,7 @@ exports.getStudentStatusReport = async (req, res, next) => {
 // Grade Report - Student grades by subject and semester (with pivoted grade types)
 exports.getGradeReport = async (req, res, next) => {
   try {
-    const { department_id, program_id, batch_id, subject_id } = req.query;
+    const { department_id, program_id, batch_id, subject_id, semester } = req.query;
     
     let query = `
       SELECT 
@@ -327,6 +448,10 @@ exports.getGradeReport = async (req, res, next) => {
       query += ' AND subj.id = ?';
       params.push(subject_id);
     }
+    if (semester) {
+      query += ' AND se.semester = ?';
+      params.push(semester);
+    }
     
     query += ' ORDER BY d.department_name, b.batch_code, subj.subject_name, se.semester, s.std_eng_name';
     
@@ -360,6 +485,104 @@ exports.getGradeReport = async (req, res, next) => {
     res.json(result);
   } catch (err) {
     console.error('Grade Report Error:', err.message);
+    next(err);
+  }
+};
+
+// Score Execution Report - Student performance by subject (pivoted)
+exports.getScoreExecutionReport = async (req, res, next) => {
+  try {
+    const { department_id, program_id, batch_id, semester } = req.query;
+    
+    let query = `
+      SELECT 
+        s.student_code,
+        s.std_khmer_name as khmer_name,
+        s.std_eng_name as english_name,
+        COALESCE(subj.subject_name, 'N/A') as subject,
+        COALESCE(d.department_name, 'N/A') as department,
+        COALESCE(b.batch_code, 'N/A') as batch_code,
+        COALESCE(b.academic_year, 'N/A') as academic_year,
+        ROUND(SUM(g.score), 2) as total_score
+      FROM student s
+      INNER JOIN grade g ON g.student_id = s.id
+      LEFT JOIN subject_enrollment se ON g.subject_enroll_id = se.id
+      LEFT JOIN subject subj ON se.subject_id = subj.id
+      LEFT JOIN batch b ON s.batch_id = b.Id
+      LEFT JOIN programs p ON b.program_id = p.id
+      LEFT JOIN department d ON p.department_id = d.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    if (department_id) {
+      query += ' AND d.id = ?';
+      params.push(department_id);
+    }
+    if (program_id) {
+      query += ' AND p.id = ?';
+      params.push(program_id);
+    }
+    if (batch_id) {
+      query += ' AND b.Id = ?';
+      params.push(batch_id);
+    }
+    if (semester) {
+      query += ' AND se.semester = ?';
+      params.push(semester);
+    }
+    
+    query += `
+      GROUP BY s.id, subj.id, s.student_code, s.std_khmer_name, s.std_eng_name, 
+               subj.subject_name, d.department_name, b.batch_code, b.academic_year
+      ORDER BY d.department_name, b.batch_code, s.std_eng_name, subj.subject_name
+    `;
+    
+    const [rows] = await pool.query(query, params);
+    
+    // Pivot data: convert subjects into columns
+    const pivotedData = {};
+    
+    rows.forEach(row => {
+      const key = row.student_code;
+      
+      if (!pivotedData[key]) {
+        pivotedData[key] = {
+          student_code: row.student_code,
+          khmer_name: row.khmer_name,
+          english_name: row.english_name,
+          department: row.department,
+          batch_code: row.batch_code,
+          academic_year: row.academic_year,
+          subject_scores: []
+        };
+      }
+      
+      // Add subject score as a column (ensure it's a number)
+      const scoreValue = parseFloat(row.total_score) || 0;
+      pivotedData[key][row.subject] = scoreValue;
+      pivotedData[key].subject_scores.push(scoreValue);
+    });
+    
+    // Calculate average from all subject scores
+    const result = Object.values(pivotedData).map(student => {
+      const scores = student.subject_scores.filter(s => s > 0); // Only count non-zero scores
+      const totalScores = scores.reduce((sum, score) => sum + score, 0);
+      const count = scores.length;
+      student.average_score = count > 0 
+        ? Math.round((totalScores / count) * 100) / 100
+        : null; // Return null instead of 0 to make it clear there's no data
+      delete student.subject_scores;
+      delete student.student_code; // Remove student code from output
+      return student;
+    });
+    
+    // Sort by average_score descending (highest first)
+    result.sort((a, b) => (b.average_score || 0) - (a.average_score || 0));
+    
+    res.json(result);
+  } catch (err) {
+    console.error('Score Execution Report Error:', err.message);
     next(err);
   }
 };

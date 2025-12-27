@@ -23,10 +23,19 @@ const Reports = () => {
   const [allPrograms, setAllPrograms] = useState([]);
   const [allBatches, setAllBatches] = useState([]);
   const [allSubjects, setAllSubjects] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
 
   useEffect(() => {
     loadFilterOptions();
   }, []);
+
+  useEffect(() => {
+    // Load all students when student-performance report is activated
+    if (activeReport === 'student-performance') {
+      loadAllStudents();
+    }
+  }, [activeReport]);
 
   useEffect(() => {
     // Filter programs based on selected department
@@ -99,8 +108,23 @@ const Reports = () => {
         case 'student-status':
           data = await api.getStudentStatusReport(cleanFilters);
           break;
+        case 'student-performance':
+          // For student performance, generate reports for selected students
+          if (selectedStudents.length > 0) {
+            const performancePromises = selectedStudents.map(studentId => 
+              api.getStudentPerformanceReport({ ...cleanFilters, student_id: studentId })
+            );
+            const results = await Promise.all(performancePromises);
+            data = results.flat();
+          } else {
+            data = [];
+          }
+          break;
         case 'grade-report':
           data = await api.getGradeReport(cleanFilters);
+          break;
+        case 'score-execution':
+          data = await api.getScoreExecutionReport(cleanFilters);
           break;
         case 'attendance-report':
           data = await api.getAttendanceReport(cleanFilters);
@@ -129,12 +153,60 @@ const Reports = () => {
   const handleFilterChange = (key, value) => {
     // Reset dependent filters when parent changes
     if (key === 'department_id') {
-      setFilters(prev => ({ ...prev, [key]: value, program_id: '', batch_id: '', subject_id: '' }));
+      setFilters(prev => ({ ...prev, [key]: value, program_id: '', batch_id: '', subject_id: '', student_id: '' }));
     } else if (key === 'program_id') {
-      setFilters(prev => ({ ...prev, [key]: value, batch_id: '', subject_id: '' }));
+      setFilters(prev => ({ ...prev, [key]: value, batch_id: '', subject_id: '', student_id: '' }));
+    } else if (key === 'batch_id') {
+      setFilters(prev => ({ ...prev, [key]: value, subject_id: '', student_id: '' }));
     } else {
       setFilters(prev => ({ ...prev, [key]: value }));
     }
+  };
+
+  const loadAllStudents = async () => {
+    try {
+      const response = await api.getStudents();
+      setStudents(response || []);
+      setSelectedStudents([]);
+    } catch (err) {
+      console.error('Error loading students:', err);
+      setStudents([]);
+      setSelectedStudents([]);
+    }
+  };
+
+  const handleStudentSelection = (studentId) => {
+    setSelectedStudents(prev => {
+      if (prev.includes(studentId)) {
+        return prev.filter(id => id !== studentId);
+      } else {
+        return [...prev, studentId];
+      }
+    });
+  };
+
+  const handleSelectAllStudents = (checked) => {
+    const visibleStudents = getFilteredStudents();
+    if (checked) {
+      setSelectedStudents(visibleStudents.map(s => s.id));
+    } else {
+      setSelectedStudents([]);
+    }
+  };
+
+  // Filter students based on selected filters
+  const getFilteredStudents = () => {
+    let filtered = students;
+    
+    if (filters.department_id) {
+      filtered = filtered.filter(s => String(s.department_id) === String(filters.department_id));
+    }
+    
+    if (filters.batch_id) {
+      filtered = filtered.filter(s => String(s.batch_id) === String(filters.batch_id));
+    }
+    
+    return filtered;
   };
 
   const handleGenerateReport = () => {
@@ -307,6 +379,16 @@ const Reports = () => {
 
     if (activeReport === 'grade-report') {
       await exportGradeReportToPDF();
+      return;
+    }
+
+    if (activeReport === 'score-execution') {
+      await exportScoreExecutionToPDF();
+      return;
+    }
+
+    if (activeReport === 'student-performance') {
+      await exportStudentPerformanceToPDF();
       return;
     }
 
@@ -692,6 +774,344 @@ const Reports = () => {
       const fileName = `grade-report-${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
       showSuccess('Grade Report PDF exported successfully!');
+      
+    } catch (error) {
+      console.error('PDF export error:', error);
+      showError('Failed to export PDF: ' + error.message);
+    }
+  };
+
+  // Export Score Execution Report - Student performance by subject
+  const exportScoreExecutionToPDF = async () => {
+    try {
+      showSuccess('Preparing Score Execution PDF...');
+      
+      const doc = new jsPDF('l', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      const reportTitle = 'Score Execution';
+
+      // Group data by department and batch
+      const groupedData = {};
+      reportData.forEach(row => {
+        const deptKey = row.department || 'No Department';
+        const batchKey = row.batch_code || 'No Batch';
+        
+        if (!groupedData[deptKey]) {
+          groupedData[deptKey] = {};
+        }
+        if (!groupedData[deptKey][batchKey]) {
+          groupedData[deptKey][batchKey] = [];
+        }
+        groupedData[deptKey][batchKey].push(row);
+      });
+
+      let isFirstPage = true;
+
+      for (const [department, batches] of Object.entries(groupedData)) {
+        for (const [batchCode, records] of Object.entries(batches)) {
+          if (!isFirstPage) {
+            doc.addPage();
+          }
+          isFirstPage = false;
+
+          // Create temporary HTML for report
+          const tempDiv = document.createElement('div');
+          tempDiv.style.position = 'absolute';
+          tempDiv.style.left = '-9999px';
+          tempDiv.style.backgroundColor = 'white';
+          tempDiv.style.padding = '20px';
+          tempDiv.style.fontFamily = 'Khmer OS Battambang, Arial, sans-serif';
+          tempDiv.style.width = '1100px';
+          
+          // Get all subject columns (exclude fixed columns)
+          const fixedColumns = ['khmer_name', 'english_name', 'department', 'batch_code', 'academic_year', 'average_score'];
+          const firstRecord = records[0];
+          const subjectColumns = Object.keys(firstRecord).filter(key => !fixedColumns.includes(key));
+          
+          // Build table headers
+          const headers = [
+            'NO',
+            'KHMER NAME',
+            'ENGLISH NAME',
+            ...subjectColumns.map(col => col.toUpperCase()),
+            'AVERAGE SCORE'
+          ];
+          
+          // Build table rows
+          const rows = records.map((row, index) => {
+            const subjectScores = subjectColumns.map(col => {
+              const value = row[col];
+              return value !== null && value !== undefined ? String(value) : '-';
+            });
+            
+            return [
+              index + 1,
+              row.khmer_name || '-',
+              row.english_name || '-',
+              ...subjectScores,
+              row.average_score !== null && row.average_score !== undefined ? String(row.average_score) : '-'
+            ];
+          });
+          
+          tempDiv.innerHTML = `
+            <!-- Header Section -->
+            <div style="background-color: white; padding: 15px 20px 10px 20px; margin-bottom: 15px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <!-- Header Logo -->
+                  <td style="vertical-align: top; text-align: left; width: 50%;">
+                    <img src="/SPI-logo-landscape.png" alt="School Header" style="height: 80px; object-fit: contain; display: block;" />
+                  </td>
+                  
+                  <!-- National Motto Image (Right) -->
+                  <td style="vertical-align: top; text-align: right; width: 50%; padding-left: 20px;">
+                    <img src="/image.png" alt="National Motto" style="height: 110px; object-fit: contain; display: block; margin-left: auto;" />
+                  </td>
+                </tr>
+                <tr>
+                  <!-- Report Title (Full Width Centered) -->
+                  <td colspan="2" style="padding-top: 12px;">
+                    <div style="font-size: 18px; font-weight: bold; color: #000; font-family: 'Times New Roman', serif; line-height: 1.2; text-align: center; padding: 8px;">
+                      ${reportTitle}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- Department and Batch Info -->
+            <div style="margin-bottom: 15px; font-size: 16px; font-weight: bold; color: #000; text-align: center;">
+              Department: ${department} | Batch: ${batchCode}
+            </div>
+            
+            <!-- Table -->
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'Khmer OS Battambang', Arial, sans-serif; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <thead>
+                <tr style="background: linear-gradient(to bottom, #2563eb, #1e40af); color: white;">
+                  ${headers.map(h => `<th style="border: 1px solid #1e40af; padding: 12px 8px; text-align: center; font-weight: bold; font-size: 10px;">${h}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map((row, index) => `
+                  <tr style="background-color: ${index % 2 === 0 ? '#ffffff' : '#f8fafc'}; transition: background-color 0.2s;">
+                    <td style="border: 1px solid #cbd5e1; padding: 10px 6px; text-align: center; font-weight: 500; color: #1e293b;">${row[0]}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 10px 8px; text-align: left; color: #1e293b;">${row[1]}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 10px 8px; text-align: left; font-family: 'Arial', sans-serif; color: #1e293b;">${row[2]}</td>
+                    ${row.slice(3, -1).map(cell => `<td style="border: 1px solid #cbd5e1; padding: 10px 6px; text-align: center; font-family: 'Arial', sans-serif; font-weight: 500; color: #1e293b;">${cell}</td>`).join('')}
+                    <td style="border: 1px solid #cbd5e1; padding: 10px 6px; text-align: center; font-family: 'Arial', sans-serif; font-weight: bold; color: #2563eb; font-size: 11px;">${row[row.length - 1]}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+          
+          document.body.appendChild(tempDiv);
+
+          // Convert to canvas
+          const canvas = await html2canvas(tempDiv, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            logging: false
+          });
+
+          // Remove temp div
+          document.body.removeChild(tempDiv);
+
+          // Add image to PDF
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = pageWidth - 10;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          let yPosition = 5;
+          if (imgHeight > pageHeight - 35) {
+            const scaledHeight = pageHeight - 10;
+            const scaledWidth = (canvas.width * scaledHeight) / canvas.height;
+            doc.addImage(imgData, 'PNG', 5, yPosition, scaledWidth, scaledHeight);
+          } else {
+            doc.addImage(imgData, 'PNG', 5, yPosition, imgWidth, imgHeight);
+          }
+
+          // Add footer
+          const footerY = pageHeight - 10;
+          doc.setFontSize(8);
+          doc.setTextColor(100, 116, 139);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`${department} - ${batchCode}: ${records.length} records`, pageWidth - 15, footerY, { align: 'right' });
+          doc.text('Saint Paul Institute', 15, footerY);
+        }
+      }
+
+      // Save PDF
+      const fileName = `score-execution-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      showSuccess('Score Execution PDF exported successfully!');
+      
+    } catch (error) {
+      console.error('PDF export error:', error);
+      showError('Failed to export PDF: ' + error.message);
+    }
+  };
+
+  // Export Student Performance Report
+  const exportStudentPerformanceToPDF = async () => {
+    try {
+      if (reportData.length === 0) {
+        showError('No data to export');
+        return;
+      }
+
+      showSuccess('Preparing Student Performance PDF...');
+      
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      let isFirstPage = true;
+
+      // Loop through each student in reportData
+      for (const data of reportData) {
+        if (!isFirstPage) {
+          doc.addPage();
+        }
+        isFirstPage = false;
+
+        const student = data.student;
+        const semesters = data.semesters || [];
+
+        // Create temporary HTML for report
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.backgroundColor = 'white';
+        tempDiv.style.padding = '30px';
+        tempDiv.style.fontFamily = 'Khmer OS Battambang, Arial, sans-serif';
+        tempDiv.style.width = '750px';
+        
+        // Build semester rows
+        const semesterRows = semesters.map((sem, index) => `
+          <tr style="background-color: ${index % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+            <td style="border: 1px solid #cbd5e1; padding: 12px; text-align: center; font-weight: 600; color: #1e293b;">${sem.semester}</td>
+            <td style="border: 1px solid #cbd5e1; padding: 12px; text-align: center; font-family: 'Arial', sans-serif; font-weight: 600; color: #2563eb; font-size: 14px;">${sem.semester_average}</td>
+          </tr>
+        `).join('');
+        
+        tempDiv.innerHTML = `
+          <!-- Header Section -->
+          <div style="background-color: white; padding: 15px 20px 10px 20px; margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="vertical-align: top; text-align: left; width: 50%;">
+                  <img src="/SPI-logo-landscape.png" alt="School Header" style="height: 80px; object-fit: contain; display: block;" />
+                </td>
+                <td style="vertical-align: top; text-align: right; width: 50%; padding-left: 20px;">
+                  <img src="/image.png" alt="National Motto" style="height: 110px; object-fit: contain; display: block; margin-left: auto;" />
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding-top: 12px;">
+                  <div style="font-size: 20px; font-weight: bold; color: #000; font-family: 'Times New Roman', serif; line-height: 1.2; text-align: center; padding: 8px;">
+                    Student Performance Report
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+          
+          <!-- Student Info Section -->
+          <div style="background: linear-gradient(to right, #f8fafc, #ffffff); padding: 20px; margin-bottom: 20px; border-radius: 8px; border-left: 4px solid #2563eb;">
+            <table style="width: 100%; font-size: 14px;">
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; width: 150px;"><strong>Student Name:</strong></td>
+                <td style="padding: 6px 0; color: #1e293b;"><span style="font-family: 'Khmer OS Battambang';">${student.std_khmer_name}</span> / ${student.std_eng_name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b;"><strong>Student Code:</strong></td>
+                <td style="padding: 6px 0; color: #1e293b; font-family: 'Arial', sans-serif;">${student.student_code}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b;"><strong>Department:</strong></td>
+                <td style="padding: 6px 0; color: #1e293b;">${student.department_name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b;"><strong>Program:</strong></td>
+                <td style="padding: 6px 0; color: #1e293b;">${student.program_name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b;"><strong>Batch:</strong></td>
+                <td style="padding: 6px 0; color: #1e293b;">${student.batch_code} - ${student.academic_year}</td>
+              </tr>
+            </table>
+          </div>
+          
+          <!-- Performance Table -->
+          <table style="width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <thead>
+              <tr style="background: linear-gradient(to bottom, #2563eb, #1e40af); color: white;">
+                <th style="border: 1px solid #1e40af; padding: 14px; text-align: center; font-weight: bold; font-size: 13px;">SEMESTER</th>
+                <th style="border: 1px solid #1e40af; padding: 14px; text-align: center; font-weight: bold; font-size: 13px;">AVERAGE SCORE</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${semesterRows}
+            </tbody>
+            <tfoot>
+              <tr style="background: linear-gradient(to right, #f1f5f9, #e2e8f0); font-weight: bold;">
+                <td style="border: 1px solid #cbd5e1; padding: 14px; text-align: center; color: #1e293b; font-size: 14px;">OVERALL AVERAGE</td>
+                <td style="border: 1px solid #cbd5e1; padding: 14px; text-align: center; color: #2563eb; font-size: 16px; font-weight: bold;">${data.overall_average}</td>
+              </tr>
+              <tr style="background: linear-gradient(to right, #dbeafe, #bfdbfe); font-weight: bold;">
+                <td style="border: 1px solid #cbd5e1; padding: 14px; text-align: center; color: #1e293b; font-size: 14px;">GPA (4.0 SCALE)</td>
+                <td style="border: 1px solid #cbd5e1; padding: 14px; text-align: center; color: #2563eb; font-size: 16px; font-weight: bold;">${data.gpa}</td>
+              </tr>
+            </tfoot>
+          </table>
+          
+          <!-- Footer Note -->
+          <div style="margin-top: 30px; padding: 15px; background-color: #f8fafc; border-radius: 6px; font-size: 11px; color: #64748b; text-align: center;">
+            <p style="margin: 0;">Generated on ${new Date().toLocaleDateString()} | Total Credits: ${data.total_credits}</p>
+          </div>
+        `;
+        
+        document.body.appendChild(tempDiv);
+
+        // Convert to canvas
+        const canvas = await html2canvas(tempDiv, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+
+        // Remove temp div
+        document.body.removeChild(tempDiv);
+
+        // Add image to PDF
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - 20;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        let yPosition = 10;
+        if (imgHeight > pageHeight - 20) {
+          const scaledHeight = pageHeight - 20;
+          const scaledWidth = (canvas.width * scaledHeight) / canvas.height;
+          doc.addImage(imgData, 'PNG', 10, yPosition, scaledWidth, scaledHeight);
+        } else {
+          doc.addImage(imgData, 'PNG', 10, yPosition, imgWidth, imgHeight);
+        }
+
+        // Add footer
+        const footerY = pageHeight - 10;
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Saint Paul Institute', pageWidth / 2, footerY, { align: 'center' });
+      }
+
+      // Save PDF
+      const fileName = `student-performance-report-${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      showSuccess(`Student Performance PDF exported successfully with ${reportData.length} student(s)!`);
       
     } catch (error) {
       console.error('PDF export error:', error);
@@ -1412,7 +1832,8 @@ const Reports = () => {
       reports: [
         { id: 'student-profile', label: 'Student Profile Report', icon: '👤' },
         { id: 'student-list', label: 'Student List Report', icon: '📋' },
-        { id: 'student-status', label: 'Student Status Report', icon: '✅' }
+        { id: 'student-status', label: 'Student Status Report', icon: '✅' },
+        { id: 'student-performance', label: 'Student Performance', icon: '📈' }
       ]
     },
     academic: {
@@ -1420,6 +1841,7 @@ const Reports = () => {
       icon: '📚',
       reports: [
         { id: 'grade-report', label: 'Grade Report', icon: '📊' },
+        { id: 'score-execution', label: 'Score Execution', icon: '🎯' },
         { id: 'attendance-report', label: 'Attendance Report', icon: '📅' },
         { id: 'attendance-summary', label: 'Attendance Summary Report', icon: '📊' }
       ]
@@ -1438,7 +1860,9 @@ const Reports = () => {
       'student-profile': ['department_id', 'program_id', 'batch_id'],
       'student-list': ['department_id', 'program_id', 'batch_id', 'subject_id', 'status'],
       'student-status': ['status'],
-      'grade-report': ['department_id', 'program_id', 'batch_id', 'subject_id'],
+      'student-performance': ['department_id', 'program_id', 'batch_id'],
+      'grade-report': ['department_id', 'program_id', 'batch_id', 'subject_id', 'semester'],
+      'score-execution': ['department_id', 'program_id', 'batch_id', 'semester'],
       'attendance-report': ['department_id', 'program_id', 'batch_id', 'subject_id', 'start_date', 'end_date'],
       'attendance-summary': ['department_id', 'program_id', 'batch_id', 'subject_id', 'start_date', 'end_date'],
       'fee-report': ['department_id', 'program_id', 'batch_id', 'start_date', 'end_date']
@@ -1498,6 +1922,20 @@ const Reports = () => {
             ))}
           </select>
         )}
+        {currentFilters.includes('student_id') && (
+          <select
+            value={filters.student_id || ''}
+            onChange={(e) => handleFilterChange('student_id', e.target.value)}
+            className="filter-select"
+          >
+            <option value="">👤 Select Student</option>
+            {students.map(student => (
+              <option key={student.id} value={student.id}>
+                {student.student_code} - {student.std_eng_name}
+              </option>
+            ))}
+          </select>
+        )}
         {currentFilters.includes('academic_year') && (
           <select
             value={filters.academic_year || ''}
@@ -1529,15 +1967,21 @@ const Reports = () => {
           />
         )}
         {currentFilters.includes('semester') && (
-          <input
-            type="number"
+          <select
             value={filters.semester || ''}
             onChange={(e) => handleFilterChange('semester', e.target.value)}
-            placeholder="Semester (1-8)"
-            min="1"
-            max="8"
-            className="filter-input"
-          />
+            className="filter-select"
+          >
+            <option value="">📚 All Semesters</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4">Semester 4</option>
+            <option value="5">Semester 5</option>
+            <option value="6">Semester 6</option>
+            <option value="7">Semester 7</option>
+            <option value="8">Semester 8</option>
+          </select>
         )}
         {currentFilters.includes('status') && (
           <select
@@ -1566,12 +2010,130 @@ const Reports = () => {
       );
     }
 
+    // Show student selection for student-performance report
+    if (activeReport === 'student-performance') {
+      const filteredStudents = getFilteredStudents();
+      
+      // If students are loaded
+      if (filteredStudents.length > 0 && reportData.length === 0) {
+        return (
+          <div className="student-selection-container">
+            <div className="selection-header">
+              <h3>📋 Select Students for Performance Report</h3>
+              <label className="select-all-checkbox">
+                <input
+                  type="checkbox"
+                  checked={selectedStudents.length === filteredStudents.length && filteredStudents.length > 0}
+                  onChange={(e) => handleSelectAllStudents(e.target.checked)}
+                />
+                <span>Select All ({filteredStudents.length} students)</span>
+              </label>
+            </div>
+            <div className="students-grid">
+              {filteredStudents.map(student => (
+                <div key={student.id} className="student-card-checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(student.id)}
+                      onChange={() => handleStudentSelection(student.id)}
+                    />
+                    <div className="student-info">
+                      <div className="student-code">{student.student_code}</div>
+                      <div className="student-name-kh">{student.std_khmer_name}</div>
+                      <div className="student-name-en">{student.std_eng_name}</div>
+                    </div>
+                  </label>
+                </div>
+              ))}
+            </div>
+            <div className="selection-footer">
+              <p>Selected: {selectedStudents.length} student{selectedStudents.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+        );
+      }
+      // If no students match filters
+      if (students.length > 0 && filteredStudents.length === 0) {
+        return (
+          <div className="empty-state">
+            <div className="empty-state-icon">🔍</div>
+            <h3 className="empty-state-title">No Students Found</h3>
+            <p className="empty-state-message">No students match the selected filters</p>
+          </div>
+        );
+      }
+      // If still loading students
+      if (students.length === 0 && !loading) {
+        return (
+          <div className="empty-state">
+            <div className="empty-state-icon">🎓</div>
+            <h3 className="empty-state-title">Loading Students...</h3>
+            <p className="empty-state-message">Please wait while we load student data</p>
+          </div>
+        );
+      }
+    }
+
     if (reportData.length === 0) {
       return (
         <div className="empty-state">
           <div className="empty-state-icon">📊</div>
           <h3 className="empty-state-title">No Data Available</h3>
           <p className="empty-state-message">Select filters and click "Generate Report" to view data</p>
+        </div>
+      );
+    }
+
+    // Custom rendering for student-performance report
+    if (activeReport === 'student-performance') {
+      return (
+        <div className="performance-reports-container">
+          {reportData.map((data, idx) => {
+            const student = data.student;
+            const semesters = data.semesters || [];
+            
+            return (
+              <div key={idx} className="performance-report-card">
+                <div className="performance-header">
+                  <div className="student-details">
+                    <h3>{student.std_khmer_name} / {student.std_eng_name}</h3>
+                    <p className="student-code">Student Code: {student.student_code}</p>
+                    <p className="student-program">{student.department_name} | {student.program_name} | {student.batch_code}</p>
+                  </div>
+                  <div className="performance-summary">
+                    <div className="summary-item">
+                      <span className="summary-label">Overall Average</span>
+                      <span className="summary-value">{data.overall_average}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="summary-label">GPA</span>
+                      <span className="summary-value gpa">{data.gpa}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="semester-table-container">
+                  <table className="semester-table">
+                    <thead>
+                      <tr>
+                        <th>Semester</th>
+                        <th>Average Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {semesters.map((sem, semIdx) => (
+                        <tr key={semIdx}>
+                          <td>Semester {sem.semester}</td>
+                          <td className="score-cell">{sem.semester_average}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
         </div>
       );
     }
