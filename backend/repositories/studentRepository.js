@@ -87,7 +87,22 @@ class StudentRepository {
   }
 
   async delete(id) {
-    await pool.query('DELETE FROM student WHERE id = ?', [id]);
+    // First, get the user_id associated with this student
+    const [studentRows] = await pool.query('SELECT user_id FROM student WHERE id = ?', [id]);
+    
+    if (studentRows.length > 0 && studentRows[0].user_id) {
+      const userId = studentRows[0].user_id;
+      
+      // Delete student record first
+      await pool.query('DELETE FROM student WHERE id = ?', [id]);
+      
+      // Then delete the associated user account
+      await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+    } else {
+      // If no user_id found, just delete the student record
+      await pool.query('DELETE FROM student WHERE id = ?', [id]);
+    }
+    
     return true;
   }
 }

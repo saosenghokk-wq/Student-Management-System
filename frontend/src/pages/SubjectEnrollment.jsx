@@ -176,7 +176,7 @@ export default function SubjectEnrollment() {
             <p style={{ margin: '4px 0 0', fontSize: '.8rem', color: '#64748b' }}>Manage subject assignments for programs</p>
           </div>
           <button className="btn" onClick={() => setShowModal(true)} style={{ width: '140px', height: '36px', padding: '0' }}>
-            + Add Assignment
+            + Add
           </button>
         </div>
 
@@ -195,7 +195,7 @@ export default function SubjectEnrollment() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1.2rem' }}>📋</span> Subject Assignments List
+                <span style={{ fontSize: '1.2rem' }}>📋</span> Subject Assign List
               </h3>
               <span style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', padding: '6px 16px', borderRadius: '20px', fontSize: '0.875rem', fontWeight: '600' }}>
                 {filteredEnrollments.length} assignments
@@ -423,7 +423,7 @@ export default function SubjectEnrollment() {
           <div className="modal-overlay" onClick={handleCloseModal}>
             <div className="modal" style={{maxWidth:600}} onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h3>{editingId ? 'Edit Assignment' : 'Add Assignment'}</h3>
+                <h3>{editingId ? 'Edit Subject Assign' : 'Add Subject Assign'}</h3>
                 <button className="close" onClick={handleCloseModal}>×</button>
               </div>
               

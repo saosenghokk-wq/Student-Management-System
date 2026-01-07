@@ -91,6 +91,13 @@ export default function Attendance() {
     }
   }, [selectedEnrollment, attendanceDate, loadClassStudents]);
 
+  // Reload history when enrollment changes if in history view
+  useEffect(() => {
+    if (selectedEnrollment && subView === 'history') {
+      loadClassHistory();
+    }
+  }, [selectedEnrollment]);
+
   const handleEnrollmentChange = (enrollmentId) => {
     const enrollment = subjectEnrollments.find(e => e.id === parseInt(enrollmentId));
     setSelectedEnrollment(enrollment || null);
