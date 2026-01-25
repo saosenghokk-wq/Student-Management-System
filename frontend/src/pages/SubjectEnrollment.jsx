@@ -17,8 +17,13 @@ export default function SubjectEnrollment() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  
+  // Filter states
+  const [filterTeacher, setFilterTeacher] = useState('');
+  const [filterBatch, setFilterBatch] = useState('');
+  const [filterSubject, setFilterSubject] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   const [form, setForm] = useState({
     program_id: '',
@@ -108,6 +113,14 @@ export default function SubjectEnrollment() {
 
   const handleEdit = (enrollment) => {
     setEditingId(enrollment.id);
+    
+    // Convert dates to YYYY-MM-DD format for date inputs
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toISOString().split('T')[0];
+    };
+    
     setForm({
       program_id: enrollment.program_id,
       subject_id: enrollment.subject_id,
@@ -115,8 +128,8 @@ export default function SubjectEnrollment() {
       batch_id: enrollment.batch_id,
       semester: enrollment.semester,
       status: enrollment.status,
-      start_date: enrollment.start_date,
-      end_date: enrollment.end_date
+      start_date: formatDate(enrollment.start_date),
+      end_date: formatDate(enrollment.end_date)
     });
     
     // Filter subjects for the selected program
@@ -155,14 +168,12 @@ export default function SubjectEnrollment() {
   };
 
   const filteredEnrollments = enrollments.filter(e => {
-    const query = searchQuery.toLowerCase();
-    return (
-      e.program_name?.toLowerCase().includes(query) ||
-      e.subject_name?.toLowerCase().includes(query) ||
-      e.teacher_name?.toLowerCase().includes(query) ||
-      e.batch_code?.toLowerCase().includes(query) ||
-      e.department_name?.toLowerCase().includes(query)
-    );
+    const matchesTeacher = !filterTeacher || e.teacher_id === parseInt(filterTeacher);
+    const matchesBatch = !filterBatch || e.batch_id === parseInt(filterBatch);
+    const matchesSubject = !filterSubject || e.subject_id === parseInt(filterSubject);
+    const matchesStatus = !filterStatus || e.status === parseInt(filterStatus);
+    
+    return matchesTeacher && matchesBatch && matchesSubject && matchesStatus;
   });
 
   if (loading) return <DashboardLayout><div className="loader">Loading...</div></DashboardLayout>;
@@ -201,39 +212,145 @@ export default function SubjectEnrollment() {
                 {filteredEnrollments.length} assignments
               </span>
             </div>
-            <div style={{ position: 'relative', maxWidth: '400px' }}>
-              <span style={{
-                position: 'absolute',
-                left: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: '1.1rem'
-              }}>🔍</span>
-              <input
-                type="text"
-                placeholder="Search assignments..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px 10px 42px',
-                  fontSize: '0.95rem',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '8px',
-                  outline: 'none',
-                  transition: 'all 0.2s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#667eea';
-                  e.target.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e5e7eb';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
+            {/* Filter Dropdowns */}
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+              gap: '12px'
+            }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: '#e5e7eb', fontWeight: '500' }}>
+                  Teacher
+                </label>
+                <select
+                  value={filterTeacher}
+                  onChange={(e) => setFilterTeacher(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">All Teachers</option>
+                  {teachers.map(t => (
+                    <option key={t.id} value={t.id}>{t.eng_name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: '#e5e7eb', fontWeight: '500' }}>
+                  Batch
+                </label>
+                <select
+                  value={filterBatch}
+                  onChange={(e) => setFilterBatch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">All Batches</option>
+                  {batches.map(b => (
+                    <option key={b.Id} value={b.Id}>{b.batch_code} ({b.academic_year})</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: '#e5e7eb', fontWeight: '500' }}>
+                  Subject
+                </label>
+                <select
+                  value={filterSubject}
+                  onChange={(e) => setFilterSubject(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">All Subjects</option>
+                  {subjects.map(s => (
+                    <option key={s.id} value={s.id}>{s.subject_code} - {s.subject_name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: '#e5e7eb', fontWeight: '500' }}>
+                  Status
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    backgroundColor: '#fff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">All Statuses</option>
+                  {statuses.map(s => (
+                    <option key={s.id} value={s.id}>{s.status_name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+            
+            {/* Clear Filters Button */}
+            {(filterTeacher || filterBatch || filterSubject || filterStatus) && (
+              <div style={{ marginTop: '12px' }}>
+                <button
+                  onClick={() => {
+                    setFilterTeacher('');
+                    setFilterBatch('');
+                    setFilterSubject('');
+                    setFilterStatus('');
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '0.875rem',
+                    color: '#fff',
+                    backgroundColor: '#6366f1',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#4f46e5'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#6366f1'}
+                >
+                  🔄 Clear Filters
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Entries per page selector */}

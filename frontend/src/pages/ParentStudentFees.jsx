@@ -231,21 +231,6 @@ export default function ParentStudentFees() {
           marginBottom: '32px'
         }}>
           <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            padding: '32px',
-            borderRadius: '16px',
-            textAlign: 'center',
-            boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)'
-          }}>
-            <div style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '8px' }}>
-              {formatCurrency(stats.total_payments)}
-            </div>
-            <div style={{ fontSize: '1rem', opacity: 0.95, fontWeight: '600' }}>
-              Total Fees
-            </div>
-          </div>
-          <div style={{
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             color: 'white',
             padding: '32px',
