@@ -6,8 +6,13 @@ const cors = require('cors');
 
 const app = express();
 
-// Simple CORS - Allow all origins in development
-app.use(cors());
+// CORS configuration - Allow Vercel frontend
+const corsOptions = {
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' })); // Increase limit for base64 images
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
