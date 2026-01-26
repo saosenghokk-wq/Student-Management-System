@@ -13,6 +13,37 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // DB connection is handled in config/db.js
 
+// Health check and root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'Student Management System API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      api: '/api/*'
+    }
+  });
+});
+
+app.get('/health', (req, res) => {
+  // Test database connection
+  db.ping((err) => {
+    if (err) {
+      return res.status(503).json({
+        status: 'unhealthy',
+        database: 'disconnected',
+        error: err.message
+      });
+    }
+    res.json({
+      status: 'healthy',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  });
+});
+
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const studentRoutes = require('./routes/studentRoutes');
