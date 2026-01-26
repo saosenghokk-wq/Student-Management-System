@@ -6,13 +6,20 @@ const cors = require('cors');
 
 const app = express();
 
-// CORS configuration - Allow Vercel frontend
+// CORS configuration - Allow all origins for now
+console.log('🌐 CORS Configuration:');
+console.log('ALLOWED_ORIGINS env:', process.env.ALLOWED_ORIGINS);
+
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+  origin: '*', // Allow all origins temporarily
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
+console.log('✅ CORS enabled for all origins');
+
 app.use(express.json({ limit: '50mb' })); // Increase limit for base64 images
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
