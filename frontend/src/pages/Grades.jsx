@@ -126,7 +126,7 @@ export default function Grades() {
     if (selectedEnrollment && subView === 'history') {
       loadClassHistory();
     }
-  }, [selectedEnrollment]);
+  }, [selectedEnrollment, subView, loadClassHistory]);
 
   const handleEnrollmentChange = (enrollmentId) => {
     const enrollment = subjectEnrollments.find(e => e.id === parseInt(enrollmentId));
