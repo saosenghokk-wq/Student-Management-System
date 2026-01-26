@@ -115,6 +115,28 @@ export default function Grades() {
     }
   }, [selectedEnrollment, selectedGradeType, showError]);
 
+  const loadClassHistory = useCallback(async () => {
+    if (!selectedEnrollment) return;
+    
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      
+      const response = await fetch(
+        `${API_BASE}/api/grades/class/${selectedEnrollment.id}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      const result = await response.json();
+      setGradeHistory(result.data || []);
+      setSubView('history');
+    } catch (error) {
+      console.error('Error loading history:', error);
+      showError('Failed to load grade history');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedEnrollment, showError]);
+
   useEffect(() => {
     if (selectedEnrollment && selectedGradeType) {
       loadClassStudents();
@@ -208,28 +230,6 @@ export default function Grades() {
     } catch (error) {
       console.error('Error saving grades:', error);
       showError('Failed to save grades');
-    }
-  };
-
-  const loadClassHistory = async () => {
-    if (!selectedEnrollment) return;
-    
-    try {
-      setLoading(true);
-      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-      
-      const response = await fetch(
-        `${API_BASE}/api/grades/class/${selectedEnrollment.id}`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-      const result = await response.json();
-      setGradeHistory(result.data || []);
-      setSubView('history');
-    } catch (error) {
-      console.error('Error loading history:', error);
-      showError('Failed to load grade history');
-    } finally {
-      setLoading(false);
     }
   };
 

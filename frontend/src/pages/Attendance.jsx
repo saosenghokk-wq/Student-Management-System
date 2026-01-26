@@ -85,6 +85,28 @@ export default function Attendance() {
     }
   }, [selectedEnrollment, attendanceDate, showError]);
 
+  const loadClassHistory = useCallback(async () => {
+    if (!selectedEnrollment) return;
+    
+    try {
+      setLoading(true);
+      const filters = {
+        subject_enroll_id: selectedEnrollment.id
+      };
+      if (filterDateFrom) filters.date_from = filterDateFrom;
+      if (filterDateTo) filters.date_to = filterDateTo;
+      
+      const response = await api.getAttendanceByFilters(filters);
+      setAttendanceHistory(response.data || []);
+      setSubView('history');
+    } catch (error) {
+      console.error('Error loading history:', error);
+      showError('Failed to load attendance history');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedEnrollment, filterDateFrom, filterDateTo, showError]);
+
   useEffect(() => {
     if (selectedEnrollment) {
       loadClassStudents();
@@ -171,28 +193,6 @@ export default function Attendance() {
       };
     });
     setStudentAttendance(newAttendance);
-  };
-
-  const loadClassHistory = async () => {
-    if (!selectedEnrollment) return;
-    
-    try {
-      setLoading(true);
-      const filters = {
-        subject_enroll_id: selectedEnrollment.id
-      };
-      if (filterDateFrom) filters.date_from = filterDateFrom;
-      if (filterDateTo) filters.date_to = filterDateTo;
-      
-      const response = await api.getAttendanceByFilters(filters);
-      setAttendanceHistory(response.data || []);
-      setSubView('history');
-    } catch (error) {
-      console.error('Error loading history:', error);
-      showError('Failed to load attendance history');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleViewStudentDetails = (studentId) => {
