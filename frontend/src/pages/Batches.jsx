@@ -72,11 +72,10 @@ export default function Batches() {
         await api.updateBatch(editingId, form);
         showSuccess('Batch updated successfully');
       } else {
-        const newBatch = await api.createBatch(form);
-        setBatches(prev => [newBatch, ...prev]);
+        await api.createBatch(form);
         showSuccess('Batch created successfully');
       }
-      if (editingId) loadData();
+      loadData();
       closeModal();
     } catch (err) {
       showError(err.message || 'Operation failed');
