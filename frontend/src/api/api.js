@@ -98,8 +98,6 @@ export const api = {
   createDepartment: (payload) => request('/api/departments', { method: 'POST', body: payload }),
   updateDepartment: (id, payload) => request(`/api/departments/${id}`, { method: 'PUT', body: payload }),
   deleteDepartment: (id) => request(`/api/departments/${id}`, { method: 'DELETE' }),
-  // Staff (minimal for selecting head)
-  getStaff: () => request('/api/staff'),
   // Teachers
   getTeachers: () => request('/api/teachers'),
   getTeacher: (id) => request(`/api/teachers/${id}`),
@@ -161,12 +159,6 @@ export const api = {
   createAdmission: (payload) => request('/api/admissions', { method: 'POST', body: payload }),
   updateAdmission: (id, payload) => request(`/api/admissions/${id}`, { method: 'PUT', body: payload }),
   deleteAdmission: (id) => request(`/api/admissions/${id}`, { method: 'DELETE' }),
-  // Staff
-  getAllStaff: () => request('/api/staff'),
-  getStaffMember: (id) => request(`/api/staff/${id}`),
-  createStaff: (payload) => request('/api/staff', { method: 'POST', body: payload }),
-  updateStaff: (id, payload) => request(`/api/staff/${id}`, { method: 'PUT', body: payload }),
-  deleteStaff: (id) => request(`/api/staff/${id}`, { method: 'DELETE' }),
   // Attendance
   getAllAttendance: () => request('/api/attendance'),
   getAttendance: (id) => request(`/api/attendance/${id}`),

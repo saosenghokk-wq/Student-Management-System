@@ -19,8 +19,6 @@ import Teachers from './pages/Teachers.jsx';
 import AddTeacher from './pages/AddTeacher.jsx';
 import Batches from './pages/Batches.jsx';
 import Admissions from './pages/Admissions.jsx';
-import Staff from './pages/Staff.jsx';
-import AddStaff from './pages/AddStaff.jsx';
 import Attendance from './pages/Attendance.jsx';
 import AttendanceDetail from './pages/AttendanceDetail.jsx';
 import Grades from './pages/Grades.jsx';
@@ -68,8 +66,6 @@ function App() {
         <Route path="/teachers/add" element={<RoleProtectedRoute><AddTeacher /></RoleProtectedRoute>} />
         <Route path="/batches" element={<RoleProtectedRoute><Batches /></RoleProtectedRoute>} />
         <Route path="/admissions" element={<RoleProtectedRoute><Admissions /></RoleProtectedRoute>} />
-        <Route path="/staff" element={<RoleProtectedRoute><Staff /></RoleProtectedRoute>} />
-        <Route path="/staff/add" element={<RoleProtectedRoute><AddStaff /></RoleProtectedRoute>} />
         <Route path="/attendance" element={<RoleProtectedRoute><Attendance /></RoleProtectedRoute>} />
         <Route path="/attendance/student/:studentId" element={<RoleProtectedRoute><AttendanceDetail /></RoleProtectedRoute>} />
         <Route path="/grades" element={<RoleProtectedRoute><Grades /></RoleProtectedRoute>} />
